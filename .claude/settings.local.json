@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Users\\\\HYPE FLEX\\\\keuangan-direktorat\\\\src\\\\app\\\\api\\\\setup\" -Force)",
+      "PowerShell(cd \"c:\\\\Users\\\\HYPE FLEX\\\\keuangan-direktorat\"; Start-Process -FilePath \"powershell\" -ArgumentList \"-Command\", \"npm run dev\" -WindowStyle Hidden; Write-Output \"Dev server starting...\")",
+      "PowerShell(try { $r = Invoke-RestMethod -Method POST -Uri \"http://localhost:3000/api/setup\" -TimeoutSec 20; $r | ConvertTo-Json } catch { \"Error: $_\" })",
+      "PowerShell(Start-Sleep -Seconds 8; try { $r = Invoke-WebRequest -Method POST -Uri \"http://localhost:3000/api/setup\" -TimeoutSec 30 -ContentType \"application/json\"; Write-Output \"Status: $\\($r.StatusCode\\)\"; $r.Content } catch { \"Error: $_\" })",
+      "PowerShell(Start-Sleep -Seconds 5; try { $r = Invoke-WebRequest -Method POST -Uri \"http://localhost:3000/api/setup\" -TimeoutSec 30 -UseBasicParsing; Write-Output \"Status: $\\($r.StatusCode\\)\"; $r.Content } catch { Write-Output \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force -Confirm:$false)",
+      "PowerShell(cd \"c:\\\\Users\\\\HYPE FLEX\\\\keuangan-direktorat\"; Start-Job -ScriptBlock { cd \"c:\\\\Users\\\\HYPE FLEX\\\\keuangan-direktorat\"; npm run dev 2>&1 } -Name \"nextdev\" | Out-Null; Write-Output \"Dev server job started\")",
+      "PowerShell(Receive-Job -Name \"nextdev\" -Keep)"
+    ]
+  }
+}

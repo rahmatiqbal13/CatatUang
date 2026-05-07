@@ -1,0 +1,600 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   SPORTS THEME - Professional & Modern Design System
+   Energetic, Dynamic, Athletic Aesthetic
+   ========================================================================== */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  
+  /* Sports Theme Additional Colors */
+  --color-sport-blue: var(--sport-blue);
+  --color-sport-orange: var(--sport-orange);
+  --color-sport-green: var(--sport-green);
+  --color-sport-red: var(--sport-red);
+  --color-sport-yellow: var(--sport-yellow);
+  --color-sport-purple: var(--sport-purple);
+  --color-sport-cyan: var(--sport-cyan);
+  --color-sport-dark: var(--sport-dark);
+  --color-sport-gray: var(--sport-gray);
+  --color-sport-light: var(--sport-light);
+}
+
+:root {
+  /* ==========================================================================
+     SPORTS PALETTE - Energetic & Professional
+     ========================================================================== */
+  
+  /* Primary: Deep Athletic Blue */
+  --primary: #0066FF;
+  --primary-foreground: #FFFFFF;
+  
+  /* Secondary: Dynamic Orange */
+  --secondary: #FF6B35;
+  --secondary-foreground: #FFFFFF;
+  
+  /* Accent: Electric Cyan */
+  --accent: #00D4AA;
+  --accent-foreground: #FFFFFF;
+  
+  /* Background: Clean White with subtle texture */
+  --background: #FAFBFC;
+  --foreground: #1A1D2D;
+  
+  /* Cards: Pure White for elevation */
+  --card: #FFFFFF;
+  --card-foreground: #1A1D2D;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1D2D;
+  
+  /* Muted: Soft Gray */
+  --muted: #F1F3F5;
+  --muted-foreground: #6B7280;
+  
+  /* Border: Light Gray */
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #0066FF;
+  
+  /* Destructive: Sports Red */
+  --destructive: #FF3333;
+  
+  /* Sidebar: Dark Athletic */
+  --sidebar: #1A1D2D;
+  --sidebar-foreground: #F9FAFB;
+  --sidebar-primary: #0066FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2D3142;
+  --sidebar-accent-foreground: #F9FAFB;
+  --sidebar-border: #2D3142;
+  --sidebar-ring: #0066FF;
+  
+  /* Charts - Sports Team Colors */
+  --chart-1: #0066FF; /* Blue */
+  --chart-2: #FF6B35; /* Orange */
+  --chart-3: #00D4AA; /* Green */
+  --chart-4: #FFD700; /* Gold */
+  --chart-5: #9B59B6; /* Purple */
+  
+  /* Radius - Slightly more rounded for modern feel */
+  --radius: 0.75rem;
+  
+  /* Sports Theme Extended Colors */
+  --sport-blue: #0066FF;
+  --sport-blue-light: #4D94FF;
+  --sport-blue-dark: #0047B3;
+  --sport-orange: #FF6B35;
+  --sport-orange-light: #FF8F6B;
+  --sport-orange-dark: #E55A2B;
+  --sport-green: #00D4AA;
+  --sport-green-light: #4DE5C7;
+  --sport-green-dark: #00A885;
+  --sport-red: #FF3333;
+  --sport-red-light: #FF6666;
+  --sport-red-dark: #CC2929;
+  --sport-yellow: #FFD700;
+  --sport-yellow-light: #FFE44D;
+  --sport-yellow-dark: #CCAC00;
+  --sport-purple: #9B59B6;
+  --sport-cyan: #00D4FF;
+  --sport-dark: #1A1D2D;
+  --sport-gray: #6B7280;
+  --sport-light: #F1F3F5;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #0066FF 0%, #4D94FF 100%);
+  --gradient-secondary: linear-gradient(135deg, #FF6B35 0%, #FF8F6B 100%);
+  --gradient-accent: linear-gradient(135deg, #00D4AA 0%, #4DE5C7 100%);
+  --gradient-dark: linear-gradient(135deg, #1A1D2D 0%, #2D3142 100%);
+  --gradient-card: linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%);
+  --gradient-stat: linear-gradient(135deg, #0066FF 0%, #00D4AA 100%);
+}
+
+.dark {
+  --background: #0F1117;
+  --foreground: #F9FAFB;
+  --card: #1A1D2D;
+  --card-foreground: #F9FAFB;
+  --popover: #1A1D2D;
+  --popover-foreground: #F9FAFB;
+  --primary: #4D94FF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FF8F6B;
+  --secondary-foreground: #FFFFFF;
+  --muted: #2D3142;
+  --muted-foreground: #9CA3AF;
+  --accent: #4DE5C7;
+  --accent-foreground: #1A1D2D;
+  --destructive: #FF6666;
+  --border: #2D3142;
+  --input: #2D3142;
+  --ring: #4D94FF;
+  --sidebar: #0F1117;
+  --sidebar-foreground: #F9FAFB;
+  --sidebar-primary: #4D94FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1A1D2D;
+  --sidebar-accent-foreground: #F9FAFB;
+  --sidebar-border: #1A1D2D;
+  --sidebar-ring: #4D94FF;
+  --chart-1: #4D94FF;
+  --chart-2: #FF8F6B;
+  --chart-3: #4DE5C7;
+  --chart-4: #FFE44D;
+  --chart-5: #B794F6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  
+  /* Selection styling */
+  ::selection {
+    background: rgba(0, 102, 255, 0.2);
+    color: var(--primary);
+  }
+}
+
+@layer components {
+  /* Sports Card Component */
+  .sport-card {
+    @apply bg-white rounded-xl shadow-sm border border-slate-200/60;
+    @apply hover:shadow-lg hover:border-blue-200;
+    @apply transition-all duration-300 ease-out;
+    background: var(--gradient-card);
+  }
+  
+  .sport-card-hover {
+    @apply hover:-translate-y-0.5;
+  }
+  
+  /* Sports Button Variants */
+  .sport-btn {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+  
+  .sport-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .sport-btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.25);
+  }
+  
+  .sport-btn-primary:hover {
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.3);
+  }
+  
+  .sport-btn-secondary {
+    background: var(--gradient-secondary);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.25);
+  }
+  
+  .sport-btn-secondary:hover {
+    box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.3);
+  }
+  
+  .sport-btn-accent {
+    background: var(--gradient-accent);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.25);
+  }
+  
+  .sport-btn-accent:hover {
+    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.3);
+  }
+  
+  /* Sports Stat Card */
+  .sport-stat {
+    @apply relative overflow-hidden;
+    @apply bg-white rounded-2xl p-6;
+    @apply border border-slate-200/60;
+    @apply transition-all duration-300;
+  }
+  
+  .sport-stat::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1 h-full;
+    background: var(--gradient-stat);
+  }
+  
+  .sport-stat:hover {
+    @apply shadow-lg border-blue-200;
+    @apply -translate-y-0.5;
+  }
+  
+  /* Sports Badge */
+  .sport-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide uppercase;
+  }
+  
+  .sport-badge-blue {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+  
+  .sport-badge-orange {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: #ffedd5;
+    color: #c2410c;
+  }
+  
+  .sport-badge-green {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: #d1fae5;
+    color: #047857;
+  }
+  
+  .sport-badge-red {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+  
+  .sport-badge-gold {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: #fef3c7;
+    color: #b45309;
+  }
+  
+  /* Sports Progress Bar */
+  .sport-progress {
+    @apply h-2 rounded-full overflow-hidden bg-slate-200;
+  }
+  
+  .sport-progress-bar {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+    background: var(--gradient-stat);
+  }
+  
+  /* Sports Table */
+  .sport-table {
+    @apply w-full border-collapse;
+  }
+  
+  .sport-table th {
+    @apply text-left py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500;
+    @apply bg-slate-50/80 border-b-2 border-slate-200;
+  }
+  
+  .sport-table td {
+    @apply py-4 px-4 border-b border-slate-100;
+    @apply transition-colors duration-200;
+  }
+  
+  .sport-table tr:hover td {
+    @apply bg-blue-50/50;
+  }
+  
+  /* Sports Input */
+  .sport-input {
+    @apply bg-slate-50 border-slate-200 rounded-lg;
+    @apply focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20;
+    @apply transition-all duration-200;
+  }
+  
+  /* Sports Header */
+  .sport-header {
+    @apply text-2xl font-bold text-slate-900 tracking-tight;
+    @apply bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent;
+  }
+  
+  /* Sports Section Title */
+  .sport-section-title {
+    @apply text-sm font-bold uppercase tracking-widest text-slate-400;
+  }
+  
+  /* Sports Gradient Text */
+  .sport-gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Sports Divider */
+  .sport-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent;
+  }
+  
+  /* Sports Icon Container */
+  .sport-icon-box {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+    @apply bg-gradient-to-br from-blue-500 to-blue-600;
+    @apply text-white shadow-lg shadow-blue-500/30;
+  }
+  
+  .sport-icon-box-orange {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom right, #f97316, #ea580c);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+  }
+  
+  .sport-icon-box-green {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom right, #10b981, #059669);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+  }
+  
+  /* Sports Sidebar */
+  .sport-sidebar {
+    @apply bg-slate-900 text-white;
+  }
+  
+  .sport-sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg;
+    @apply text-slate-400 hover:text-white hover:bg-white/10;
+    @apply transition-all duration-200;
+  }
+  
+  .sport-sidebar-item.active {
+    @apply text-white bg-blue-600;
+    @apply shadow-lg shadow-blue-600/30;
+  }
+  
+  /* Sports Animation */
+  .sport-pulse {
+    animation: sport-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes sport-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  /* Sports Shine Effect */
+  .sport-shine {
+    @apply relative overflow-hidden;
+  }
+  
+  .sport-shine::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.2) 45%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.2) 55%,
+      transparent 60%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  
+  .sport-shine:hover::after {
+    transform: translateX(100%);
+  }
+}
+
+@layer utilities {
+  /* Text shadow for better readability on gradients */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl;
+    @apply border border-white/20;
+  }
+  
+  /* Gradient borders */
+  .gradient-border {
+    position: relative;
+    background: white;
+    border-radius: var(--radius);
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: var(--gradient-primary);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+/* Animation Keyframes */
+@keyframes fade-in {
+  from { 
+    opacity: 0; 
+    transform: translateY(8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slide-in-right {
+  from { 
+    opacity: 0; 
+    transform: translateX(-12px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes scale-in {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
