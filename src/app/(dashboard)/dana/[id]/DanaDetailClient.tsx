@@ -144,8 +144,8 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
 
   // Handler untuk tambah dana masuk
   async function handleTambahDana() {
-    if (!tambahDanaForm.jumlah || !tambahDanaForm.tanggal) {
-      toast.error('Jumlah dan tanggal wajib diisi'); return
+    if (!tambahDanaForm.uraian || !tambahDanaForm.jumlah || !tambahDanaForm.tanggal) {
+      toast.error('Uraian, jumlah dan tanggal wajib diisi'); return
     }
     
     const tambahanJumlah = parseFloat(tambahDanaForm.jumlah)
@@ -175,7 +175,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
     try {
       await supabase.from('activity_logs').insert({
         aksi: 'TAMBAH_DANA',
-        keterangan: `Menambah dana masuk ${dana.nama_dana}: ${fmtCompact(tambahanJumlah)}. Total: ${fmtCompact(newJumlah)}`,
+        keterangan: `${tambahDanaForm.uraian}: ${fmtCompact(tambahanJumlah)}. Total: ${fmtCompact(newJumlah)}`,
         entity_type: 'dana_masuk',
         entity_id: dana.id,
         created_at: new Date().toISOString()
@@ -257,10 +257,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
 
       <div className="cu-page">
         {/* KPI strip */}
-        <div
-          className="cu-card overflow-hidden"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
-        >
+        <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
           {[
             { label: 'Total Dana', value: fmtCompact(Number(dana.jumlah)), full: formatRupiah(Number(dana.jumlah)), accent: 'var(--cu-primary)' },
             { label: 'Terpakai', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), accent: 'var(--cu-warning)' },
@@ -270,7 +267,6 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
             <div
               key={kpi.label}
               className="px-4 py-3"
-              style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] font-medium uppercase tracking-[0.03em]" style={{ color: 'var(--cu-text-muted)' }}>
@@ -355,6 +351,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
               Tidak ada pengeluaran
             </div>
           ) : (
+            <div className="cu-table-wrap">
             <table className="cu-table">
               <thead>
                 <tr>
@@ -452,6 +449,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 
@@ -628,41 +626,50 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
 
       {/* Tambah Dana Masuk Dialog */}
       <Dialog open={openTambahDana} onOpenChange={setOpenTambahDana}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" style={{ background: '#fff' }}>
           <DialogHeader>
-            <DialogTitle className="text-[14px]">Tambah Dana Masuk - {dana.nama_dana}</DialogTitle>
+            <DialogTitle className="text-[15px] font-semibold">Tambah Dana Masuk</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
-            <div className="px-3 py-2 rounded-[5px]" style={{ background: 'var(--cu-surface-2)' }}>
-              <div className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>Saldo Saat Ini</div>
-              <div className="cu-mono text-[16px] font-semibold" style={{ color: 'var(--cu-text)' }}>
-                {formatRupiah(Number(dana.jumlah))}
-              </div>
-            </div>
             <div>
               <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                Jumlah Tambahan <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                Uraian <span style={{ color: 'var(--cu-danger)' }}>*</span>
               </label>
               <input
-                type="number"
-                placeholder="0"
-                value={tambahDanaForm.jumlah}
-                onChange={e => setTambahDanaForm(f => ({ ...f, jumlah: e.target.value }))}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none cu-mono"
-                style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
-              />
-            </div>
-            <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                Tanggal <span style={{ color: 'var(--cu-danger)' }}>*</span>
-              </label>
-              <input
-                type="date"
-                value={tambahDanaForm.tanggal}
-                onChange={e => setTambahDanaForm(f => ({ ...f, tanggal: e.target.value }))}
+                type="text"
+                placeholder="Deskripsi dana masuk"
+                value={tambahDanaForm.uraian}
+                onChange={e => setTambahDanaForm(f => ({ ...f, uraian: e.target.value }))}
                 className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
                 style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                  Jumlah <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={tambahDanaForm.jumlah}
+                  onChange={e => setTambahDanaForm(f => ({ ...f, jumlah: e.target.value }))}
+                  className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none cu-mono"
+                  style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                  Tanggal <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                </label>
+                <input
+                  type="date"
+                  value={tambahDanaForm.tanggal}
+                  onChange={e => setTambahDanaForm(f => ({ ...f, tanggal: e.target.value }))}
+                  className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                  style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                />
+              </div>
             </div>
             <div>
               <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
@@ -677,8 +684,11 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
                 style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
               />
             </div>
+            <div className="px-3 py-2 rounded-[5px] mt-2" style={{ background: 'var(--cu-surface-2)' }}>
+              <div className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>Saldo Saat Ini: {formatRupiah(Number(dana.jumlah))}</div>
+            </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <button
               onClick={() => setOpenTambahDana(false)}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
@@ -690,9 +700,9 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
               onClick={handleTambahDana}
               disabled={savingDana}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--cu-success)', color: '#fff' }}
+              style={{ background: 'var(--cu-primary)', color: '#fff' }}
             >
-              {savingDana ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Tambah Dana'}
+              {savingDana ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Simpan'}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -143,7 +143,7 @@ export default async function DashboardPage() {
 
       <div className="cu-page">
         {/* KPI strip */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <KpiCard
             label="Total Dana Masuk"
             value={fmtCompact(totalDana)}
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Main row: dana table + pending panel */}
-        <div className="grid gap-3" style={{ gridTemplateColumns: '1.6fr 1fr' }}>
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-[1.6fr_1fr]">
           {/* Dana table */}
           <div className="cu-card overflow-hidden">
             <div
@@ -201,6 +201,7 @@ export default async function DashboardPage() {
                 Belum ada dana masuk
               </div>
             ) : (
+              <div className="cu-table-wrap">
               <table className="cu-table">
                 <thead>
                   <tr>
@@ -274,6 +275,7 @@ export default async function DashboardPage() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
 
@@ -350,10 +352,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats strip */}
-        <div
-          className="cu-card overflow-hidden"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
-        >
+        <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
           {[
             { label: 'Total Dana', value: String(danas.length), sub: 'sumber dana aktif' },
             { label: 'Transaksi', value: String(pengeluarans.length), sub: 'semua status' },
@@ -363,7 +362,6 @@ export default async function DashboardPage() {
             <div
               key={i}
               className="px-4 py-3"
-              style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}
             >
               <div
                 className="text-[11px] font-medium uppercase tracking-[0.02em]"

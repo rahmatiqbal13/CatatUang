@@ -43,16 +43,38 @@ export function Sidebar({ namaDirektorat = 'Keuangan Direktorat' }: SidebarProps
 
   useEffect(() => {
     async function fetchUserProfile() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('nama, role')
-          .eq('id', user.id)
-          .single()
-        if (data) {
-          setProfile(data)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          // Try to get profile from profiles table
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('nama, role')
+            .eq('id', user.id)
+            .single()
+          
+          if (data && !error) {
+            setProfile(data)
+          } else {
+            // Fallback: use email from auth user
+            const emailName = user.email?.split('@')[0] || 'Admin'
+            const formattedName = emailName
+              .split('.')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+            setProfile({
+              nama: formattedName,
+              role: 'super_admin'
+            })
+          }
         }
+      } catch (err) {
+        console.error('Error fetching profile:', err)
+        // Fallback to default
+        setProfile({
+          nama: 'Administrator',
+          role: 'super_admin'
+        })
       }
       setLoading(false)
     }

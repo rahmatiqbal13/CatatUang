@@ -386,3 +386,52 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─── Responsive stats strip (4-col desktop, 2-col mobile) ─── */
+.cu-stats-strip > * {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+/* Mobile 2-col: remove right border on every 2nd cell */
+.cu-stats-strip > *:nth-child(2n) { border-right: none; }
+/* Remove bottom border on last row (items 3 and 4) */
+.cu-stats-strip > *:nth-child(n+3) { border-bottom: none; }
+
+@media (min-width: 768px) {
+  /* Desktop 4-col: restore right borders, remove bottom borders */
+  .cu-stats-strip > * { border-bottom: none; }
+  .cu-stats-strip > *:nth-child(2n) { border-right: 1px solid var(--border); }
+  .cu-stats-strip > *:last-child { border-right: none; }
+}
+
+/* ─── Table scroll wrapper ───────────────────────────────────── */
+.cu-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Mobile responsive ──────────────────────────────────────── */
+@media (max-width: 767px) {
+  .cu-topbar {
+    height: auto;
+    min-height: var(--topbar-h);
+    padding: 0.625rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .cu-page {
+    padding: 0.875rem 1rem;
+    gap: 0.875rem;
+  }
+
+  /* Tables need minimum width so columns don't collapse */
+  .cu-table {
+    min-width: 540px;
+  }
+
+  /* Stats grids: 2 columns on mobile */
+  .cu-grid-kpi {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

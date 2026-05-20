@@ -150,17 +150,14 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
 
       <div className="cu-page">
         {/* Summary strip */}
-        <div
-          className="cu-card overflow-hidden"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
-        >
+        <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
           {[
             { label: 'Total Alokasi', value: fmtCompact(totalAlokasi), sub: `${danaList.length} dana aktif` },
             { label: 'Realisasi', value: fmtCompact(totalKeluar), sub: `${totalAlokasi > 0 ? ((totalKeluar / totalAlokasi) * 100).toFixed(1) : 0}% dari alokasi` },
             { label: 'Sisa Saldo', value: fmtCompact(totalSisa), sub: 'tersedia' },
             { label: 'Dana Terbanyak', value: danaList[0]?.sumber ?? '—', sub: danaList[0]?.nama_dana ?? '' },
           ].map((s, i) => (
-            <div key={i} className="px-4 py-3" style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
+            <div key={i} className="px-4 py-3">
               <div className="text-[11px] font-medium uppercase tracking-[0.02em]" style={{ color: 'var(--cu-text-muted)' }}>
                 {s.label}
               </div>
@@ -202,6 +199,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
             </div>
           ) : (
             <>
+              <div className="cu-table-wrap">
               <table className="cu-table">
                 <thead>
                   <tr>
@@ -304,6 +302,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
                   })}
                 </tbody>
               </table>
+              </div>
               <div
                 className="flex items-center justify-between px-4 py-2.5"
                 style={{ borderTop: '1px solid var(--border)', background: 'var(--cu-surface)' }}

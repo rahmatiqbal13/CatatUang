@@ -228,6 +228,7 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: P
             </div>
           ) : (
             <>
+              <div className="cu-table-wrap">
               <table className="cu-table">
                 <thead>
                   <tr>
@@ -336,6 +337,7 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: P
                   ))}
                 </tbody>
               </table>
+              </div>
               <div
                 className="flex items-center justify-between px-4 py-2.5"
                 style={{ borderTop: '1px solid var(--border)', background: 'var(--cu-surface)' }}

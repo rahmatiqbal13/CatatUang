@@ -251,7 +251,7 @@ export function MasterDataClient({ kategoriList, sumberList }: Props) {
       </div>
 
       <div className="cu-page">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <MasterList
             title="Kategori Pengeluaran"
             items={kategoriList}

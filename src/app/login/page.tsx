@@ -28,10 +28,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: 'var(--background)' }}>
       {/* Left — form */}
       <div
-        className="w-[420px] shrink-0 flex flex-col justify-center px-12"
+        className="w-full md:w-[420px] md:shrink-0 flex flex-col justify-center px-6 md:px-12 py-12 md:py-0"
         style={{ borderRight: '1px solid var(--border)' }}
       >
         {/* Logo */}
@@ -149,9 +149,9 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Right — preview panel */}
+      {/* Right — preview panel (hidden on mobile) */}
       <div
-        className="flex-1 relative overflow-hidden flex flex-col"
+        className="hidden md:flex flex-1 relative overflow-hidden flex-col"
         style={{ background: 'var(--cu-surface)' }}
       >
         {/* Grid pattern */}

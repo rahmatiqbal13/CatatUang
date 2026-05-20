@@ -199,10 +199,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
         </div>
 
         {/* KPI strip */}
-        <div
-          className="cu-card overflow-hidden"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
-        >
+        <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
           {[
             { label: 'Total Dana', value: fmtCompact(totalDana), full: formatRupiah(totalDana), accent: 'var(--cu-primary)' },
             { label: 'Realisasi', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), accent: 'var(--cu-warning)' },
@@ -212,7 +209,6 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
             <div
               key={kpi.label}
               className="px-4 py-3"
-              style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] font-medium uppercase tracking-[0.03em]" style={{ color: 'var(--cu-text-muted)' }}>
@@ -244,6 +240,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                 Penggunaan dana per sumber
               </div>
             </div>
+            <div className="cu-table-wrap">
             <table className="cu-table">
               <thead>
                 <tr>
@@ -307,6 +304,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -332,6 +330,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
             </div>
           ) : (
             <>
+              <div className="cu-table-wrap">
               <table className="cu-table">
                 <thead>
                   <tr>
@@ -392,6 +391,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                   </tr>
                 </tbody>
               </table>
+              </div>
 
               {/* Pagination */}
               <div
