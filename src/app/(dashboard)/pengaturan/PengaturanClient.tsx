@@ -3,13 +3,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Loader2, Save, Building2, DollarSign } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 type Props = { settingsMap: Record<string, string> }
 
@@ -39,57 +35,103 @@ export function PengaturanClient({ settingsMap }: Props) {
   }
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Pengaturan</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Konfigurasi sistem keuangan direktorat</p>
+    <div className="animate-fade-in">
+      {/* Topbar */}
+      <div className="cu-topbar">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
+            Pengaturan
+          </h1>
+          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
+            Konfigurasi sistem keuangan direktorat
+          </div>
+        </div>
       </div>
 
-      {/* Identitas Sistem */}
-      <Card className="border-0 shadow-sm ring-1 ring-border">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-primary" />
+      <div className="cu-page max-w-xl">
+        {/* Identitas Direktorat */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="flex items-center gap-2 px-4 py-3"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
+            <div
+              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+              style={{ background: 'var(--cu-primary-soft)' }}
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+                <rect x="2" y="3" width="12" height="10" rx="1.5" />
+                <path d="M5 7h6M5 10h4" />
+              </svg>
             </div>
             <div>
-              <CardTitle className="text-base">Identitas Direktorat</CardTitle>
-              <CardDescription className="text-xs">Informasi yang tampil di sistem dan laporan PDF</CardDescription>
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Identitas Direktorat
+              </div>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Tampil di sidebar dan header laporan PDF
+              </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="nama">Nama Direktorat</Label>
-            <Input
-              id="nama"
-              placeholder="cth: Direktorat Kemahasiswaan"
-              value={namaDirektorat}
-              onChange={e => setNamaDirektorat(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">Nama ini muncul di header sidebar dan header PDF laporan</p>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Valuta */}
-      <Card className="border-0 shadow-sm ring-1 ring-border">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-primary" />
-            </div>
+          <div className="px-4 py-4">
             <div>
-              <CardTitle className="text-base">Valuta</CardTitle>
-              <CardDescription className="text-xs">Mata uang yang digunakan pada seluruh tampilan nominal</CardDescription>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Nama Direktorat
+              </label>
+              <input
+                type="text"
+                placeholder="cth: Direktorat Kemahasiswaan"
+                value={namaDirektorat}
+                onChange={e => setNamaDirektorat(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{
+                  background: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--cu-text)',
+                }}
+              />
+              <p className="text-[11px] mt-1.5" style={{ color: 'var(--cu-text-muted)' }}>
+                Nama ini muncul di header sidebar dan laporan PDF
+              </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1.5">
-            <Label>Mata Uang</Label>
+        </div>
+
+        {/* Valuta */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="flex items-center gap-2 px-4 py-3"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
+            <div
+              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+              style={{ background: 'var(--cu-primary-soft)' }}
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="8" cy="8" r="6" />
+                <path d="M8 4v1.5M8 10.5V12M6 6.5C6 5.7 6.9 5 8 5s2 .7 2 1.5-1 1.3-2 1.5-2 .8-2 1.5S6.9 11 8 11s2-.7 2-1.5" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Valuta
+              </div>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Mata uang yang digunakan pada seluruh tampilan nominal
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-4">
+            <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              Mata Uang
+            </label>
             <Select value={currency} onValueChange={v => setCurrency(v ?? 'IDR')}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger
+                className="h-[34px] text-[13px] rounded-[5px] w-52"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -101,13 +143,33 @@ export function PengaturanClient({ settingsMap }: Props) {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Button onClick={handleSave} disabled={saving} className="gap-2 w-full sm:w-auto">
-        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}
-      </Button>
+        {/* Save button */}
+        <div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 h-8 px-4 rounded-[5px] text-[13px] font-medium transition-opacity"
+            style={{
+              background: 'var(--cu-primary)',
+              color: '#ffffff',
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? (
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</>
+            ) : (
+              <>
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.5 13.5h11M8 2.5v9M4.5 8l3.5 3.5L11.5 8" />
+                </svg>
+                Simpan Pengaturan
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

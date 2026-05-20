@@ -9,7 +9,9 @@
       "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
       "PowerShell(Stop-Process -Force -Confirm:$false)",
       "PowerShell(cd \"c:\\\\Users\\\\HYPE FLEX\\\\keuangan-direktorat\"; Start-Job -ScriptBlock { cd \"c:\\\\Users\\\\HYPE FLEX\\\\keuangan-direktorat\"; npm run dev 2>&1 } -Name \"nextdev\" | Out-Null; Write-Output \"Dev server job started\")",
-      "PowerShell(Receive-Job -Name \"nextdev\" -Keep)"
+      "PowerShell(Receive-Job -Name \"nextdev\" -Keep)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(npx tsc *)"
     ]
   }
 }

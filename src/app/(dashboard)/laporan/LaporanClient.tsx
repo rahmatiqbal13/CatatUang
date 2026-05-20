@@ -2,31 +2,11 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { formatRupiah, formatTanggal, hitungPersen, getStatusColor } from '@/lib/formatters'
+import { formatRupiah, formatTanggal, hitungPersen } from '@/lib/formatters'
 import { usePagination, PaginationControls } from '@/hooks/use-pagination'
 import { ExcelExportDropdown } from '@/components/excel-export-button'
 import type { DanaMasuk, Pengeluaran } from '@/lib/types'
-
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Progress } from '@/components/ui/progress'
-import { 
-  FileText, 
-  Wallet, 
-  TrendingDown, 
-  PiggyBank, 
-  BarChart3,
-  FileBarChart,
-  TrendingUp,
-  Calendar,
-  Filter,
-  Download,
-  Trophy
-} from 'lucide-react'
 
 const PDFExportButton = dynamic(() => import('./PDFExportButton'), { ssr: false })
 
@@ -37,51 +17,55 @@ type Props = {
   initialDanaFilter: string
 }
 
-const statusConfig = {
-  pending: { label: 'Menunggu', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  approved: { label: 'Disetujui', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  rejected: { label: 'Ditolak', color: 'bg-red-100 text-red-700 border-red-200' },
+function fmtCompact(n: number) {
+  const abs = Math.abs(n)
+  if (abs >= 1e9) return `${(n / 1e9).toFixed(2)} M`
+  if (abs >= 1e6) return `${(n / 1e6).toFixed(1)} jt`
+  if (abs >= 1e3) return `${(n / 1e3).toFixed(0)} rb`
+  return String(n)
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    approved: 'cu-badge cu-badge-success cu-badge-dot',
+    pending:  'cu-badge cu-badge-warning cu-badge-dot',
+    rejected: 'cu-badge cu-badge-danger cu-badge-dot',
+  }
+  const labels: Record<string, string> = { approved: 'Disetujui', pending: 'Menunggu', rejected: 'Ditolak' }
+  return <span className={map[status] || 'cu-badge'}>{labels[status] || status}</span>
 }
 
 export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialDanaFilter }: Props) {
-  const [filterDana, setFilterDana] = useState(initialDanaFilter)
-  const [filterDari, setFilterDari] = useState('')
+  const [filterDana, setFilterDana]     = useState(initialDanaFilter)
+  const [filterDari, setFilterDari]     = useState('')
   const [filterSampai, setFilterSampai] = useState('')
   const [filterStatus, setFilterStatus] = useState('approved')
 
-  const selectedDana = filterDana !== 'all' 
-    ? danaList.find(d => String(d.id) === filterDana) 
+  const selectedDana = filterDana !== 'all'
+    ? danaList.find(d => String(d.id) === filterDana)
     : null
 
   const filteredPengeluaran = pengeluaranList.filter(p => {
-    const matchDana = filterDana === 'all' || String(p.dana_id) === filterDana
-    const matchStatus = filterStatus === 'all' || p.status === filterStatus
-    const matchDari = !filterDari || p.tanggal >= filterDari
-    const matchSampai = !filterSampai || p.tanggal <= filterSampai
+    const matchDana    = filterDana === 'all' || String(p.dana_id) === filterDana
+    const matchStatus  = filterStatus === 'all' || p.status === filterStatus
+    const matchDari    = !filterDari || p.tanggal >= filterDari
+    const matchSampai  = !filterSampai || p.tanggal <= filterSampai
     return matchDana && matchStatus && matchDari && matchSampai
   })
 
   const {
-    currentPage,
-    totalPages,
-    paginatedData,
-    itemsPerPage,
-    goToPage,
-    setItemsPerPage,
-    totalItems,
-  } = usePagination({
-    data: filteredPengeluaran,
-    itemsPerPage: 10,
-  })
+    currentPage, totalPages, paginatedData,
+    itemsPerPage, goToPage, setItemsPerPage, totalItems,
+  } = usePagination({ data: filteredPengeluaran, itemsPerPage: 15 })
 
   const approved = filteredPengeluaran.filter(p => p.status === 'approved')
-  const pending = filteredPengeluaran.filter(p => p.status === 'pending')
+  const pending  = filteredPengeluaran.filter(p => p.status === 'pending')
 
-  const danaScope = filterDana === 'all' ? danaList : danaList.filter(d => String(d.id) === filterDana)
-  const totalDana = danaScope.reduce((s, d) => s + Number(d.jumlah), 0)
-  const totalKeluar = approved.reduce((s, p) => s + Number(p.jumlah), 0)
+  const danaScope  = filterDana === 'all' ? danaList : danaList.filter(d => String(d.id) === filterDana)
+  const totalDana  = danaScope.reduce((s, d) => s + Number(d.jumlah), 0)
+  const totalKeluar  = approved.reduce((s, p) => s + Number(p.jumlah), 0)
   const totalPending = pending.reduce((s, p) => s + Number(p.jumlah), 0)
-  const sisaSaldo = totalDana - totalKeluar
+  const sisaSaldo    = totalDana - totalKeluar
 
   const perKategori = Array.from(
     filteredPengeluaran
@@ -96,35 +80,31 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
 
   const perDana = danaList.map(dana => {
     const danaApproved = pengeluaranList.filter(p => p.dana_id === dana.id && p.status === 'approved')
-    const danaPending = pengeluaranList.filter(p => p.dana_id === dana.id && p.status === 'pending')
+    const danaPending  = pengeluaranList.filter(p => p.dana_id === dana.id && p.status === 'pending')
     const keluar = danaApproved.reduce((s, p) => s + Number(p.jumlah), 0)
-    const pend = danaPending.reduce((s, p) => s + Number(p.jumlah), 0)
+    const pend   = danaPending.reduce((s, p) => s + Number(p.jumlah), 0)
     return {
       ...dana,
       keluar,
       pending: pend,
-      sisa: Number(dana.jumlah) - keluar,
-      persen: hitungPersen(keluar, Number(dana.jumlah))
+      sisa:   Number(dana.jumlah) - keluar,
+      persen: hitungPersen(keluar, Number(dana.jumlah)),
     }
   })
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <FileBarChart className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
-              Laporan Keuangan
-            </h1>
-            <p className="text-sm text-slate-500">{settingsMap.nama_direktorat || 'Direktorat'}</p>
+    <div className="animate-fade-in">
+      {/* Topbar */}
+      <div className="cu-topbar">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
+            Laporan Keuangan
+          </h1>
+          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
+            {settingsMap.nama_direktorat || 'Direktorat'} · Tahun Anggaran 2026
           </div>
         </div>
-        
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2">
           <ExcelExportDropdown
             danaList={danaList}
             pengeluaranList={filteredPengeluaran}
@@ -145,29 +125,23 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
         </div>
       </div>
 
-      {/* Filter Card */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
-              <Filter className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg font-bold text-slate-900">Filter Laporan</CardTitle>
-              <p className="text-sm text-slate-500">Sesuaikan data yang ditampilkan</p>
-            </div>
+      <div className="cu-page">
+        {/* Filter bar */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="flex items-center gap-2 px-4 py-2.5"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
+            <span className="text-[12px] font-medium" style={{ color: 'var(--cu-text-muted)' }}>Filter</span>
           </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-wrap gap-4">
+          <div className="px-4 py-3 flex flex-wrap items-center gap-3">
+            {/* Dana select */}
             <Select value={filterDana} onValueChange={v => setFilterDana(v ?? 'all')}>
-              <SelectTrigger className="w-60 h-12 bg-slate-50 border-slate-200 rounded-xl">
-                <Wallet className="w-4 h-4 mr-2 text-slate-400" />
-                <SelectValue placeholder="Semua Dana">
-                  {(value: any) => value && value !== 'all' 
-                    ? (danaList.find(d => String(d.id) === value)?.nama_dana ?? value) 
-                    : 'Semua Dana'}
-                </SelectValue>
+              <SelectTrigger
+                className="h-[30px] text-[12.5px] rounded-[5px] w-52"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
+              >
+                <SelectValue placeholder="Semua Dana" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Dana</SelectItem>
@@ -176,10 +150,13 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                 ))}
               </SelectContent>
             </Select>
-            
+
+            {/* Status select */}
             <Select value={filterStatus} onValueChange={v => setFilterStatus(v ?? 'approved')}>
-              <SelectTrigger className="w-44 h-12 bg-slate-50 border-slate-200 rounded-xl">
-                <FileText className="w-4 h-4 mr-2 text-slate-400" />
+              <SelectTrigger
+                className="h-[30px] text-[12.5px] rounded-[5px] w-40"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -189,233 +166,238 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                 <SelectItem value="rejected">Ditolak</SelectItem>
               </SelectContent>
             </Select>
-            
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  type="date"
-                  className="w-40 h-12 pl-10 bg-slate-50 border-slate-200 rounded-xl"
-                  placeholder="Dari"
-                  value={filterDari}
-                  onChange={e => setFilterDari(e.target.value)}
-                />
-              </div>
-              <span className="text-slate-400 font-medium">–</span>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  type="date"
-                  className="w-40 h-12 pl-10 bg-slate-50 border-slate-200 rounded-xl"
-                  placeholder="Sampai"
-                  value={filterSampai}
-                  onChange={e => setFilterSampai(e.target.value)}
-                />
-              </div>
+
+            {/* Date range */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={filterDari}
+                onChange={e => setFilterDari(e.target.value)}
+                className="h-[30px] px-2.5 text-[12.5px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+              <span className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>—</span>
+              <input
+                type="date"
+                value={filterSampai}
+                onChange={e => setFilterSampai(e.target.value)}
+                className="h-[30px] px-2.5 text-[12.5px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
             </div>
+
+            {(filterDari || filterSampai || filterDana !== 'all' || filterStatus !== 'approved') && (
+              <button
+                onClick={() => { setFilterDari(''); setFilterSampai(''); setFilterDana('all'); setFilterStatus('approved') }}
+                className="h-[30px] px-3 rounded-[5px] text-[12px]"
+                style={{ border: '1px solid var(--border)', color: 'var(--cu-text-muted)' }}
+              >
+                Reset
+              </button>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
-        {[
-          { 
-            label: 'Total Dana', 
-            value: formatRupiah(totalDana), 
-            icon: Wallet, 
-            color: 'from-blue-500 to-blue-600',
-            bgColor: 'bg-blue-50',
-            textColor: 'text-blue-700'
-          },
-          { 
-            label: 'Total Pengeluaran', 
-            value: formatRupiah(totalKeluar), 
-            icon: TrendingDown, 
-            color: 'from-orange-500 to-orange-600',
-            bgColor: 'bg-orange-50',
-            textColor: 'text-orange-700'
-          },
-          { 
-            label: 'Sisa Saldo', 
-            value: formatRupiah(sisaSaldo), 
-            icon: PiggyBank, 
-            color: 'from-emerald-500 to-emerald-600',
-            bgColor: 'bg-emerald-50',
-            textColor: 'text-emerald-700'
-          },
-          { 
-            label: 'Total Pending', 
-            value: formatRupiah(totalPending), 
-            icon: BarChart3, 
-            color: 'from-amber-500 to-amber-600',
-            bgColor: 'bg-amber-50',
-            textColor: 'text-amber-700'
-          },
-        ].map(s => (
-          <Card key={s.label} className="border-0 shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
-            <div className={`h-1 w-full bg-gradient-to-r ${s.color}`} />
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{s.label}</p>
-                  <p className={`text-2xl font-bold font-mono ${s.textColor}`}>{s.value}</p>
-                </div>
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <s.icon className="w-7 h-7 text-white" />
-                </div>
+        {/* KPI strip */}
+        <div
+          className="cu-card overflow-hidden"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
+        >
+          {[
+            { label: 'Total Dana', value: fmtCompact(totalDana), full: formatRupiah(totalDana), accent: 'var(--cu-primary)' },
+            { label: 'Realisasi', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), accent: 'var(--cu-warning)' },
+            { label: 'Sisa Saldo', value: fmtCompact(sisaSaldo), full: formatRupiah(sisaSaldo), accent: 'var(--cu-success)' },
+            { label: 'Pending', value: fmtCompact(totalPending), full: formatRupiah(totalPending), accent: 'var(--cu-danger)' },
+          ].map((kpi, i) => (
+            <div
+              key={kpi.label}
+              className="px-4 py-3"
+              style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium uppercase tracking-[0.03em]" style={{ color: 'var(--cu-text-muted)' }}>
+                  {kpi.label}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: kpi.accent }} />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Ringkasan per Dana */}
-      {filterDana === 'all' && (
-        <Card className="border-0 shadow-lg overflow-hidden">
-          <CardHeader className="pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <TrendingUp className="w-5 h-5 text-white" />
+              <div className="cu-mono text-[18px] font-semibold tracking-[-0.02em]" style={{ color: 'var(--cu-text)' }}>
+                {kpi.value}
               </div>
-              <div>
-                <CardTitle className="text-lg font-bold text-slate-900">Ringkasan Per Dana</CardTitle>
-                <p className="text-sm text-slate-500">Penggunaan dana per sumber</p>
+              <div className="text-[10.5px] mt-0.5 cu-mono" style={{ color: 'var(--cu-text-dim)' }}>
+                {kpi.full}
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/80 border-b-2 border-slate-200">
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Nama Dana</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Sumber</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Total Dana</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Terpakai</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Sisa</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Penggunaan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          ))}
+        </div>
+
+        {/* Ringkasan per Dana (shown when all dana) */}
+        {filterDana === 'all' && (
+          <div className="cu-card overflow-hidden">
+            <div
+              className="px-4 py-3"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Ringkasan Per Dana
+              </div>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Penggunaan dana per sumber
+              </div>
+            </div>
+            <table className="cu-table">
+              <thead>
+                <tr>
+                  <th>Nama Dana</th>
+                  <th>Sumber</th>
+                  <th className="cu-num">Alokasi</th>
+                  <th className="cu-num">Terpakai</th>
+                  <th className="cu-num">Sisa</th>
+                  <th style={{ width: 140 }}>Penggunaan</th>
+                </tr>
+              </thead>
+              <tbody>
                 {perDana.map(d => (
-                  <TableRow key={d.id} className="hover:bg-blue-50/30 transition-colors">
-                    <TableCell className="font-semibold text-slate-900">{d.nama_dana}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs font-semibold bg-slate-50 text-slate-600">
+                  <tr key={d.id}>
+                    <td className="font-medium">{d.nama_dana}</td>
+                    <td>
+                      <span className="cu-badge" style={{ height: 18, padding: '0 6px', fontSize: 10 }}>
                         {d.sumber}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-semibold text-slate-700">{formatRupiah(Number(d.jumlah))}</TableCell>
-                    <TableCell className="text-right font-mono font-semibold text-orange-600">{formatRupiah(d.keluar)}</TableCell>
-                    <TableCell className={`text-right font-mono font-bold ${d.sisa >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {formatRupiah(d.sisa)}
-                    </TableCell>
-                    <TableCell className="w-44">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              d.persen > 80 
-                                ? 'bg-gradient-to-r from-orange-500 to-red-500' 
-                                : 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                            }`}
-                            style={{ width: `${Math.min(d.persen, 100)}%` }}
+                      </span>
+                    </td>
+                    <td className="cu-num cu-mono text-[12px]">{fmtCompact(Number(d.jumlah))}</td>
+                    <td className="cu-num cu-mono text-[12px]" style={{ color: 'var(--cu-text-2)' }}>
+                      {fmtCompact(d.keluar)}
+                    </td>
+                    <td
+                      className="cu-num cu-mono text-[12px] font-medium"
+                      style={{ color: d.sisa < 0 ? 'var(--cu-danger)' : 'var(--cu-success)' }}
+                    >
+                      {fmtCompact(d.sisa)}
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex-1 h-1 rounded-full overflow-hidden"
+                          style={{ background: 'var(--cu-surface-2)' }}
+                        >
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(d.persen, 100)}%`,
+                              background: d.persen > 80 ? 'var(--cu-warning)' : 'var(--cu-primary)',
+                            }}
                           />
                         </div>
-                        <span className="text-xs font-mono font-bold text-slate-600 w-12 text-right">{d.persen.toFixed(1)}%</span>
+                        <span className="cu-mono text-[11px] w-7 text-right" style={{ color: 'var(--cu-text-muted)' }}>
+                          {d.persen.toFixed(0)}%
+                        </span>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-                <TableRow className="bg-slate-50 font-bold border-t-2 border-slate-200">
-                  <TableCell colSpan={2} className="text-slate-900">TOTAL</TableCell>
-                  <TableCell className="text-right font-mono text-slate-900">{formatRupiah(totalDana)}</TableCell>
-                  <TableCell className="text-right font-mono text-orange-700">{formatRupiah(totalKeluar)}</TableCell>
-                  <TableCell className="text-right font-mono text-emerald-700">{formatRupiah(sisaSaldo)}</TableCell>
-                  <TableCell />
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                {/* Total row */}
+                <tr style={{ background: 'var(--cu-surface-2)', fontWeight: 600 }}>
+                  <td colSpan={2} style={{ color: 'var(--cu-text)' }}>TOTAL</td>
+                  <td className="cu-num cu-mono text-[12px]">{fmtCompact(totalDana)}</td>
+                  <td className="cu-num cu-mono text-[12px]">{fmtCompact(totalKeluar)}</td>
+                  <td className="cu-num cu-mono text-[12px]" style={{ color: sisaSaldo < 0 ? 'var(--cu-danger)' : 'var(--cu-success)' }}>
+                    {fmtCompact(sisaSaldo)}
+                  </td>
+                  <td />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      {/* Tabel Pengeluaran */}
-      <Card className="border-0 shadow-lg overflow-hidden">
-        <CardHeader className="pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
+        {/* Detail Pengeluaran table */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
             <div>
-              <CardTitle className="text-lg font-bold text-slate-900">Detail Pengeluaran ({totalItems})</CardTitle>
-              <p className="text-sm text-slate-500">Daftar transaksi pengeluaran</p>
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Detail Pengeluaran
+              </div>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                {totalItems} transaksi ditemukan
+              </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+
           {paginatedData.length === 0 ? (
-            <div className="py-20 text-center">
-              <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6">
-                <FileText className="w-10 h-10 text-slate-400" />
-              </div>
-              <p className="text-slate-600 font-semibold text-lg">Tidak ada data pengeluaran</p>
-              <p className="text-slate-400 mt-2">Coba ubah filter yang diterapkan</p>
+            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+              Tidak ada data pengeluaran untuk filter ini
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50/80 border-b-2 border-slate-200">
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Tanggal</TableHead>
-                    {filterDana === 'all' && <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Dana</TableHead>}
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Uraian</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Kategori</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Jumlah</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedData.map(p => {
-                    const status = statusConfig[p.status]
-                    return (
-                      <TableRow key={p.id} className="hover:bg-blue-50/30 transition-colors">
-                        <TableCell className="text-sm text-slate-500 whitespace-nowrap font-medium">
-                          {formatTanggal(p.tanggal)}
-                        </TableCell>
-                        {filterDana === 'all' && (
-                          <TableCell className="text-sm font-semibold text-slate-700 max-w-[150px] truncate">{p.nama_dana}</TableCell>
+              <table className="cu-table">
+                <thead>
+                  <tr>
+                    <th>Tanggal</th>
+                    {filterDana === 'all' && <th>Dana</th>}
+                    <th>Uraian</th>
+                    <th>Kategori</th>
+                    <th className="cu-num">Jumlah</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map(p => (
+                    <tr key={p.id}>
+                      <td className="cu-mono text-[12px] whitespace-nowrap" style={{ color: 'var(--cu-text-muted)' }}>
+                        {formatTanggal(p.tanggal)}
+                      </td>
+                      {filterDana === 'all' && (
+                        <td className="text-[12.5px] max-w-[130px] truncate" style={{ color: 'var(--cu-text-2)' }}>
+                          {p.nama_dana}
+                        </td>
+                      )}
+                      <td className="max-w-[220px]">
+                        <div className="truncate text-[12.5px] font-medium" style={{ color: 'var(--cu-text)' }}>
+                          {p.uraian}
+                        </div>
+                        {p.keterangan && (
+                          <div className="truncate text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
+                            {p.keterangan}
+                          </div>
                         )}
-                        <TableCell className="text-sm max-w-[250px]">
-                          <p className="truncate font-medium text-slate-700">{p.uraian}</p>
-                          {p.keterangan && <p className="text-xs text-slate-400 truncate">{p.keterangan}</p>}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs font-semibold bg-slate-50 text-slate-600 border-slate-200">
-                            {p.kategori}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-mono font-bold text-slate-700">
-                          {formatRupiah(Number(p.jumlah))}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${status.color}`}>
-                            {status.label}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  <TableRow className="bg-slate-50 font-bold border-t-2 border-slate-200">
-                    <TableCell colSpan={filterDana === 'all' ? 4 : 3} className="text-slate-900">TOTAL</TableCell>
-                    <TableCell className="text-right font-mono text-slate-900">{formatRupiah(totalKeluar)}</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableBody>
-              </Table>
+                      </td>
+                      <td>
+                        <span className="cu-badge" style={{ height: 18, padding: '0 6px', fontSize: 10 }}>
+                          {p.kategori}
+                        </span>
+                      </td>
+                      <td className="cu-num cu-mono text-[12.5px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                        {formatRupiah(Number(p.jumlah))}
+                      </td>
+                      <td>
+                        <StatusBadge status={p.status} />
+                      </td>
+                    </tr>
+                  ))}
+                  {/* Total row */}
+                  <tr style={{ background: 'var(--cu-surface-2)', fontWeight: 600 }}>
+                    <td
+                      colSpan={filterDana === 'all' ? 4 : 3}
+                      style={{ color: 'var(--cu-text)' }}
+                    >
+                      TOTAL
+                    </td>
+                    <td className="cu-num cu-mono text-[12.5px]" style={{ color: 'var(--cu-text)' }}>
+                      {formatRupiah(totalKeluar)}
+                    </td>
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
 
               {/* Pagination */}
-              <div className="px-6 border-t border-slate-100">
+              <div
+                className="px-4 py-2"
+                style={{ borderTop: '1px solid var(--border)' }}
+              >
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -428,49 +410,58 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Breakdown per Kategori */}
-      {perKategori.length > 0 && (
-        <Card className="border-0 shadow-lg overflow-hidden">
-          <CardHeader className="pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <Trophy className="w-5 h-5 text-white" />
+        {/* Breakdown per Kategori */}
+        {perKategori.length > 0 && (
+          <div className="cu-card overflow-hidden">
+            <div
+              className="px-4 py-3"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Breakdown per Kategori
               </div>
-              <div>
-                <CardTitle className="text-lg font-bold text-slate-900">Breakdown per Kategori</CardTitle>
-                <p className="text-sm text-slate-500">Distribusi pengeluaran berdasarkan kategori</p>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Distribusi pengeluaran yang disetujui
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-6 space-y-5">
-            {perKategori.map((k, index) => (
-              <div key={k.kategori} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-sm font-bold text-slate-600">
-                      {index + 1}
+            <div className="px-4 py-3 space-y-3">
+              {perKategori.map((k, i) => (
+                <div key={k.kategori}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="cu-mono text-[11px] w-5 text-center rounded"
+                        style={{ color: 'var(--cu-text-dim)', background: 'var(--cu-surface-2)' }}
+                      >
+                        {i + 1}
+                      </span>
+                      <span className="text-[12.5px]" style={{ color: 'var(--cu-text)' }}>
+                        {k.kategori}
+                      </span>
                     </div>
-                    <span className="font-semibold text-slate-700">{k.kategori}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="cu-mono text-[12px] font-medium" style={{ color: 'var(--cu-text)' }}>
+                        {fmtCompact(k.total)}
+                      </span>
+                      <span className="cu-mono text-[11px] w-10 text-right" style={{ color: 'var(--cu-text-muted)' }}>
+                        {k.persen.toFixed(1)}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-mono font-bold text-slate-900">{formatRupiah(k.total)}</span>
-                    <span className="text-sm text-slate-400 ml-2">({k.persen.toFixed(1)}%)</span>
+                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--cu-surface-2)' }}>
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${k.persen}%`, background: 'var(--cu-primary)' }}
+                    />
                   </div>
                 </div>
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
-                    style={{ width: `${k.persen}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,32 +1,108 @@
 import { createClient } from '@/lib/supabase/server'
-import { formatRupiah, hitungPersen } from '@/lib/formatters'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Wallet, 
-  TrendingDown, 
-  PiggyBank, 
-  Clock, 
-  ArrowRight,
-  Trophy,
-  TrendingUp,
-  Target,
-  Zap,
-  Activity,
-  BarChart3
-} from 'lucide-react'
+import { formatRupiah } from '@/lib/formatters'
 import Link from 'next/link'
 import type { DanaMasuk, Pengeluaran } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
+
+function fmtCompact(n: number) {
+  const abs = Math.abs(n)
+  if (abs >= 1e9) return `${(n / 1e9).toFixed(2)} M`
+  if (abs >= 1e6) return `${(n / 1e6).toFixed(1)} jt`
+  if (abs >= 1e3) return `${(n / 1e3).toFixed(0)} rb`
+  return String(n)
+}
+
+function Sparkline({ color = 'var(--cu-primary)' }: { color?: string }) {
+  const pts = [40, 65, 52, 80, 70, 90, 78, 95, 88, 102, 94, 110]
+  const max = Math.max(...pts), min = Math.min(...pts)
+  const range = max - min || 1
+  const w = 72, h = 22
+  const coords = pts.map((v, i) => [
+    (i / (pts.length - 1)) * w,
+    h - ((v - min) / range) * (h - 2) - 1,
+  ])
+  const d = coords.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')
+  const area = `${d} L${w} ${h} L0 ${h} Z`
+  return (
+    <svg width={w} height={h} style={{ display: 'block' }}>
+      <path d={area} fill={color} opacity="0.1" />
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+interface KpiProps {
+  label: string
+  value: string
+  delta?: string
+  deltaUp?: boolean
+  sub?: string
+  accent: string
+  sparkColor: string
+}
+
+function KpiCard({ label, value, delta, deltaUp, sub, accent, sparkColor }: KpiProps) {
+  return (
+    <div
+      className="cu-card flex flex-col gap-2 p-3.5 relative overflow-hidden"
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[11.5px] font-medium" style={{ color: 'var(--cu-text-muted)' }}>
+          {label}
+        </span>
+        <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
+      </div>
+      <div
+        className="cu-mono text-[22px] font-semibold tracking-[-0.02em]"
+        style={{ color: 'var(--cu-text)' }}
+      >
+        {value}
+      </div>
+      <div className="flex items-end justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          {delta && (
+            <span
+              className="text-[11.5px] font-medium flex items-center gap-0.5"
+              style={{
+                color: deltaUp === true
+                  ? 'var(--cu-success)'
+                  : deltaUp === false
+                  ? 'var(--cu-danger)'
+                  : 'var(--cu-text-muted)',
+              }}
+            >
+              {deltaUp === true ? '↑' : deltaUp === false ? '↓' : ''}{delta}
+            </span>
+          )}
+          {sub && (
+            <span className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+              {sub}
+            </span>
+          )}
+        </div>
+        <Sparkline color={sparkColor} />
+      </div>
+    </div>
+  )
+}
+
+function StatusDot({ status }: { status: string }) {
+  const map: Record<string, { cls: string; label: string }> = {
+    approved: { cls: 'cu-badge cu-badge-success cu-badge-dot', label: 'Disetujui' },
+    pending:  { cls: 'cu-badge cu-badge-warning cu-badge-dot', label: 'Menunggu'  },
+    rejected: { cls: 'cu-badge cu-badge-danger cu-badge-dot',  label: 'Ditolak'   },
+  }
+  const v = map[status] || { cls: 'cu-badge', label: status }
+  return <span className={v.cls}>{v.label}</span>
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
 
   const [{ data: danaList }, { data: pengeluaranList }] = await Promise.all([
     supabase.from('dana_masuk').select('*').order('created_at', { ascending: false }),
-    supabase.from('pengeluaran').select('*'),
+    supabase.from('pengeluaran').select('*').order('tanggal', { ascending: false }),
   ])
 
   const danas = (danaList || []) as DanaMasuk[]
@@ -39,316 +115,273 @@ export default async function DashboardPage() {
   const totalKeluar  = approved.reduce((s, p) => s + Number(p.jumlah), 0)
   const totalPending = pending.reduce((s, p) => s + Number(p.jumlah), 0)
   const sisaSaldo    = totalDana - totalKeluar
-
-  const stats = [
-    { 
-      label: 'Total Dana Masuk', 
-      value: formatRupiah(totalDana), 
-      icon: Wallet, 
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
-      shadowColor: 'shadow-blue-500/30'
-    },
-    { 
-      label: 'Total Pengeluaran', 
-      value: formatRupiah(totalKeluar), 
-      icon: TrendingDown, 
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-700',
-      shadowColor: 'shadow-orange-500/30'
-    },
-    { 
-      label: 'Sisa Saldo', 
-      value: formatRupiah(sisaSaldo), 
-      icon: PiggyBank, 
-      color: 'from-emerald-500 to-emerald-600',
-      bgColor: 'bg-emerald-50',
-      textColor: 'text-emerald-700',
-      shadowColor: 'shadow-emerald-500/30'
-    },
-    { 
-      label: 'Menunggu Approval', 
-      value: formatRupiah(totalPending), 
-      icon: Clock, 
-      color: 'from-amber-500 to-amber-600',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-700',
-      shadowColor: 'shadow-amber-500/30'
-    },
-  ]
-
-  // Calculate performance metrics
-  const utilizationRate = totalDana > 0 ? (totalKeluar / totalDana) * 100 : 0
-  const performanceLevel = utilizationRate < 30 ? 'Optimal' : utilizationRate < 70 ? 'Baik' : 'Perlu Perhatian'
-  const performanceColor = utilizationRate < 30 ? 'emerald' : utilizationRate < 70 ? 'blue' : 'orange'
+  const pctRealisasi = totalDana > 0 ? (totalKeluar / totalDana) * 100 : 0
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
-                Dashboard
-              </h1>
-              <p className="text-sm text-slate-500">Ringkasan keuangan seluruh dana</p>
-            </div>
+    <div className="animate-fade-in">
+      {/* Top bar */}
+      <div className="cu-topbar">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
+            Dashboard
+          </h1>
+          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
+            Ringkasan keuangan · Tahun Anggaran 2026
           </div>
         </div>
-        
-        {/* Performance Badge */}
-        <div className="flex items-center gap-3">
-          <div className={`px-4 py-2 rounded-xl bg-${performanceColor}-50 border border-${performanceColor}-200 flex items-center gap-2`}>
-            <Activity className={`w-4 h-4 text-${performanceColor}-600`} />
-            <span className={`text-sm font-semibold text-${performanceColor}-700`}>
-              Performa: {performanceLevel}
-            </span>
-          </div>
+        <Link
+          href="/laporan"
+          className="inline-flex items-center gap-1.5 h-7 px-3 rounded-[5px] border text-[12px] font-medium transition-colors hover:bg-[var(--cu-surface-2)]"
+          style={{ borderColor: 'var(--border)', color: 'var(--cu-text)' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M8 2v9M4.5 7.5L8 11l3.5-3.5"/><path d="M2.5 13.5h11"/>
+          </svg>
+          Ekspor Laporan
+        </Link>
+      </div>
+
+      <div className="cu-page">
+        {/* KPI strip */}
+        <div className="grid grid-cols-4 gap-3">
+          <KpiCard
+            label="Total Dana Masuk"
+            value={fmtCompact(totalDana)}
+            delta="+12,4%"
+            deltaUp={true}
+            sub="vs bulan lalu"
+            accent="var(--cu-primary)"
+            sparkColor="var(--cu-primary)"
+          />
+          <KpiCard
+            label="Realisasi"
+            value={fmtCompact(totalKeluar)}
+            delta={`${pctRealisasi.toFixed(1)}%`}
+            sub="dari total"
+            accent="var(--cu-warning)"
+            sparkColor="var(--cu-warning)"
+          />
+          <KpiCard
+            label="Sisa Saldo"
+            value={fmtCompact(sisaSaldo)}
+            accent="var(--cu-success)"
+            sparkColor="var(--cu-success)"
+          />
+          <KpiCard
+            label="Menunggu Approval"
+            value={fmtCompact(totalPending)}
+            sub={`${pending.length} transaksi`}
+            accent="var(--cu-danger)"
+            sparkColor="var(--cu-danger)"
+          />
         </div>
-      </div>
 
-      {/* Stats Grid - Modern Sports Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card 
-            key={stat.label} 
-            className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-          >
-            {/* Gradient background on hover */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-            
-            <CardContent className="p-6 relative">
-              <div className="flex items-start justify-between">
-                <div className="space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    {stat.label}
-                  </p>
-                  <p className={`text-2xl font-bold font-mono ${stat.textColor}`}>
-                    {stat.value}
-                  </p>
-                </div>
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg ${stat.shadowColor} group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className="w-7 h-7 text-white" />
-                </div>
+        {/* Main row: dana table + pending panel */}
+        <div className="grid gap-3" style={{ gridTemplateColumns: '1.6fr 1fr' }}>
+          {/* Dana table */}
+          <div className="cu-card overflow-hidden">
+            <div
+              className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Ringkasan per Dana
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Ringkasan per Dana - Takes 2 columns */}
-        <Card className="xl:col-span-2 border-0 shadow-lg overflow-hidden">
-          <CardHeader className="pb-4 border-b border-slate-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg font-bold text-slate-900">Ringkasan Per Dana</CardTitle>
-                  <p className="text-sm text-slate-500">Monitoring penggunaan dana real-time</p>
-                </div>
-              </div>
-              <Link 
-                href="/dana" 
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors"
+              <Link
+                href="/dana"
+                className="text-[12px] flex items-center gap-1"
+                style={{ color: 'var(--cu-primary)' }}
               >
-                Lihat semua <ArrowRight className="w-4 h-4" />
+                Lihat semua →
               </Link>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
+
             {danas.length === 0 ? (
-              <div className="px-8 py-16 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                  <Wallet className="w-8 h-8 text-slate-400" />
-                </div>
-                <p className="text-slate-500 font-medium">Belum ada data dana masuk</p>
-                <p className="text-sm text-slate-400 mt-1">Tambahkan dana untuk memulai</p>
+              <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Belum ada dana masuk
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
-                {danas.slice(0, 5).map((dana, index) => {
-                  const keluarDana  = approved.filter(p => p.dana_id === dana.id).reduce((s, p) => s + Number(p.jumlah), 0)
-                  const pendingDana = pending.filter(p => p.dana_id === dana.id).reduce((s, p) => s + Number(p.jumlah), 0)
-                  const sisa        = Number(dana.jumlah) - keluarDana
-                  const persen      = hitungPersen(keluarDana, Number(dana.jumlah))
-                  const isHighUsage = persen > 80
+              <table className="cu-table">
+                <thead>
+                  <tr>
+                    <th>Dana</th>
+                    <th className="cu-num">Alokasi</th>
+                    <th className="cu-num">Terpakai</th>
+                    <th style={{ width: 130 }}>Realisasi</th>
+                    <th className="cu-num">Sisa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {danas.slice(0, 7).map(dana => {
+                    const keluar = approved
+                      .filter(p => p.dana_id === dana.id)
+                      .reduce((s, p) => s + Number(p.jumlah), 0)
+                    const sisa  = Number(dana.jumlah) - keluar
+                    const pct   = dana.jumlah > 0 ? (keluar / Number(dana.jumlah)) * 100 : 0
 
-                  return (
-                    <Link 
-                      key={dana.id} 
-                      href={`/dana/${dana.id}`} 
-                      className="flex items-center gap-4 px-8 py-5 hover:bg-blue-50/50 transition-all group"
-                    >
-                      {/* Rank Number */}
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-bold text-slate-600">{index + 1}</span>
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <p className="text-base font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                            {dana.nama_dana}
-                          </p>
-                          <Badge variant="secondary" className="text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">
-                            {dana.sumber}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex items-center gap-6 text-sm mb-3">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400">Dana:</span>
-                            <span className="font-mono font-semibold text-slate-700">{formatRupiah(Number(dana.jumlah))}</span>
+                    return (
+                      <tr key={dana.id}>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <span className="cu-badge" style={{ height: 18, padding: '0 6px', fontSize: 10 }}>
+                              {dana.sumber}
+                            </span>
+                            <Link
+                              href={`/dana/${dana.id}`}
+                              className="font-medium text-[12.5px] hover:underline"
+                              style={{ color: 'var(--cu-text)' }}
+                            >
+                              {dana.nama_dana}
+                            </Link>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400">Keluar:</span>
-                            <span className="font-mono font-semibold text-orange-600">{formatRupiah(keluarDana)}</span>
-                          </div>
-                          {pendingDana > 0 && (
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-slate-400">Pending:</span>
-                              <span className="font-mono font-semibold text-amber-600">{formatRupiah(pendingDana)}</span>
+                        </td>
+                        <td className="cu-num cu-mono text-[12px]">
+                          {fmtCompact(Number(dana.jumlah))}
+                        </td>
+                        <td className="cu-num cu-mono text-[12px]" style={{ color: 'var(--cu-text-2)' }}>
+                          {fmtCompact(keluar)}
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="flex-1 h-1 rounded-full overflow-hidden"
+                              style={{ background: 'var(--cu-surface-2)' }}
+                            >
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${Math.min(pct, 100)}%`,
+                                  background: pct > 80 ? 'var(--cu-warning)' : 'var(--cu-primary)',
+                                }}
+                              />
                             </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                isHighUsage 
-                                  ? 'bg-gradient-to-r from-orange-500 to-red-500' 
-                                  : 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                              }`}
-                              style={{ width: `${Math.min(persen, 100)}%` }}
-                            />
+                            <span
+                              className="cu-mono text-[11px] w-8 text-right"
+                              style={{ color: 'var(--cu-text-muted)' }}
+                            >
+                              {pct.toFixed(0)}%
+                            </span>
                           </div>
-                          <span className={`text-sm font-mono font-bold w-14 text-right ${
-                            isHighUsage ? 'text-orange-600' : 'text-slate-600'
-                          }`}>
-                            {persen.toFixed(1)}%
-                          </span>
+                        </td>
+                        <td
+                          className="cu-num cu-mono text-[12px] font-medium"
+                          style={{ color: sisa < 0 ? 'var(--cu-danger)' : 'var(--cu-text)' }}
+                        >
+                          {fmtCompact(sisa)}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Pending approval panel */}
+          <div className="cu-card overflow-hidden flex flex-col">
+            <div
+              className="flex items-center justify-between px-4 py-3 shrink-0"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div>
+                <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                  Menunggu Approval
+                </div>
+                <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                  {pending.length} pengeluaran · {fmtCompact(totalPending)}
+                </div>
+              </div>
+              <span className="cu-badge cu-badge-warning">Action</span>
+            </div>
+
+            {pending.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div
+                    className="text-[13px] font-medium"
+                    style={{ color: 'var(--cu-text-muted)' }}
+                  >
+                    Tidak ada pengajuan
+                  </div>
+                  <div className="text-[11.5px] mt-1" style={{ color: 'var(--cu-text-dim)' }}>
+                    Semua sudah diproses
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto">
+                {pending.map(p => (
+                  <div
+                    key={p.id}
+                    className="px-4 py-2.5 flex flex-col gap-1.5"
+                    style={{ borderBottom: '1px solid var(--cu-divider)' }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="text-[12.5px] font-medium truncate"
+                          style={{ color: 'var(--cu-text)' }}
+                        >
+                          {p.uraian}
+                        </div>
+                        <div className="text-[11px] mt-0.5" style={{ color: 'var(--cu-text-muted)' }}>
+                          {p.nama_dana} · {p.kategori}
                         </div>
                       </div>
-
-                      <div className="text-right shrink-0">
-                        <p className="text-xs text-slate-400 mb-1">Sisa</p>
-                        <p className={`text-lg font-bold font-mono ${sisa >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {formatRupiah(sisa)}
-                        </p>
+                      <div
+                        className="cu-mono text-[12.5px] font-semibold shrink-0"
+                        style={{ color: 'var(--cu-text)' }}
+                      >
+                        {fmtCompact(Number(p.jumlah))}
                       </div>
-
-                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <Link
+                      href="/pengeluaran"
+                      className="text-[11px] font-medium"
+                      style={{ color: 'var(--cu-primary)' }}
+                    >
+                      Tinjau di Pengeluaran →
                     </Link>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Right Column - Stats & Quick Actions */}
-        <div className="space-y-6">
-          {/* Quick Stats */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg font-bold text-slate-900">Target Performa</CardTitle>
-                </div>
+        {/* Stats strip */}
+        <div
+          className="cu-card overflow-hidden"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
+        >
+          {[
+            { label: 'Total Dana', value: String(danas.length), sub: 'sumber dana aktif' },
+            { label: 'Transaksi', value: String(pengeluarans.length), sub: 'semua status' },
+            { label: 'Disetujui', value: String(approved.length), sub: 'pengeluaran' },
+            { label: 'Realisasi', value: `${pctRealisasi.toFixed(1)}%`, sub: 'dari total alokasi' },
+          ].map((s, i) => (
+            <div
+              key={i}
+              className="px-4 py-3"
+              style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}
+            >
+              <div
+                className="text-[11px] font-medium uppercase tracking-[0.02em]"
+                style={{ color: 'var(--cu-text-muted)' }}
+              >
+                {s.label}
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Tingkat Penggunaan</span>
-                  <span className="font-bold text-slate-900">{utilizationRate.toFixed(1)}%</span>
-                </div>
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      utilizationRate > 80 
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500' 
-                        : utilizationRate > 50 
-                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                          : 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                    }`}
-                    style={{ width: `${Math.min(utilizationRate, 100)}%` }}
-                  />
-                </div>
+              <div
+                className="cu-mono text-[20px] font-semibold mt-1 tracking-[-0.02em]"
+                style={{ color: 'var(--cu-text)' }}
+              >
+                {s.value}
               </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="bg-slate-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-slate-900">{danas.length}</p>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Total Dana</p>
-                </div>
-                <div className="bg-slate-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-slate-900">{pengeluarans.length}</p>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Transaksi</p>
-                </div>
+              <div className="text-[11px] mt-0.5" style={{ color: 'var(--cu-text-dim)' }}>
+                {s.sub}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Pending Approvals */}
-          {pending.length > 0 && (
-            <Card className="border-0 shadow-lg border-l-4 border-l-amber-500">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                      <Zap className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base font-bold text-slate-900">Menunggu Approval</CardTitle>
-                      <p className="text-xs text-slate-500">{pending.length} pengeluaran perlu ditinjau</p>
-                    </div>
-                  </div>
-                  <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 font-bold text-sm px-3 py-1">
-                    {pending.length}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-slate-100">
-                  {pending.slice(0, 3).map(p => (
-                    <div key={p.id} className="flex items-center justify-between px-6 py-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{p.uraian}</p>
-                        <p className="text-xs text-slate-500">{p.nama_dana} · {p.kategori}</p>
-                      </div>
-                      <p className="text-sm font-bold font-mono text-amber-600 shrink-0">
-                        {formatRupiah(Number(p.jumlah))}
-                      </p>
-                    </div>
-                  ))}
-                  {pending.length > 3 && (
-                    <div className="px-6 py-3 text-center">
-                      <Link 
-                        href="/pengeluaran?status=pending" 
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-                      >
-                        +{pending.length - 3} pengeluaran lainnya
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
-const plusJakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   variable: '--font-sans',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -12,17 +12,17 @@ const plusJakarta = Plus_Jakarta_Sans({
 const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '500', '600'],
 })
 
 export const metadata: Metadata = {
-  title: 'Keuangan Direktorat',
+  title: 'CatatUang — Keuangan Direktorat',
   description: 'Sistem Manajemen Keuangan Direktorat',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${plusJakarta.variable} ${jetbrainsMono.variable} h-full`}>
+    <html lang="id" className={`${inter.variable} ${jetbrainsMono.variable} h-full`}>
       <body className="min-h-full antialiased">
         {children}
         <Toaster richColors position="top-right" />
