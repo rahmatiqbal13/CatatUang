@@ -173,7 +173,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
 
     // Log aktivitas (optional - tidak error jika tabel belum ada)
     try {
-      await supabase.from('activity_logs').insert({
+      await supabase.from('activity_log').insert({
         aksi: 'TAMBAH_DANA',
         keterangan: `${tambahDanaForm.uraian}: ${fmtCompact(tambahanJumlah)}. Total: ${fmtCompact(newJumlah)}`,
         entity_type: 'dana_masuk',
@@ -181,7 +181,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
         created_at: new Date().toISOString()
       })
     } catch {
-      // Abaikan error jika tabel activity_logs belum ada
+      // Abaikan error jika tabel activity_log belum ada
     }
 
     toast.success(`Berhasil menambah ${fmtCompact(tambahanJumlah)} ke ${dana.nama_dana}`)
@@ -521,7 +521,11 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
                 <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
                   Kategori <span style={{ color: 'var(--cu-danger)' }}>*</span>
                 </label>
-                <Select value={form.kategori} onValueChange={v => setForm(f => ({ ...f, kategori: v ?? '' }))}>
+                <Select
+                  value={form.kategori}
+                  onValueChange={v => setForm(f => ({ ...f, kategori: v ?? '' }))}
+                  items={Object.fromEntries(kategoriList.map(k => [k.nama, k.nama]))}
+                >
                   <SelectTrigger
                     className="h-[34px] text-[13px] rounded-[5px]"
                     style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)' }}

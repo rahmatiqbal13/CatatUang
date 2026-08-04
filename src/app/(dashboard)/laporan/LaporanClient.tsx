@@ -136,7 +136,11 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
           </div>
           <div className="px-4 py-3 flex flex-wrap items-center gap-3">
             {/* Dana select */}
-            <Select value={filterDana} onValueChange={v => setFilterDana(v ?? 'all')}>
+            <Select
+              value={filterDana}
+              onValueChange={v => setFilterDana(v ?? 'all')}
+              items={{ all: 'Semua Dana', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
+            >
               <SelectTrigger
                 className="h-[30px] text-[12.5px] rounded-[5px] w-52"
                 style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
@@ -152,7 +156,11 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
             </Select>
 
             {/* Status select */}
-            <Select value={filterStatus} onValueChange={v => setFilterStatus(v ?? 'approved')}>
+            <Select
+              value={filterStatus}
+              onValueChange={v => setFilterStatus(v ?? 'approved')}
+              items={{ all: 'Semua Status', approved: 'Disetujui', pending: 'Menunggu', rejected: 'Ditolak' }}
+            >
               <SelectTrigger
                 className="h-[30px] text-[12.5px] rounded-[5px] w-40"
                 style={{ background: 'var(--background)', border: '1px solid var(--border)' }}

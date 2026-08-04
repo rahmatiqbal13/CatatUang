@@ -200,7 +200,11 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: P
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <Select value={filterDana} onValueChange={v => setFilterDana(v ?? 'all')}>
+          <Select
+            value={filterDana}
+            onValueChange={v => setFilterDana(v ?? 'all')}
+            items={{ all: 'Semua Dana', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
+          >
             <SelectTrigger
               className="h-[30px] text-[12px] px-2.5"
               style={{ border: '1px solid var(--border)', background: 'var(--cu-surface)', width: 200, borderRadius: 5 }}
@@ -378,7 +382,11 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: P
             )}
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Dana</Label>
-              <Select value={form.dana_id} onValueChange={v => setForm(f => ({ ...f, dana_id: v ?? '' }))}>
+              <Select
+                value={form.dana_id}
+                onValueChange={v => setForm(f => ({ ...f, dana_id: v ?? '' }))}
+                items={Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana]))}
+              >
                 <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="Pilih dana" /></SelectTrigger>
                 <SelectContent>{danaList.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.nama_dana}</SelectItem>)}</SelectContent>
               </Select>
@@ -390,7 +398,11 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: P
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Kategori</Label>
-                <Select value={form.kategori} onValueChange={v => setForm(f => ({ ...f, kategori: v ?? '' }))}>
+                <Select
+                  value={form.kategori}
+                  onValueChange={v => setForm(f => ({ ...f, kategori: v ?? '' }))}
+                  items={Object.fromEntries(kategoriList.map(k => [k.nama, k.nama]))}
+                >
                   <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
                   <SelectContent>{kategoriList.map(k => <SelectItem key={k.id} value={k.nama}>{k.nama}</SelectItem>)}</SelectContent>
                 </Select>

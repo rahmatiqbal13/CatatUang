@@ -127,7 +127,17 @@ export function PengaturanClient({ settingsMap }: Props) {
             <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
               Mata Uang
             </label>
-            <Select value={currency} onValueChange={v => setCurrency(v ?? 'IDR')}>
+            <Select
+              value={currency}
+              onValueChange={v => setCurrency(v ?? 'IDR')}
+              items={{
+                IDR: 'IDR — Rupiah Indonesia',
+                USD: 'USD — Dolar Amerika',
+                EUR: 'EUR — Euro',
+                SGD: 'SGD — Dolar Singapura',
+                MYR: 'MYR — Ringgit Malaysia',
+              }}
+            >
               <SelectTrigger
                 className="h-[34px] text-[13px] rounded-[5px] w-52"
                 style={{ background: 'var(--background)', border: '1px solid var(--border)' }}

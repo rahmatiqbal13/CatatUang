@@ -355,7 +355,11 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
             </div>
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Sumber Dana *</Label>
-              <Select value={form.sumber} onValueChange={v => setForm(f => ({ ...f, sumber: v ?? '' }))}>
+              <Select
+                value={form.sumber}
+                onValueChange={v => setForm(f => ({ ...f, sumber: v ?? '' }))}
+                items={Object.fromEntries(sumberList.map(s => [s.nama, s.nama]))}
+              >
                 <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="Pilih sumber dana" /></SelectTrigger>
                 <SelectContent>
                   {sumberList.map(s => <SelectItem key={s.id} value={s.nama}>{s.nama}</SelectItem>)}

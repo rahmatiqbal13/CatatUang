@@ -13,8 +13,30 @@ function fmtCompact(n: number) {
   return String(n)
 }
 
-function Sparkline({ color = 'var(--cu-primary)' }: { color?: string }) {
-  const pts = [40, 65, 52, 80, 70, 90, 78, 95, 88, 102, 94, 110]
+function monthlyTotals<T>(items: T[], getDate: (item: T) => string, getValue: (item: T) => number, months = 6): number[] {
+  const now = new Date()
+  const buckets: number[] = []
+  for (let i = months - 1; i >= 0; i--) {
+    const bucket = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const nextBucket = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
+    const total = items.reduce((sum, item) => {
+      const d = new Date(getDate(item))
+      return d >= bucket && d < nextBucket ? sum + getValue(item) : sum
+    }, 0)
+    buckets.push(total)
+  }
+  return buckets
+}
+
+function monthDelta(pts: number[]): { pct: number; up: boolean } {
+  const curr = pts[pts.length - 1] ?? 0
+  const prev = pts[pts.length - 2] ?? 0
+  if (prev === 0) return { pct: curr > 0 ? 100 : 0, up: curr >= 0 }
+  return { pct: Math.abs(((curr - prev) / prev) * 100), up: curr >= prev }
+}
+
+function Sparkline({ color = 'var(--cu-primary)', points }: { color?: string; points: number[] }) {
+  const pts = points.length > 1 ? points : [0, 0]
   const max = Math.max(...pts), min = Math.min(...pts)
   const range = max - min || 1
   const w = 72, h = 22
@@ -40,9 +62,10 @@ interface KpiProps {
   sub?: string
   accent: string
   sparkColor: string
+  points: number[]
 }
 
-function KpiCard({ label, value, delta, deltaUp, sub, accent, sparkColor }: KpiProps) {
+function KpiCard({ label, value, delta, deltaUp, sub, accent, sparkColor, points }: KpiProps) {
   return (
     <div
       className="cu-card flex flex-col gap-2 p-3.5 relative overflow-hidden"
@@ -81,7 +104,7 @@ function KpiCard({ label, value, delta, deltaUp, sub, accent, sparkColor }: KpiP
             </span>
           )}
         </div>
-        <Sparkline color={sparkColor} />
+        <Sparkline color={sparkColor} points={points} />
       </div>
     </div>
   )
@@ -117,6 +140,16 @@ export default async function DashboardPage() {
   const sisaSaldo    = totalDana - totalKeluar
   const pctRealisasi = totalDana > 0 ? (totalKeluar / totalDana) * 100 : 0
 
+  const danaPts    = monthlyTotals(danas, d => d.tanggal, d => Number(d.jumlah))
+  const realisasiPts = monthlyTotals(approved, p => p.tanggal, p => Number(p.jumlah))
+  const pendingPts = monthlyTotals(pending, p => p.tanggal, p => Number(p.jumlah))
+  const sisaPts = danaPts.map((_, i) => {
+    const danaCum = danaPts.slice(0, i + 1).reduce((s, v) => s + v, 0)
+    const keluarCum = realisasiPts.slice(0, i + 1).reduce((s, v) => s + v, 0)
+    return danaCum - keluarCum
+  })
+  const danaDelta = monthDelta(danaPts)
+
   return (
     <div className="animate-fade-in">
       {/* Top bar */}
@@ -147,11 +180,12 @@ export default async function DashboardPage() {
           <KpiCard
             label="Total Dana Masuk"
             value={fmtCompact(totalDana)}
-            delta="+12,4%"
-            deltaUp={true}
+            delta={`${danaDelta.pct.toFixed(1)}%`}
+            deltaUp={danaDelta.up}
             sub="vs bulan lalu"
             accent="var(--cu-primary)"
             sparkColor="var(--cu-primary)"
+            points={danaPts}
           />
           <KpiCard
             label="Realisasi"
@@ -160,12 +194,14 @@ export default async function DashboardPage() {
             sub="dari total"
             accent="var(--cu-warning)"
             sparkColor="var(--cu-warning)"
+            points={realisasiPts}
           />
           <KpiCard
             label="Sisa Saldo"
             value={fmtCompact(sisaSaldo)}
             accent="var(--cu-success)"
             sparkColor="var(--cu-success)"
+            points={sisaPts}
           />
           <KpiCard
             label="Menunggu Approval"
@@ -173,6 +209,7 @@ export default async function DashboardPage() {
             sub={`${pending.length} transaksi`}
             accent="var(--cu-danger)"
             sparkColor="var(--cu-danger)"
+            points={pendingPts}
           />
         </div>
 
