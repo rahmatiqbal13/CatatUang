@@ -28,6 +28,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  if (user && pathname !== '/login') {
+    const { data: profile } = await supabase.from('profiles').select('is_active').eq('id', user.id).single()
+    if (profile && profile.is_active === false) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/login?deactivated=1', request.url))
+    }
+  }
+
   if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }

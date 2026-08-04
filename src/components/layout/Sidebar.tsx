@@ -11,18 +11,20 @@ import {
   FileBarChart,
   Settings,
   Database,
+  Users,
   LogOut,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 
 const navItems = [
-  { href: '/dashboard',   label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/dana',        label: 'Dana Masuk',  icon: Wallet          },
-  { href: '/pengeluaran', label: 'Pengeluaran', icon: Receipt         },
-  { href: '/laporan',     label: 'Laporan',     icon: FileBarChart    },
-  { href: '/master-data', label: 'Master Data', icon: Database        },
-  { href: '/pengaturan',  label: 'Pengaturan',  icon: Settings        },
+  { href: '/dashboard',   label: 'Dashboard',   icon: LayoutDashboard, superAdminOnly: false },
+  { href: '/dana',        label: 'Dana Masuk',  icon: Wallet,          superAdminOnly: false },
+  { href: '/pengeluaran', label: 'Pengeluaran', icon: Receipt,         superAdminOnly: false },
+  { href: '/laporan',     label: 'Laporan',     icon: FileBarChart,    superAdminOnly: false },
+  { href: '/master-data', label: 'Master Data', icon: Database,        superAdminOnly: false },
+  { href: '/pengguna',    label: 'Pengguna',    icon: Users,           superAdminOnly: true  },
+  { href: '/pengaturan',  label: 'Pengaturan',  icon: Settings,        superAdminOnly: false },
 ]
 
 interface SidebarProps {
@@ -158,7 +160,7 @@ export function Sidebar({ namaDirektorat = 'Keuangan Direktorat' }: SidebarProps
         >
           Menu
         </div>
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {navItems.filter(item => !item.superAdminOnly || profile?.role === 'super_admin').map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link

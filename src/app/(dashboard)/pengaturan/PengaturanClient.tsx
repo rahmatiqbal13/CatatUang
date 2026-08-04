@@ -17,6 +17,50 @@ export function PengaturanClient({ settingsMap }: Props) {
   const [currency, setCurrency]             = useState(settingsMap.currency || 'IDR')
   const [saving, setSaving] = useState(false)
 
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword]         = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
+
+  async function handleChangePassword() {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('Semua kolom password wajib diisi')
+      return
+    }
+    if (newPassword.length < 6) {
+      toast.error('Password baru minimal 6 karakter')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Konfirmasi password baru tidak cocok')
+      return
+    }
+    setChangingPassword(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) {
+      toast.error('Sesi tidak valid, silakan login ulang')
+      setChangingPassword(false)
+      return
+    }
+    const { error: reauthError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword })
+    if (reauthError) {
+      toast.error('Password saat ini salah')
+      setChangingPassword(false)
+      return
+    }
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+    if (updateError) {
+      toast.error('Gagal mengubah password: ' + updateError.message)
+      setChangingPassword(false)
+      return
+    }
+    toast.success('Password berhasil diubah')
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setChangingPassword(false)
+  }
+
   async function handleSave() {
     setSaving(true)
     const updates = [
@@ -152,6 +196,89 @@ export function PengaturanClient({ settingsMap }: Props) {
                 <SelectItem value="MYR">MYR — Ringgit Malaysia</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </div>
+
+        {/* Keamanan Akun */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="flex items-center gap-2 px-4 py-3"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
+            <div
+              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+              style={{ background: 'var(--cu-primary-soft)' }}
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+                <rect x="3.5" y="7" width="9" height="6.5" rx="1.5" />
+                <path d="M5.5 7V5a2.5 2.5 0 015 0v2" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Keamanan Akun
+              </div>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Ubah password akun Anda
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-4 space-y-3">
+            <div>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Password Saat Ini
+              </label>
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Password Baru
+              </label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+              <p className="text-[11px] mt-1.5" style={{ color: 'var(--cu-text-muted)' }}>
+                Minimal 6 karakter
+              </p>
+            </div>
+            <div>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Konfirmasi Password Baru
+              </label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+            </div>
+            <button
+              onClick={handleChangePassword}
+              disabled={changingPassword}
+              className="inline-flex items-center gap-2 h-8 px-4 rounded-[5px] text-[13px] font-medium transition-opacity"
+              style={{ background: 'var(--cu-text)', color: 'var(--background)', opacity: changingPassword ? 0.7 : 1 }}
+            >
+              {changingPassword ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Mengubah...</>
+              ) : (
+                'Ubah Password'
+              )}
+            </button>
           </div>
         </div>
 

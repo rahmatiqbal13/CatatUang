@@ -1,25 +1,41 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(searchParams.get('deactivated') ? 'Akun Anda telah dinonaktifkan. Hubungi administrator.' : '')
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('Email atau password salah. Silakan coba lagi.')
+      setLoading(false)
+      return
+    }
+    const { data: profile } = await supabase.from('profiles').select('is_active').eq('id', data.user.id).single()
+    if (profile && profile.is_active === false) {
+      await supabase.auth.signOut()
+      setError('Akun Anda telah dinonaktifkan. Hubungi administrator.')
       setLoading(false)
       return
     }

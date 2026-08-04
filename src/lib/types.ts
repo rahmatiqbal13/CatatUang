@@ -75,3 +75,15 @@ export type PerKategori = {
   total: number
   persenDariTotal: number
 }
+
+export type UserRole = 'super_admin' | 'admin'
+
+export type Profile = {
+  id: string
+  nama: string
+  role: UserRole
+  is_active: boolean
+  unit_kerja_id: number | null
+  created_at: string
+  email?: string
+}
