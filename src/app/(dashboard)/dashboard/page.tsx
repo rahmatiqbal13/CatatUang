@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
+import { resolveBuku } from '@/lib/buku'
 import { formatRupiah } from '@/lib/formatters'
 import Link from 'next/link'
-import type { DanaMasuk, Pengeluaran } from '@/lib/types'
+import type { DanaMasuk, Pemasukan, Pengeluaran } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -120,15 +121,23 @@ function StatusDot({ status }: { status: string }) {
   return <span className={v.cls}>{v.label}</span>
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ buku?: string }> }) {
+  const { buku: bukuParam } = await searchParams
   const supabase = await createClient()
+  const { current: currentBuku } = await resolveBuku(supabase, bukuParam)
+  const bukuId = currentBuku?.id ?? -1
 
-  const [{ data: danaList }, { data: pengeluaranList }] = await Promise.all([
-    supabase.from('dana_masuk').select('*').order('created_at', { ascending: false }),
-    supabase.from('pengeluaran').select('*').order('tanggal', { ascending: false }),
+  const [{ data: danaList }, { data: pengeluaranList }, { data: pemasukanList }] = await Promise.all([
+    supabase.from('dana_masuk').select('*').eq('buku_id', bukuId).order('created_at', { ascending: false }),
+    supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }),
+    supabase.from('pemasukan').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }),
   ])
 
-  const danas = (danaList || []) as DanaMasuk[]
+  const pemasukans = (pemasukanList || []) as Pemasukan[]
+  const danas = ((danaList || []) as DanaMasuk[]).map(d => ({
+    ...d,
+    jumlah: pemasukans.filter(p => p.dana_id === d.id).reduce((s, p) => s + Number(p.jumlah), 0),
+  }))
   const pengeluarans = (pengeluaranList || []) as Pengeluaran[]
 
   const approved = pengeluarans.filter(p => p.status === 'approved')
@@ -140,7 +149,7 @@ export default async function DashboardPage() {
   const sisaSaldo    = totalDana - totalKeluar
   const pctRealisasi = totalDana > 0 ? (totalKeluar / totalDana) * 100 : 0
 
-  const danaPts    = monthlyTotals(danas, d => d.tanggal, d => Number(d.jumlah))
+  const danaPts    = monthlyTotals(pemasukans, p => p.tanggal, p => Number(p.jumlah))
   const realisasiPts = monthlyTotals(approved, p => p.tanggal, p => Number(p.jumlah))
   const pendingPts = monthlyTotals(pending, p => p.tanggal, p => Number(p.jumlah))
   const sisaPts = danaPts.map((_, i) => {
@@ -159,11 +168,11 @@ export default async function DashboardPage() {
             Dashboard
           </h1>
           <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            Ringkasan keuangan · Tahun Anggaran 2026
+            Ringkasan keuangan · Buku {currentBuku?.nama ?? '—'}
           </div>
         </div>
         <Link
-          href="/laporan"
+          href={`/laporan?buku=${bukuId}`}
           className="inline-flex items-center gap-1.5 h-7 px-3 rounded-[5px] border text-[12px] font-medium transition-colors hover:bg-[var(--cu-surface-2)]"
           style={{ borderColor: 'var(--border)', color: 'var(--cu-text)' }}
         >
@@ -225,7 +234,7 @@ export default async function DashboardPage() {
                 Ringkasan per Dana
               </div>
               <Link
-                href="/dana"
+                href={`/dana?buku=${bukuId}`}
                 className="text-[12px] flex items-center gap-1"
                 style={{ color: 'var(--cu-primary)' }}
               >

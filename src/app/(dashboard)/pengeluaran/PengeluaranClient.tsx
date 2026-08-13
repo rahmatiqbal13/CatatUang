@@ -25,6 +25,7 @@ type Props = {
   pengeluaranList: Pengeluaran[]
   danaList: Pick<DanaMasuk, 'id' | 'nama_dana'>[]
   kategoriList: Kategori[]
+  bukuNama: string
 }
 
 type FormData = {
@@ -49,7 +50,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={map[status] ?? 'cu-badge'}>{labels[status] ?? status}</span>
 }
 
-export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: Props) {
+export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, bukuNama }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -148,7 +149,7 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList }: P
             Pengeluaran
           </h1>
           <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            {pengeluaranList.length} transaksi
+            {pengeluaranList.length} transaksi · Buku {bukuNama}
           </div>
         </div>
         <div className="flex items-center gap-2">

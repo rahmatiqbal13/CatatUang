@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatRupiah, formatTanggal, hitungPersen } from '@/lib/formatters'
-import type { DanaMasuk, Pengeluaran, Kategori } from '@/lib/types'
+import type { DanaMasuk, Pemasukan, Pengeluaran, Kategori } from '@/lib/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
-type Props = { dana: DanaMasuk; pengeluaranList: Pengeluaran[]; kategoriList: Kategori[] }
+type Props = { dana: DanaMasuk; pengeluaranList: Pengeluaran[]; pemasukanList: Pemasukan[]; kategoriList: Kategori[] }
 type FormData = { uraian: string; kategori: string; jumlah: string; tanggal: string; keterangan: string }
 const emptyForm: FormData = { uraian: '', kategori: '', jumlah: '', tanggal: '', keterangan: '' }
 
@@ -44,7 +44,7 @@ const TABS = [
   { key: 'rejected', label: 'Ditolak' },
 ]
 
-export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props) {
+export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategoriList }: Props) {
   const router   = useRouter()
   const supabase = createClient()
   const [, startTransition] = useTransition()
@@ -56,17 +56,21 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
   const [saving, setSaving]   = useState(false)
   const [activeTab, setActiveTab] = useState('all')
   
-  // Tambah Dana Masuk states
+  // Pemasukan states
   const [openTambahDana, setOpenTambahDana] = useState(false)
   const [tambahDanaForm, setTambahDanaForm] = useState<TambahDanaForm>(emptyTambahDanaForm)
   const [savingDana, setSavingDana] = useState(false)
+  const [editPemasukanTarget, setEditPemasukanTarget] = useState<Pemasukan | null>(null)
+  const [openDelPemasukan, setOpenDelPemasukan] = useState(false)
+  const [delPemasukanTarget, setDelPemasukanTarget] = useState<Pemasukan | null>(null)
 
   const approved    = pengeluaranList.filter(p => p.status === 'approved')
   const pending     = pengeluaranList.filter(p => p.status === 'pending')
   const totalKeluar  = approved.reduce((s, p) => s + Number(p.jumlah), 0)
   const totalPending = pending.reduce((s, p) => s + Number(p.jumlah), 0)
-  const sisa  = Number(dana.jumlah) - totalKeluar
-  const persen = hitungPersen(totalKeluar, Number(dana.jumlah))
+  const totalMasuk = pemasukanList.reduce((s, p) => s + Number(p.jumlah), 0)
+  const sisa  = totalMasuk - totalKeluar
+  const persen = hitungPersen(totalKeluar, totalMasuk)
 
   const perKategori = kategoriList.map(k => {
     const total = approved.filter(p => p.kategori === k.nama).reduce((s, p) => s + Number(p.jumlah), 0)
@@ -142,52 +146,97 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
     startTransition(() => router.refresh())
   }
 
-  // Handler untuk tambah dana masuk
+  function openAddPemasukan() {
+    setEditPemasukanTarget(null)
+    setTambahDanaForm(emptyTambahDanaForm)
+    setOpenTambahDana(true)
+  }
+  function openEditPemasukan(p: Pemasukan) {
+    setEditPemasukanTarget(p)
+    setTambahDanaForm({ uraian: p.uraian, jumlah: String(p.jumlah), tanggal: p.tanggal, keterangan: p.keterangan || '' })
+    setOpenTambahDana(true)
+  }
+
+  // Handler untuk tambah/edit pemasukan
   async function handleTambahDana() {
     if (!tambahDanaForm.uraian || !tambahDanaForm.jumlah || !tambahDanaForm.tanggal) {
       toast.error('Uraian, jumlah dan tanggal wajib diisi'); return
     }
-    
+
     const tambahanJumlah = parseFloat(tambahDanaForm.jumlah)
     if (isNaN(tambahanJumlah) || tambahanJumlah <= 0) {
       toast.error('Jumlah tidak valid'); return
     }
 
     setSavingDana(true)
-    
-    // Update jumlah dana_masuk
-    const newJumlah = Number(dana.jumlah) + tambahanJumlah
-    const { error: updateError } = await supabase
-      .from('dana_masuk')
-      .update({ 
-        jumlah: newJumlah, 
-        updated_at: new Date().toISOString() 
+
+    if (editPemasukanTarget) {
+      const { error: updateError } = await supabase.from('pemasukan').update({
+        uraian: tambahDanaForm.uraian,
+        jumlah: tambahanJumlah,
+        tanggal: tambahDanaForm.tanggal,
+        keterangan: tambahDanaForm.keterangan || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', editPemasukanTarget.id)
+
+      if (updateError) {
+        toast.error('Gagal memperbarui pemasukan: ' + updateError.message)
+        setSavingDana(false)
+        return
+      }
+      toast.success('Pemasukan diperbarui')
+    } else {
+      const { error: insertError } = await supabase.from('pemasukan').insert({
+        dana_id: dana.id,
+        nama_dana: dana.nama_dana,
+        uraian: tambahDanaForm.uraian,
+        jumlah: tambahanJumlah,
+        tanggal: tambahDanaForm.tanggal,
+        keterangan: tambahDanaForm.keterangan || null,
       })
-      .eq('id', dana.id)
-    
-    if (updateError) {
-      toast.error('Gagal menambah dana: ' + updateError.message)
+
+      if (insertError) {
+        toast.error('Gagal menambah pemasukan: ' + insertError.message)
+        setSavingDana(false)
+        return
+      }
+
+      // Log aktivitas (optional - tidak error jika tabel belum ada)
+      try {
+        await supabase.from('activity_log').insert({
+          aksi: 'TAMBAH_PEMASUKAN',
+          keterangan: `${tambahDanaForm.uraian}: ${fmtCompact(tambahanJumlah)}`,
+          entity_type: 'dana_masuk',
+          entity_id: dana.id,
+          created_at: new Date().toISOString()
+        })
+      } catch {
+        // Abaikan error jika tabel activity_log belum ada
+      }
+
+      toast.success(`Berhasil menambah ${fmtCompact(tambahanJumlah)} ke ${dana.nama_dana}`)
+    }
+
+    setSavingDana(false)
+    setOpenTambahDana(false)
+    setEditPemasukanTarget(null)
+    setTambahDanaForm(emptyTambahDanaForm)
+    startTransition(() => router.refresh())
+  }
+
+  async function handleDeletePemasukan() {
+    if (!delPemasukanTarget) return
+    setSavingDana(true)
+    const { error } = await supabase.from('pemasukan').delete().eq('id', delPemasukanTarget.id)
+    if (error) {
+      toast.error('Gagal menghapus pemasukan: ' + error.message)
       setSavingDana(false)
       return
     }
-
-    // Log aktivitas (optional - tidak error jika tabel belum ada)
-    try {
-      await supabase.from('activity_log').insert({
-        aksi: 'TAMBAH_DANA',
-        keterangan: `${tambahDanaForm.uraian}: ${fmtCompact(tambahanJumlah)}. Total: ${fmtCompact(newJumlah)}`,
-        entity_type: 'dana_masuk',
-        entity_id: dana.id,
-        created_at: new Date().toISOString()
-      })
-    } catch {
-      // Abaikan error jika tabel activity_log belum ada
-    }
-
-    toast.success(`Berhasil menambah ${fmtCompact(tambahanJumlah)} ke ${dana.nama_dana}`)
+    toast.success('Pemasukan dihapus')
     setSavingDana(false)
-    setOpenTambahDana(false)
-    setTambahDanaForm(emptyTambahDanaForm)
+    setOpenDelPemasukan(false)
+    setDelPemasukanTarget(null)
     startTransition(() => router.refresh())
   }
 
@@ -233,14 +282,14 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
             Laporan
           </Link>
           <button
-            onClick={() => { setTambahDanaForm(emptyTambahDanaForm); setOpenTambahDana(true) }}
+            onClick={openAddPemasukan}
             className="inline-flex items-center gap-1.5 h-7 px-3 rounded-[5px] text-[12px] font-medium"
             style={{ background: 'var(--cu-success)', color: '#fff' }}
           >
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M6 1v10M1 6h10" />
             </svg>
-            + Dana
+            + Pemasukan
           </button>
           <button
             onClick={openAdd}
@@ -259,7 +308,7 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
         {/* KPI strip */}
         <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
           {[
-            { label: 'Total Dana', value: fmtCompact(Number(dana.jumlah)), full: formatRupiah(Number(dana.jumlah)), accent: 'var(--cu-primary)' },
+            { label: 'Total Dana', value: fmtCompact(totalMasuk), full: formatRupiah(totalMasuk), accent: 'var(--cu-primary)' },
             { label: 'Terpakai', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), accent: 'var(--cu-warning)' },
             { label: 'Pending', value: fmtCompact(totalPending), full: formatRupiah(totalPending), accent: 'var(--cu-danger)' },
             { label: 'Sisa Saldo', value: fmtCompact(sisa), full: formatRupiah(sisa), accent: sisa >= 0 ? 'var(--cu-success)' : 'var(--cu-danger)' },
@@ -453,6 +502,84 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
           )}
         </div>
 
+        {/* Riwayat Pemasukan */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="px-4 py-3"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
+            <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+              Riwayat Pemasukan
+            </div>
+          </div>
+          {pemasukanList.length === 0 ? (
+            <div className="py-14 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+              Belum ada pemasukan
+            </div>
+          ) : (
+            <div className="cu-table-wrap">
+              <table className="cu-table">
+                <thead>
+                  <tr>
+                    <th>Tanggal</th>
+                    <th>Uraian</th>
+                    <th className="cu-num">Jumlah</th>
+                    <th className="cu-num">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pemasukanList.map(p => (
+                    <tr key={p.id}>
+                      <td className="cu-mono text-[12px] whitespace-nowrap" style={{ color: 'var(--cu-text-muted)' }}>
+                        {formatTanggal(p.tanggal)}
+                      </td>
+                      <td className="max-w-[240px]">
+                        <div className="truncate text-[12.5px] font-medium" style={{ color: 'var(--cu-text)' }}>
+                          {p.uraian}
+                        </div>
+                        {p.keterangan && (
+                          <div className="truncate text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
+                            {p.keterangan}
+                          </div>
+                        )}
+                      </td>
+                      <td className="cu-num cu-mono text-[12.5px] font-semibold" style={{ color: 'var(--cu-success)' }}>
+                        {formatRupiah(Number(p.jumlah))}
+                      </td>
+                      <td className="cu-num">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openEditPemasukan(p)}
+                            title="Edit"
+                            aria-label="Edit pemasukan"
+                            className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[var(--cu-surface-2)]"
+                            style={{ color: 'var(--cu-text-muted)' }}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11.5 2.5l2 2L5 13H3v-2L11.5 2.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => { setDelPemasukanTarget(p); setOpenDelPemasukan(true) }}
+                            title="Hapus"
+                            aria-label="Hapus pemasukan"
+                            className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[var(--cu-surface-2)]"
+                            style={{ color: 'var(--cu-text-muted)' }}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Per Kategori */}
         {perKategori.length > 0 && (
           <div className="cu-card overflow-hidden">
@@ -628,11 +755,13 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
         </DialogContent>
       </Dialog>
 
-      {/* Tambah Dana Masuk Dialog */}
+      {/* Tambah/Edit Pemasukan Dialog */}
       <Dialog open={openTambahDana} onOpenChange={setOpenTambahDana}>
         <DialogContent className="sm:max-w-md" style={{ background: '#fff' }}>
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">Tambah Dana Masuk</DialogTitle>
+            <DialogTitle className="text-[15px] font-semibold">
+              {editPemasukanTarget ? 'Edit Pemasukan' : 'Tambah Pemasukan'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
@@ -689,12 +818,12 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
               />
             </div>
             <div className="px-3 py-2 rounded-[5px] mt-2" style={{ background: 'var(--cu-surface-2)' }}>
-              <div className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>Saldo Saat Ini: {formatRupiah(Number(dana.jumlah))}</div>
+              <div className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>Saldo Saat Ini: {formatRupiah(totalMasuk)}</div>
             </div>
           </div>
           <DialogFooter className="gap-2">
             <button
-              onClick={() => setOpenTambahDana(false)}
+              onClick={() => { setOpenTambahDana(false); setEditPemasukanTarget(null) }}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
               style={{ border: '1px solid var(--border)', color: 'var(--cu-text)' }}
             >
@@ -707,6 +836,35 @@ export function DanaDetailClient({ dana, pengeluaranList, kategoriList }: Props)
               style={{ background: 'var(--cu-primary)', color: '#fff' }}
             >
               {savingDana ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Simpan'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Pemasukan Confirm */}
+      <Dialog open={openDelPemasukan} onOpenChange={setOpenDelPemasukan}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-[14px]">Hapus Pemasukan</DialogTitle>
+          </DialogHeader>
+          <p className="text-[12.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+            Hapus <strong style={{ color: 'var(--cu-text)' }}>{delPemasukanTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <DialogFooter>
+            <button
+              onClick={() => setOpenDelPemasukan(false)}
+              className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
+              style={{ border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleDeletePemasukan}
+              disabled={savingDana}
+              className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
+              style={{ background: 'var(--cu-danger)', color: '#fff' }}
+            >
+              {savingDana ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </button>
           </DialogFooter>
         </DialogContent>

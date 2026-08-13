@@ -10,11 +10,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { FileSpreadsheet, FileText, ChevronDown, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { DanaMasuk, Pengeluaran } from '@/lib/types'
+import type { DanaMasukWithSaldo, Pengeluaran } from '@/lib/types'
 import { exportDanaMasuk, exportPengeluaran, exportLaporanLengkap } from '@/lib/export-excel'
 
 interface ExcelExportButtonProps {
-  danaList?: DanaMasuk[]
+  danaList?: DanaMasukWithSaldo[]
   pengeluaranList?: Pengeluaran[]
   type: 'dana' | 'pengeluaran' | 'laporan'
   filename?: string
@@ -107,7 +107,7 @@ export function ExcelExportDropdown({
   pengeluaranList = [],
   filename = 'export',
 }: {
-  danaList?: DanaMasuk[]
+  danaList?: DanaMasukWithSaldo[]
   pengeluaranList?: Pengeluaran[]
   filename?: string
 }) {

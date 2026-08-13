@@ -15,6 +15,9 @@ export function PengaturanClient({ settingsMap }: Props) {
   const [, startTransition] = useTransition()
   const [namaDirektorat, setNamaDirektorat] = useState(settingsMap.nama_direktorat || '')
   const [currency, setCurrency]             = useState(settingsMap.currency || 'IDR')
+  const [pihakPertamaNama, setPihakPertamaNama]         = useState(settingsMap.pihak_pertama_nama || '')
+  const [pihakPertamaJabatan, setPihakPertamaJabatan]   = useState(settingsMap.pihak_pertama_jabatan || '')
+  const [pihakPertamaInstansi, setPihakPertamaInstansi] = useState(settingsMap.pihak_pertama_instansi || '')
   const [saving, setSaving] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -66,6 +69,9 @@ export function PengaturanClient({ settingsMap }: Props) {
     const updates = [
       { key: 'nama_direktorat', value: namaDirektorat },
       { key: 'currency',        value: currency },
+      { key: 'pihak_pertama_nama',     value: pihakPertamaNama },
+      { key: 'pihak_pertama_jabatan',  value: pihakPertamaJabatan },
+      { key: 'pihak_pertama_instansi', value: pihakPertamaInstansi },
     ]
     for (const u of updates) {
       const { error } = await supabase
@@ -196,6 +202,74 @@ export function PengaturanClient({ settingsMap }: Props) {
                 <SelectItem value="MYR">MYR — Ringgit Malaysia</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </div>
+
+        {/* Identitas Penandatangan */}
+        <div className="cu-card overflow-hidden">
+          <div
+            className="flex items-center gap-2 px-4 py-3"
+            style={{ borderBottom: '1px solid var(--border)' }}
+          >
+            <div
+              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+              style={{ background: 'var(--cu-primary-soft)' }}
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M2 13.5c0-2.5 2.5-3.5 6-3.5s6 1 6 3.5" />
+                <circle cx="8" cy="5.5" r="3" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+                Identitas Penandatangan
+              </div>
+              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Isian awal untuk Pihak Pertama saat membuat peminjaman baru — bisa diubah manual tiap peminjaman
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-4 space-y-3">
+            <div>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Nama
+              </label>
+              <input
+                type="text"
+                placeholder="cth: Rahmat Iqbal Rizaldi Pratama, S.Kom."
+                value={pihakPertamaNama}
+                onChange={e => setPihakPertamaNama(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Jabatan
+              </label>
+              <input
+                type="text"
+                placeholder="cth: Admin USC (Mewakili Koperasi Kantin Kolam Renang UNESA)"
+                value={pihakPertamaJabatan}
+                onChange={e => setPihakPertamaJabatan(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+                Instansi
+              </label>
+              <input
+                type="text"
+                placeholder="cth: Direktorat Unesa Science Center"
+                value={pihakPertamaInstansi}
+                onChange={e => setPihakPertamaInstansi(e.target.value)}
+                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              />
+            </div>
           </div>
         </div>
 

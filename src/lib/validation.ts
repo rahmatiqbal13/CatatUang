@@ -9,16 +9,12 @@ import { z } from 'zod'
 // DANA MASUK SCHEMAS
 // ============================================================================
 
-export const danaMasukSchema = z.object({
+const danaMasukBaseSchema = z.object({
   nama_dana: z
     .string()
     .min(3, 'Nama dana minimal 3 karakter')
     .max(100, 'Nama dana maksimal 100 karakter')
     .trim(),
-  jumlah: z
-    .number()
-    .positive('Jumlah harus lebih dari 0')
-    .max(999999999999.99, 'Jumlah terlalu besar'),
   tanggal: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD')
@@ -35,6 +31,17 @@ export const danaMasukSchema = z.object({
     .optional()
     .or(z.literal('')),
 })
+
+// Dipakai saat membuat wallet baru — jumlah adalah saldo awal opsional (0 = wallet kosong)
+export const danaMasukSchema = danaMasukBaseSchema.extend({
+  jumlah: z
+    .number()
+    .min(0, 'Jumlah tidak boleh negatif')
+    .max(999999999999.99, 'Jumlah terlalu besar'),
+})
+
+// Dipakai saat mengedit wallet — total saldo dihitung dari pemasukan, bukan field ini
+export const danaMasukEditSchema = danaMasukBaseSchema
 
 export type DanaMasukFormData = z.infer<typeof danaMasukSchema>
 

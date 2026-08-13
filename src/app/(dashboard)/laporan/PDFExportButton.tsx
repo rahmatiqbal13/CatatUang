@@ -5,15 +5,15 @@ import { pdf } from '@react-pdf/renderer'
 import { Button } from '@/components/ui/button'
 import { FileText, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { DanaMasuk, Pengeluaran } from '@/lib/types'
+import type { DanaMasukWithSaldo, Pengeluaran } from '@/lib/types'
 import { LaporanGlobalPDF, LaporanDanaPDF } from '@/components/pdf/LaporanPDF'
 
 type Props = {
-  danaList: DanaMasuk[]
+  danaList: DanaMasukWithSaldo[]
   pengeluaranList: Pengeluaran[]
   perKategori: { kategori: string; total: number; persen: number }[]
-  perDana: (DanaMasuk & { keluar: number; pending: number; sisa: number; persen: number })[]
-  selectedDana: DanaMasuk | null
+  perDana: (DanaMasukWithSaldo & { keluar: number; pending: number; sisa: number; persen: number })[]
+  selectedDana: DanaMasukWithSaldo | null
   settingsMap: Record<string, string>
   totalDana: number
   totalKeluar: number

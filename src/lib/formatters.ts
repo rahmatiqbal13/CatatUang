@@ -1,9 +1,13 @@
 export function formatRupiah(value: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  // `style: 'currency'` is avoided here because its exact spacing/symbol
+  // placement for 'id-ID' can differ between server (Node ICU) and browser
+  // ICU versions, causing SSR hydration mismatches. Plain grouping + a
+  // literal "Rp " prefix is stable across environments.
+  const grouped = new Intl.NumberFormat('id-ID', {
     minimumFractionDigits: 0,
-  }).format(value)
+    maximumFractionDigits: 0,
+  }).format(Math.round(value))
+  return `Rp ${grouped}`
 }
 
 export function formatTanggal(date: string | Date): string {
@@ -55,4 +59,50 @@ export function getStatusColor(status: string): StatusColor {
 
 export function formatBulan(date: string | Date): string {
   return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(date))
+}
+
+const TERBILANG_SATUAN = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan']
+
+function terbilangRatusan(n: number): string {
+  let result = ''
+  if (n >= 100) {
+    const ratus = Math.floor(n / 100)
+    result += (ratus === 1 ? 'Seratus' : `${TERBILANG_SATUAN[ratus]} Ratus`) + ' '
+    n %= 100
+  }
+  if (n >= 20) {
+    result += `${TERBILANG_SATUAN[Math.floor(n / 10)]} Puluh `
+    n %= 10
+    if (n > 0) result += `${TERBILANG_SATUAN[n]} `
+  } else if (n === 11) {
+    result += 'Sebelas '
+  } else if (n === 10) {
+    result += 'Sepuluh '
+  } else if (n > 10) {
+    result += `${TERBILANG_SATUAN[n - 10]} Belas `
+  } else if (n > 0) {
+    result += `${TERBILANG_SATUAN[n]} `
+  }
+  return result.trim()
+}
+
+/** Converts a number to Indonesian words, e.g. 250000 -> "Dua Ratus Lima Puluh Ribu" */
+export function terbilang(value: number): string {
+  const n = Math.floor(Math.abs(value))
+  if (n === 0) return 'Nol'
+
+  const parts: string[] = []
+  const triliun = Math.floor(n / 1_000_000_000_000)
+  const miliar  = Math.floor((n % 1_000_000_000_000) / 1_000_000_000)
+  const juta    = Math.floor((n % 1_000_000_000) / 1_000_000)
+  const ribu    = Math.floor((n % 1_000_000) / 1_000)
+  const sisa    = n % 1_000
+
+  if (triliun > 0) parts.push(`${terbilangRatusan(triliun)} Triliun`)
+  if (miliar > 0) parts.push(`${terbilangRatusan(miliar)} Miliar`)
+  if (juta > 0) parts.push(`${terbilangRatusan(juta)} Juta`)
+  if (ribu > 0) parts.push(ribu === 1 ? 'Seribu' : `${terbilangRatusan(ribu)} Ribu`)
+  if (sisa > 0) parts.push(terbilangRatusan(sisa))
+
+  return parts.join(' ').trim()
 }

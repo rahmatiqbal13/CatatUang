@@ -1,9 +1,33 @@
+export type Buku = {
+  id: number
+  nama: string
+  tahun: number | null
+  created_at: string
+  updated_at: string
+}
+
 export type DanaMasuk = {
   id: number
+  buku_id: number
   nama_dana: string
-  jumlah: number
   tanggal: string
   sumber: string
+  keterangan: string | null
+  created_at: string
+  updated_at: string
+}
+
+// dana_masuk enriched with its computed saldo (sum of pemasukan) — the shape
+// server pages pass down after aggregating pemasukan per wallet
+export type DanaMasukWithSaldo = DanaMasuk & { jumlah: number }
+
+export type Pemasukan = {
+  id: number
+  dana_id: number
+  nama_dana: string
+  uraian: string
+  jumlah: number
+  tanggal: string
   keterangan: string | null
   created_at: string
   updated_at: string
@@ -22,6 +46,26 @@ export type Pengeluaran = {
   keterangan: string | null
   status: StatusPengeluaran
   approved_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type StatusPeminjaman = 'belum_lunas' | 'lunas'
+
+export type Peminjaman = {
+  id: number
+  dana_id: number | null
+  nama_dana: string | null
+  nama_peminjam: string
+  jabatan: string | null
+  unit_kerja: string | null
+  pemberi_nama: string | null
+  pemberi_jabatan: string | null
+  pemberi_instansi: string | null
+  jumlah: number
+  tanggal: string
+  status: StatusPeminjaman
+  keterangan: string | null
   created_at: string
   updated_at: string
 }

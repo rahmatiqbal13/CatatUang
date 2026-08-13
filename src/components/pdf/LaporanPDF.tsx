@@ -1,7 +1,7 @@
 import {
   Document, Page, Text, View, StyleSheet
 } from '@react-pdf/renderer'
-import type { DanaMasuk, Pengeluaran } from '@/lib/types'
+import type { DanaMasukWithSaldo, Pengeluaran } from '@/lib/types'
 
 const NAVY  = '#1E3A5F'
 const BLUE  = '#2563EB'
@@ -125,10 +125,10 @@ function PageFooter({ namaDirektorat }: { namaDirektorat: string }) {
 
 // ===================== LAPORAN GLOBAL =====================
 type GlobalProps = {
-  danaList: DanaMasuk[]
+  danaList: DanaMasukWithSaldo[]
   pengeluaranList: Pengeluaran[]
   perKategori: { kategori: string; total: number; persen: number }[]
-  perDana: (DanaMasuk & { keluar: number; pending: number; sisa: number; persen: number })[]
+  perDana: (DanaMasukWithSaldo & { keluar: number; pending: number; sisa: number; persen: number })[]
   totalDana: number
   totalKeluar: number
   totalPending: number
@@ -301,7 +301,7 @@ export function LaporanGlobalPDF({
 
 // ===================== LAPORAN PER DANA =====================
 type PerDanaProps = {
-  dana: DanaMasuk
+  dana: DanaMasukWithSaldo
   pengeluaranList: Pengeluaran[]
   perKategori: { kategori: string; total: number; persen: number }[]
   totalKeluar: number

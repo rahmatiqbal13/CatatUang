@@ -6,12 +6,12 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatRupiah, formatTanggal, hitungPersen } from '@/lib/formatters'
 import { handleSupabaseError } from '@/lib/error-handler'
-import { validateForm, danaMasukSchema } from '@/lib/validation'
+import { validateForm, danaMasukSchema, danaMasukEditSchema } from '@/lib/validation'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination, PaginationControls } from '@/hooks/use-pagination'
 import { useSupabaseMutation } from '@/hooks/use-supabase-mutation'
 import { ExcelExportButton } from '@/components/excel-export-button'
-import type { DanaMasuk, Pengeluaran, SumberDana } from '@/lib/types'
+import type { DanaMasukWithSaldo, Pengeluaran, SumberDana } from '@/lib/types'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,9 +23,12 @@ import { toast } from 'sonner'
 import { Plus, Search, Pencil, Trash2, Loader2, MoreHorizontal } from 'lucide-react'
 
 type Props = {
-  danaList: DanaMasuk[]
+  danaList: DanaMasukWithSaldo[]
   pengeluaranList: Pick<Pengeluaran, 'dana_id' | 'jumlah' | 'status'>[]
   sumberList: SumberDana[]
+  bukuId: number
+  bukuNama: string
+  bukuKosong: boolean
 }
 
 type FormData = {
@@ -40,7 +43,7 @@ function fmtCompact(n: number) {
   return formatRupiah(n)
 }
 
-export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
+export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, bukuNama, bukuKosong }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -48,8 +51,8 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
   const debouncedSearch = useDebounce(search, 300)
   const [openForm, setOpenForm] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
-  const [editTarget, setEditTarget] = useState<DanaMasuk | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<DanaMasuk | null>(null)
+  const [editTarget, setEditTarget] = useState<DanaMasukWithSaldo | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<DanaMasukWithSaldo | null>(null)
   const [form, setForm] = useState<FormData>(emptyForm)
   const [formErrors, setFormErrors] = useState<string[]>([])
 
@@ -71,7 +74,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
     pengeluaranList.filter(p => p.dana_id === id && p.status === 'pending').reduce((s, p) => s + Number(p.jumlah), 0)
 
   const openAdd = () => { setEditTarget(null); setForm(emptyForm); setFormErrors([]); setOpenForm(true) }
-  const openEdit = (dana: DanaMasuk) => {
+  const openEdit = (dana: DanaMasukWithSaldo) => {
     setEditTarget(dana)
     setForm({ nama_dana: dana.nama_dana, jumlah: String(dana.jumlah), tanggal: dana.tanggal, sumber: dana.sumber, keterangan: dana.keterangan || '' })
     setFormErrors([])
@@ -80,25 +83,37 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
 
   const validateAndSave = async () => {
     setFormErrors([])
-    const validation = validateForm(danaMasukSchema, {
+    const base = {
       nama_dana: form.nama_dana,
-      jumlah: parseFloat(form.jumlah) || 0,
       tanggal: form.tanggal,
       sumber: form.sumber,
       keterangan: form.keterangan || undefined,
-    })
-    if (!validation.success) { setFormErrors(validation.errors); toast.error(validation.errors[0]); return }
-
-    const payload = { nama_dana: form.nama_dana, jumlah: parseFloat(form.jumlah), tanggal: form.tanggal, sumber: form.sumber, keterangan: form.keterangan || null, updated_at: new Date().toISOString() }
+    }
 
     if (editTarget) {
+      const validation = validateForm(danaMasukEditSchema, base)
+      if (!validation.success) { setFormErrors(validation.errors); toast.error(validation.errors[0]); return }
+      const payload = { nama_dana: form.nama_dana, tanggal: form.tanggal, sumber: form.sumber, keterangan: form.keterangan || null, updated_at: new Date().toISOString() }
       await saveDana(
         async () => { const { error } = await supabase.from('dana_masuk').update(payload).eq('id', editTarget.id); if (error) throw error },
         { onSuccess: () => { toast.success('Dana diperbarui'); setOpenForm(false); router.refresh() }, onError: (e) => toast.error(handleSupabaseError(e)) }
       )
     } else {
+      const validation = validateForm(danaMasukSchema, { ...base, jumlah: parseFloat(form.jumlah) || 0 })
+      if (!validation.success) { setFormErrors(validation.errors); toast.error(validation.errors[0]); return }
+      const saldoAwal = parseFloat(form.jumlah) || 0
+      const payload = { nama_dana: form.nama_dana, tanggal: form.tanggal, sumber: form.sumber, keterangan: form.keterangan || null, buku_id: bukuId }
       await saveDana(
-        async () => { const { error } = await supabase.from('dana_masuk').insert(payload); if (error) throw error },
+        async () => {
+          const { data: created, error } = await supabase.from('dana_masuk').insert(payload).select('id').single()
+          if (error) throw error
+          if (saldoAwal > 0) {
+            const { error: pemasukanError } = await supabase.from('pemasukan').insert({
+              dana_id: created.id, nama_dana: form.nama_dana, uraian: 'Saldo Awal', jumlah: saldoAwal, tanggal: form.tanggal,
+            })
+            if (pemasukanError) throw pemasukanError
+          }
+        },
         { onSuccess: () => { toast.success('Dana ditambahkan'); setOpenForm(false); setForm(emptyForm); router.refresh() }, onError: (e) => toast.error(handleSupabaseError(e)) }
       )
     }
@@ -132,7 +147,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
               Dana Masuk
             </h1>
             <span className="cu-mono text-[11px]" style={{ color: 'var(--cu-text-dim)' }}>
-              {danaList.length} sumber aktif
+              {danaList.length} wallet · Buku {bukuNama}
             </span>
           </div>
         </div>
@@ -140,14 +155,24 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
           <ExcelExportButton type="dana" danaList={danaList} filename="dana_masuk" />
           <button
             onClick={openAdd}
+            disabled={bukuKosong}
             className="inline-flex items-center gap-1.5 h-[30px] px-3 rounded-[5px] text-[12px] font-medium"
-            style={{ background: 'var(--cu-primary)', color: '#ffffff' }}
+            style={{ background: 'var(--cu-primary)', color: '#ffffff', opacity: bukuKosong ? 0.5 : 1 }}
           >
             <Plus className="w-3.5 h-3.5" /> Dana Baru
           </button>
         </div>
       </div>
 
+      {bukuKosong && (
+        <div className="cu-page">
+          <div className="cu-card py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+            Belum ada buku. Buat buku pertama Anda lewat pemilih buku di sidebar.
+          </div>
+        </div>
+      )}
+
+      {!bukuKosong && (
       <div className="cu-page">
         {/* Summary strip */}
         <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
@@ -324,6 +349,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
           )}
         </div>
       </div>
+      )}
 
       {/* Form Dialog */}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
@@ -343,16 +369,23 @@ export function DanaClient({ danaList, pengeluaranList, sumberList }: Props) {
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nama Dana *</Label>
               <Input placeholder="cth: Dana DIPA Semester Ganjil 2026" value={form.nama_dana} onChange={e => setForm(f => ({ ...f, nama_dana: e.target.value }))} className="h-9 text-[13px]" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jumlah *</Label>
-                <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
-              </div>
+            <div className={editTarget ? '' : 'grid grid-cols-2 gap-3'}>
+              {!editTarget && (
+                <div>
+                  <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Saldo Awal</Label>
+                  <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
+                </div>
+              )}
               <div>
                 <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal *</Label>
                 <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
+            {editTarget && (
+              <p className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
+                Untuk menambah saldo, buka detail wallet ini lalu gunakan tombol "+ Pemasukan".
+              </p>
+            )}
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Sumber Dana *</Label>
               <Select

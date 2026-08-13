@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 import { formatRupiah, formatTanggal } from '@/lib/formatters'
-import type { DanaMasuk, Pengeluaran } from '@/lib/types'
+import type { DanaMasukWithSaldo, Pengeluaran } from '@/lib/types'
 
 /**
  * Export data ke file Excel
@@ -68,7 +68,7 @@ export function exportToExcel<T extends Record<string, any>>(
  * Export Dana Masuk ke Excel
  */
 export function exportDanaMasuk(
-  danaList: DanaMasuk[],
+  danaList: DanaMasukWithSaldo[],
   filename?: string
 ): void {
   const data = danaList.map((dana, index) => ({
@@ -124,7 +124,7 @@ export function exportPengeluaran(
  * Export Laporan Lengkap dengan multiple sheets
  */
 export function exportLaporanLengkap(
-  danaList: DanaMasuk[],
+  danaList: DanaMasukWithSaldo[],
   pengeluaranList: Pengeluaran[],
   filename?: string
 ): void {

@@ -1,6 +1,12 @@
 -- =============================================================
 -- KEUANGAN DIREKTORAT — Database Schema
 -- Jalankan file ini di Supabase SQL Editor
+--
+-- Skema dasar ini dilanjutkan oleh (jalankan berurutan setelah ini):
+--   1. fix_rls_policies.sql
+--   2. profiles_and_rls.sql   — tabel profiles + fix rekursi RLS
+--   3. migrate_buku_pemasukan.sql — buku, pemasukan, dana_masuk.buku_id
+--   4. migrate_peminjaman.sql — tabel peminjaman
 -- =============================================================
 
 -- ─────────────────────────────────────────

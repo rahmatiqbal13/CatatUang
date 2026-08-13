@@ -5,16 +5,17 @@ import dynamic from 'next/dynamic'
 import { formatRupiah, formatTanggal, hitungPersen } from '@/lib/formatters'
 import { usePagination, PaginationControls } from '@/hooks/use-pagination'
 import { ExcelExportDropdown } from '@/components/excel-export-button'
-import type { DanaMasuk, Pengeluaran } from '@/lib/types'
+import type { DanaMasukWithSaldo, Pengeluaran } from '@/lib/types'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const PDFExportButton = dynamic(() => import('./PDFExportButton'), { ssr: false })
 
 type Props = {
-  danaList: DanaMasuk[]
+  danaList: DanaMasukWithSaldo[]
   pengeluaranList: Pengeluaran[]
   settingsMap: Record<string, string>
   initialDanaFilter: string
+  bukuNama: string
 }
 
 function fmtCompact(n: number) {
@@ -35,7 +36,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={map[status] || 'cu-badge'}>{labels[status] || status}</span>
 }
 
-export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialDanaFilter }: Props) {
+export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialDanaFilter, bukuNama }: Props) {
   const [filterDana, setFilterDana]     = useState(initialDanaFilter)
   const [filterDari, setFilterDari]     = useState('')
   const [filterSampai, setFilterSampai] = useState('')
@@ -101,7 +102,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
             Laporan Keuangan
           </h1>
           <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            {settingsMap.nama_direktorat || 'Direktorat'} · Tahun Anggaran 2026
+            {settingsMap.nama_direktorat || 'Direktorat'} · Buku {bukuNama}
           </div>
         </div>
         <div className="flex items-center gap-2">
