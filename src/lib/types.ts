@@ -131,3 +131,54 @@ export type Profile = {
   created_at: string
   email?: string
 }
+
+export type InvoiceItem = { uraian: string; qty: number; harga_satuan: number }
+export type StatusInvoice = 'belum_dibayar' | 'lunas'
+export type Invoice = {
+  id: number
+  nomor: string
+  tanggal: string
+  jatuh_tempo: string | null
+  status: StatusInvoice
+  penerbit_nama: string
+  penerbit_jabatan: string | null
+  penerbit_instansi: string | null
+  penerima_nama: string
+  penerima_instansi: string | null
+  penerima_alamat: string | null
+  items: InvoiceItem[]
+  diskon_persen: number
+  pajak_persen: number
+  catatan: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type Kwitansi = {
+  id: number
+  nomor: string
+  tanggal: string
+  invoice_id: number | null
+  diterima_dari: string
+  jumlah: number
+  untuk_pembayaran: string
+  penerima_nama: string
+  penerima_jabatan: string | null
+  catatan: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type RabItem = { kategori: string; uraian: string; volume: number; satuan: string; harga_satuan: number }
+export type Rab = {
+  id: number
+  nomor: string
+  judul: string
+  tanggal: string
+  penyusun_nama: string
+  penyusun_jabatan: string | null
+  items: RabItem[]
+  catatan: string | null
+  created_at: string
+  updated_at: string
+}
