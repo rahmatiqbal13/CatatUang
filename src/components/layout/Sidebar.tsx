@@ -15,6 +15,7 @@ import {
   LogOut,
   Loader2,
   HandCoins,
+  FileText,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Suspense, useEffect, useState } from 'react'
@@ -30,6 +31,7 @@ const navItems = [
   { href: '/dana',        label: 'Dana Masuk',  icon: Wallet,          superAdminOnly: false },
   { href: '/pengeluaran', label: 'Pengeluaran', icon: Receipt,         superAdminOnly: false },
   { href: '/peminjaman',  label: 'Peminjaman',  icon: HandCoins,       superAdminOnly: false },
+  { href: '/invoice',     label: 'Invoice',     icon: FileText,        superAdminOnly: false },
   { href: '/laporan',     label: 'Laporan',     icon: FileBarChart,    superAdminOnly: false },
   { href: '/master-data', label: 'Master Data', icon: Database,        superAdminOnly: false },
   { href: '/pengguna',    label: 'Pengguna',    icon: Users,           superAdminOnly: true  },
