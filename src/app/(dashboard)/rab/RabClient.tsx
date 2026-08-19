@@ -8,6 +8,8 @@ import { handleSupabaseError } from '@/lib/error-handler'
 import { generateNomor } from '@/lib/nomorDokumen'
 import { computeRabGrandTotal, groupRabByKategori } from '@/lib/dokumenTotals'
 import type { Rab, RabItem } from '@/lib/types'
+import { pdf } from '@react-pdf/renderer'
+import { RabPDF } from '@/components/pdf/RabPDF'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, X, Printer } from 'lucide-react'
 
 type Props = { rabList: Rab[] }
 
@@ -40,6 +42,26 @@ export function RabClient({ rabList }: Props) {
   const [form, setForm] = useState<FormData>(emptyForm)
   const [items, setItems] = useState<ItemForm[]>([{ ...emptyItem }])
   const [saving, setSaving] = useState(false)
+  const [printingId, setPrintingId] = useState<number | null>(null)
+
+  async function handlePrint(r: Rab) {
+    setPrintingId(r.id)
+    try {
+      const blob = await pdf(<RabPDF rab={r} />).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `RAB_${r.nomor.replace(/\//g, '-')}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('RAB berhasil diunduh')
+    } catch (err) {
+      console.error(err)
+      toast.error('Gagal membuat RAB')
+    } finally {
+      setPrintingId(null)
+    }
+  }
 
   const openAdd = async () => {
     setEditTarget(null)
@@ -162,6 +184,9 @@ export function RabClient({ rabList }: Props) {
                       <td className="cu-num cu-mono text-[12px] font-medium">{formatRupiah(computeRabGrandTotal(r.items))}</td>
                       <td>
                         <div className="flex items-center gap-0.5">
+                          <button onClick={() => handlePrint(r)} disabled={printingId === r.id} title="Unduh PDF" aria-label="Unduh RAB PDF" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
+                            {printingId === r.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
+                          </button>
                           <button onClick={() => openEdit(r)} title="Edit" aria-label="Edit RAB" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
                             <Pencil className="w-3 h-3" />
                           </button>
