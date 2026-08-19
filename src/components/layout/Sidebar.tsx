@@ -16,6 +16,7 @@ import {
   Loader2,
   HandCoins,
   FileText,
+  ReceiptText,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Suspense, useEffect, useState } from 'react'
@@ -32,6 +33,7 @@ const navItems = [
   { href: '/pengeluaran', label: 'Pengeluaran', icon: Receipt,         superAdminOnly: false },
   { href: '/peminjaman',  label: 'Peminjaman',  icon: HandCoins,       superAdminOnly: false },
   { href: '/invoice',     label: 'Invoice',     icon: FileText,        superAdminOnly: false },
+  { href: '/kwitansi',    label: 'Kwitansi',    icon: ReceiptText,     superAdminOnly: false },
   { href: '/laporan',     label: 'Laporan',     icon: FileBarChart,    superAdminOnly: false },
   { href: '/master-data', label: 'Master Data', icon: Database,        superAdminOnly: false },
   { href: '/pengguna',    label: 'Pengguna',    icon: Users,           superAdminOnly: true  },
