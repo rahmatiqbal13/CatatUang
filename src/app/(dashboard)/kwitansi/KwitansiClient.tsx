@@ -16,7 +16,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Printer } from 'lucide-react'
+import { pdf } from '@react-pdf/renderer'
+import { KwitansiPDF } from '@/components/pdf/KwitansiPDF'
 
 type InvoiceOption = Pick<Invoice, 'id' | 'nomor' | 'penerima_nama' | 'items' | 'diskon_persen' | 'pajak_persen'>
 
@@ -51,6 +53,26 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
   const [delTarget, setDelTarget] = useState<Kwitansi | null>(null)
   const [form, setForm] = useState<FormData>(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [printingId, setPrintingId] = useState<number | null>(null)
+
+  async function handlePrint(k: Kwitansi) {
+    setPrintingId(k.id)
+    try {
+      const blob = await pdf(<KwitansiPDF kwitansi={k} />).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Kwitansi_${k.nomor.replace(/\//g, '-')}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Kwitansi berhasil diunduh')
+    } catch (err) {
+      console.error(err)
+      toast.error('Gagal membuat kwitansi')
+    } finally {
+      setPrintingId(null)
+    }
+  }
 
   const openAdd = async () => {
     setEditTarget(null)
@@ -185,6 +207,9 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
                       <td className="cu-num cu-mono text-[12px] font-medium">{formatRupiah(Number(k.jumlah))}</td>
                       <td>
                         <div className="flex items-center gap-0.5">
+                          <button onClick={() => handlePrint(k)} disabled={printingId === k.id} title="Unduh PDF" aria-label="Unduh kwitansi PDF" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
+                            {printingId === k.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
+                          </button>
                           <button onClick={() => openEdit(k)} title="Edit" aria-label="Edit kwitansi" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
                             <Pencil className="w-3 h-3" />
                           </button>
