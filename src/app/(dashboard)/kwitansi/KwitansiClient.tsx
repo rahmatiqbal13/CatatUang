@@ -236,7 +236,7 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nomor *</Label>
-                <Input value={form.nomor} onChange={e => setForm(f => ({ ...f, nomor: e.target.value }))} className="h-9 text-[13px]" />
+                <Input value={form.nomor} disabled className="h-9 text-[13px]" />
               </div>
               <div>
                 <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal *</Label>
