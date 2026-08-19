@@ -107,6 +107,11 @@ export function InvoiceClient({ invoiceList }: Props) {
       toast.error('Nomor, tanggal, penerbit, dan penerima wajib diisi')
       return
     }
+    const nonBlankRows = items.filter(it => it.uraian.trim() || Number(it.harga_satuan) > 0)
+    if (parsedItems.length !== nonBlankRows.length) {
+      toast.error('Ada item yang belum lengkap — lengkapi atau hapus barisnya')
+      return
+    }
     if (parsedItems.length === 0) {
       toast.error('Minimal satu item dengan uraian dan harga satuan valid')
       return

@@ -110,7 +110,7 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
       ...f,
       invoice_id: v,
       diterima_dari: inv.penerima_nama,
-      jumlah: String(totals.total),
+      jumlah: String(Math.round(totals.total)),
       untuk_pembayaran: `Pembayaran Invoice ${inv.nomor}`,
     }))
   }
@@ -120,7 +120,7 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
       toast.error('Nomor, tanggal, diterima dari, jumlah, untuk pembayaran, dan penerima wajib diisi')
       return
     }
-    const jumlah = parseFloat(form.jumlah)
+    const jumlah = Math.round(parseFloat(form.jumlah))
     if (isNaN(jumlah) || jumlah <= 0) {
       toast.error('Jumlah tidak valid')
       return

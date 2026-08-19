@@ -102,6 +102,11 @@ export function RabClient({ rabList }: Props) {
       toast.error('Nomor, judul, tanggal, dan penyusun wajib diisi')
       return
     }
+    const nonBlankRows = items.filter(it => it.kategori.trim() || it.uraian.trim() || Number(it.harga_satuan) > 0)
+    if (parsedItems.length !== nonBlankRows.length) {
+      toast.error('Ada item yang belum lengkap — lengkapi atau hapus barisnya')
+      return
+    }
     if (parsedItems.length === 0) {
       toast.error('Minimal satu item dengan kategori, uraian, dan harga satuan valid')
       return
