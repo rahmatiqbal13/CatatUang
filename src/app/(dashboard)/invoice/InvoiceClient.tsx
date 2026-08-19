@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { pdf } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase/client'
 import { formatRupiah, formatTanggal } from '@/lib/formatters'
 import { handleSupabaseError } from '@/lib/error-handler'
 import { generateNomor } from '@/lib/nomorDokumen'
 import { computeInvoiceTotals } from '@/lib/dokumenTotals'
+import { InvoicePDF } from '@/components/pdf/InvoicePDF'
 import type { Invoice, InvoiceItem, StatusInvoice } from '@/lib/types'
 
 import { Button } from '@/components/ui/button'
@@ -15,7 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, X, Printer } from 'lucide-react'
 
 type Props = { invoiceList: Invoice[] }
 
@@ -59,6 +61,7 @@ export function InvoiceClient({ invoiceList }: Props) {
   const [items, setItems] = useState<ItemForm[]>([{ ...emptyItem }])
   const [saving, setSaving] = useState(false)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [printingId, setPrintingId] = useState<number | null>(null)
 
   const openAdd = async () => {
     setEditTarget(null)
@@ -160,6 +163,25 @@ export function InvoiceClient({ invoiceList }: Props) {
     setUpdatingId(null)
   }
 
+  async function handlePrint(inv: Invoice) {
+    setPrintingId(inv.id)
+    try {
+      const blob = await pdf(<InvoicePDF invoice={inv} />).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Invoice_${inv.nomor.replace(/\//g, '-')}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Invoice berhasil diunduh')
+    } catch (err) {
+      console.error(err)
+      toast.error('Gagal membuat invoice')
+    } finally {
+      setPrintingId(null)
+    }
+  }
+
   return (
     <div className="animate-fade-in">
       <div className="cu-topbar">
@@ -215,6 +237,9 @@ export function InvoiceClient({ invoiceList }: Props) {
                         </td>
                         <td>
                           <div className="flex items-center gap-0.5">
+                            <button onClick={() => handlePrint(inv)} disabled={printingId === inv.id} title="Unduh PDF" aria-label="Unduh invoice PDF" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
+                              {printingId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
+                            </button>
                             <button onClick={() => openEdit(inv)} title="Edit" aria-label="Edit invoice" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
                               <Pencil className="w-3 h-3" />
                             </button>
