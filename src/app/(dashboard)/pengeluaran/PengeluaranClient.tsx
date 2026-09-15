@@ -11,6 +11,10 @@ import { usePagination, PaginationControls } from '@/hooks/use-pagination'
 import { useSupabaseMutation } from '@/hooks/use-supabase-mutation'
 import { ExcelExportButton } from '@/components/excel-export-button'
 import type { Pengeluaran, DanaMasuk, Kategori } from '@/lib/types'
+import { Topbar } from '@/components/layout/Topbar'
+import { TableWrap, Th, Td } from '@/components/ui/TableWrap'
+import { StatusBadge, SolidBadge } from '@/components/ui/StatusBadge'
+import { categoryColor, palette } from '@/lib/tokens'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,16 +42,6 @@ function fmtCompact(n: number) {
   if (abs >= 1e9) return `${(n / 1e9).toFixed(2)} M`
   if (abs >= 1e6) return `${(n / 1e6).toFixed(1)} jt`
   return formatRupiah(n)
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    approved: 'cu-badge cu-badge-success cu-badge-dot',
-    pending:  'cu-badge cu-badge-warning cu-badge-dot',
-    rejected: 'cu-badge cu-badge-danger cu-badge-dot',
-  }
-  const labels: Record<string, string> = { approved: 'Disetujui', pending: 'Menunggu', rejected: 'Ditolak' }
-  return <span className={map[status] ?? 'cu-badge'}>{labels[status] ?? status}</span>
 }
 
 export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, bukuNama }: Props) {
@@ -140,217 +134,196 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
     { id: 'rejected', label: 'Ditolak'  },
   ]
 
+  const totalApproved = filtered.filter(p => p.status === 'approved').reduce((s, p) => s + Number(p.jumlah), 0)
+
   return (
     <div className="animate-fade-in">
-      {/* Top bar */}
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
-            Pengeluaran
-          </h1>
-          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            {pengeluaranList.length} transaksi · Buku {bukuNama}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <ExcelExportButton type="pengeluaran" pengeluaranList={pengeluaranList} filename="pengeluaran" />
-        </div>
-      </div>
+      <Topbar
+        title="Pengeluaran"
+        subtitle={`${pengeluaranList.length} transaksi · Buku ${bukuNama}`}
+        action={<ExcelExportButton type="pengeluaran" pengeluaranList={pengeluaranList} filename="pengeluaran" />}
+      />
 
       <div className="cu-page">
-        {/* Tabs */}
-        <div className="flex items-center gap-0" style={{ borderBottom: '1px solid var(--border)' }}>
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-[12.5px] transition-colors"
-              style={{
-                color: activeTab === t.id ? 'var(--cu-text)' : 'var(--cu-text-muted)',
-                fontWeight: activeTab === t.id ? 600 : 500,
-                borderBottom: activeTab === t.id ? '2px solid var(--cu-primary)' : '2px solid transparent',
-                marginBottom: -1,
-              }}
-            >
-              {t.label}
-              <span
-                className="cu-mono text-[10.5px] px-1.5 py-0 rounded-full font-semibold"
-                style={{
-                  background: t.id === 'pending' && counts.pending > 0 ? 'var(--cu-warning-soft)' : 'var(--cu-surface-2)',
-                  color: t.id === 'pending' && counts.pending > 0 ? 'var(--cu-warning)' : 'var(--cu-text-muted)',
-                }}
-              >
-                {counts[t.id as keyof typeof counts]}
-              </span>
-            </button>
-          ))}
-        </div>
+        {/* Filter card */}
+        <div className="card-shell" style={{ padding: '16px 18px' }}>
+          <div className="label-caps" style={{ color: 'var(--text-muted)', marginBottom: 10 }}>Filter</div>
+          <div className="flex flex-wrap items-center gap-2">
+            {tabs.map(t => {
+              const active = activeTab === t.id
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap"
+                  style={{
+                    padding: '7px 12px',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    background: active ? '#201e1d' : '#fff',
+                    color: active ? '#f3f2f2' : 'var(--text)',
+                    border: active ? '1px solid #201e1d' : '1px solid var(--divider)',
+                  }}
+                >
+                  {t.label}
+                  <span
+                    className="text-[10.5px] px-1.5"
+                    style={{
+                      background: active ? 'rgba(255,255,255,0.18)' : 'var(--surface-2)',
+                      color: active ? '#f3f2f2' : 'var(--text-muted)',
+                    }}
+                  >
+                    {counts[t.id as keyof typeof counts]}
+                  </span>
+                </button>
+              )
+            })}
 
-        {/* Filter row */}
-        <div className="flex items-center gap-2">
-          <div
-            className="flex items-center gap-2 px-2.5 h-[30px] rounded-[5px] flex-1 max-w-xs"
-            style={{ border: '1px solid var(--border)', background: 'var(--cu-surface)' }}
-          >
-            <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--cu-text-muted)' }} />
-            <input
-              className="flex-1 bg-transparent text-[12.5px] outline-none"
-              style={{ color: 'var(--cu-text)' }}
-              placeholder="Cari uraian, dana, pemohon…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
-          <Select
-            value={filterDana}
-            onValueChange={v => setFilterDana(v ?? 'all')}
-            items={{ all: 'Semua Dana', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
-          >
-            <SelectTrigger
-              className="h-[30px] text-[12px] px-2.5"
-              style={{ border: '1px solid var(--border)', background: 'var(--cu-surface)', width: 200, borderRadius: 5 }}
+            <div
+              className="flex items-center gap-2 px-2.5 h-[32px]"
+              style={{ border: '1px solid var(--divider)', background: 'var(--surface)' }}
             >
-              <SelectValue placeholder="Semua Dana" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Dana</SelectItem>
-              {danaList.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.nama_dana}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <div className="flex-1" />
-          {counts.pending > 0 && (
-            <span className="text-[12px] font-medium" style={{ color: 'var(--cu-warning)' }}>
-              {counts.pending} menunggu approval
+              <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
+              <input
+                className="flex-1 bg-transparent text-[12.5px] outline-none"
+                style={{ color: 'var(--text)' }}
+                placeholder="Cari uraian, dana, pemohon…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <Select
+              value={filterDana}
+              onValueChange={v => setFilterDana(v ?? 'all')}
+              items={{ all: 'Semua Dana', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
+            >
+              <SelectTrigger
+                className="h-[32px] text-[12px] px-2.5"
+                style={{ border: '1px solid var(--divider)', background: 'var(--surface)', width: 200 }}
+              >
+                <SelectValue placeholder="Semua Dana" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Dana</SelectItem>
+                {danaList.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.nama_dana}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end mt-2.5">
+            <span className="text-[12.5px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+              {totalItems} transaksi · Rp {fmtCompact(totalApproved)}
             </span>
-          )}
+          </div>
         </div>
 
         {/* Table */}
-        <div className="cu-card overflow-hidden">
+        <div className="card-shell overflow-hidden">
           {paginatedData.length === 0 ? (
-            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
               Tidak ada pengeluaran
             </div>
           ) : (
             <>
-              <div className="cu-table-wrap">
-              <table className="cu-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 76 }}>ID</th>
-                    <th style={{ width: 90 }}>Tanggal</th>
-                    <th>Uraian</th>
-                    <th style={{ width: 160 }}>Dana</th>
-                    <th style={{ width: 120 }}>Kategori</th>
-                    <th style={{ width: 96 }}>Status</th>
-                    <th className="cu-num" style={{ width: 130 }}>Jumlah</th>
-                    <th style={{ width: 110 }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map(p => (
-                    <tr
-                      key={p.id}
-                      style={p.status === 'pending' ? { background: 'color-mix(in srgb, var(--cu-warning-soft) 40%, transparent)' } : {}}
-                    >
-                      <td className="cu-mono text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
-                        P-{String(p.id).padStart(4, '0')}
-                      </td>
-                      <td className="cu-mono text-[11.5px]" style={{ color: 'var(--cu-text-2)' }}>
-                        {formatTanggal(p.tanggal)}
-                      </td>
-                      <td>
-                        <div className="font-medium text-[12.5px]" style={{ color: 'var(--cu-text)' }}>
-                          {p.uraian}
-                        </div>
-                        {p.keterangan && (
-                          <div className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
-                            {p.keterangan}
-                          </div>
-                        )}
-                      </td>
-                      <td
-                        className="text-[12px] truncate max-w-[160px]"
-                        style={{ color: 'var(--cu-text-2)' }}
-                        title={p.nama_dana}
-                      >
-                        {p.nama_dana}
-                      </td>
-                      <td style={{ width: 140 }}>
-                        <span 
-                          className="cu-badge truncate whitespace-nowrap max-w-[130px] inline-block" 
-                          title={p.kategori}
-                        >
-                          {p.kategori}
-                        </span>
-                      </td>
-                      <td>
-                        <StatusBadge status={p.status} />
-                      </td>
-                      <td className="cu-num cu-mono text-[12px] font-medium">
-                        {fmtCompact(Number(p.jumlah))}
-                      </td>
-                      <td>
-                        {p.status === 'pending' ? (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleApprove(p.id)}
-                              disabled={approving}
-                              className="h-6 px-2 text-[11px] font-medium rounded flex items-center gap-0.5"
-                              style={{ background: 'var(--cu-primary)', color: '#fff' }}
-                              title="Setujui"
-                            >
-                              <Check className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => handleReject(p.id)}
-                              disabled={rejecting}
-                              className="h-6 px-2 text-[11px] font-medium rounded flex items-center gap-0.5"
-                              style={{ background: 'var(--cu-danger-soft)', color: 'var(--cu-danger)', border: '1px solid var(--cu-danger)' }}
-                              title="Tolak"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => openEdit(p)}
-                              className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]"
-                              style={{ color: 'var(--cu-text-muted)' }}
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => openEdit(p)}
-                              className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]"
-                              style={{ color: 'var(--cu-text-muted)' }}
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => { setDelTarget(p); setOpenDel(true) }}
-                              className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-danger-soft)]"
-                              style={{ color: 'var(--cu-text-muted)' }}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        )}
-                      </td>
+              <TableWrap minWidth={620}>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <Th width={100}>Tanggal</Th>
+                      <Th>Uraian</Th>
+                      <Th width={140}>Kategori</Th>
+                      <Th width={110}>Status</Th>
+                      <Th align="right" width={120}>Jumlah</Th>
+                      <Th align="right" width={110}>Aksi</Th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
+                  </thead>
+                  <tbody>
+                    {paginatedData.map(p => (
+                      <tr key={p.id}>
+                        <Td>
+                          <span className="whitespace-nowrap tabular-nums text-[12px]" style={{ color: 'var(--text-2)' }}>
+                            {formatTanggal(p.tanggal)}
+                          </span>
+                        </Td>
+                        <Td>
+                          <div className="font-semibold text-[12.5px]" style={{ color: 'var(--text)' }}>
+                            {p.uraian}
+                          </div>
+                          <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
+                            {p.nama_dana}
+                          </div>
+                        </Td>
+                        <Td>
+                          <SolidBadge color={categoryColor(p.kategori)}>{p.kategori}</SolidBadge>
+                        </Td>
+                        <Td>
+                          <StatusBadge status={p.status} />
+                        </Td>
+                        <Td align="right">
+                          <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: 'var(--text)' }}>
+                            {fmtCompact(Number(p.jumlah))}
+                          </span>
+                        </Td>
+                        <Td align="right">
+                          {p.status === 'pending' ? (
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleApprove(p.id)}
+                                disabled={approving}
+                                className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
+                                style={{ background: palette.green, color: '#fff' }}
+                                title="Setujui"
+                              >
+                                <Check className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => handleReject(p.id)}
+                                disabled={rejecting}
+                                className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
+                                style={{ background: '#fff', color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                                title="Tolak"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => openEdit(p)}
+                                className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
+                                style={{ color: 'var(--text-muted)' }}
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openEdit(p)}
+                                className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
+                                style={{ color: 'var(--text-muted)' }}
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => { setDelTarget(p); setOpenDel(true) }}
+                                className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
+                                style={{ color: 'var(--text-muted)' }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TableWrap>
               <div
-                className="flex items-center justify-between px-4 py-2.5"
-                style={{ borderTop: '1px solid var(--border)', background: 'var(--cu-surface)' }}
+                className="flex items-center justify-between px-4 py-2.5 flex-wrap gap-2"
+                style={{ borderTop: '1px solid var(--divider)', background: 'var(--surface)' }}
               >
-                <span className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
+                <span className="text-[12px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                   Total approved:{' '}
-                  <span className="cu-mono font-semibold" style={{ color: 'var(--cu-text)' }}>
-                    {fmtCompact(filtered.filter(p => p.status === 'approved').reduce((s, p) => s + Number(p.jumlah), 0))}
+                  <span className="font-bold tabular-nums" style={{ color: 'var(--text)' }}>
+                    {fmtCompact(totalApproved)}
                   </span>
                   {' · '}{totalItems} transaksi
                 </span>

@@ -8,6 +8,9 @@ import { formatRupiah, formatTanggal } from '@/lib/formatters'
 import { handleSupabaseError } from '@/lib/error-handler'
 import type { Peminjaman, DanaMasuk, StatusPeminjaman } from '@/lib/types'
 import { PeminjamanPDF } from '@/components/pdf/PeminjamanPDF'
+import { Topbar, BarButton } from '@/components/layout/Topbar'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { autoGrid } from '@/lib/tokens'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,13 +41,7 @@ const emptyForm: FormData = {
   jumlah: '', tanggal: '', keterangan: '',
 }
 
-function StatusBadge({ status }: { status: StatusPeminjaman }) {
-  return status === 'lunas'
-    ? <span className="cu-badge cu-badge-success cu-badge-dot">Lunas</span>
-    : <span className="cu-badge cu-badge-warning cu-badge-dot">Belum Lunas</span>
-}
-
-export function PeminjamanClient({ peminjamanList, danaList, bukuNama, pihakPertamaNama, pihakPertamaJabatan, pihakPertamaInstansi }: Props) {
+export function PeminjamanClient({ peminjamanList, danaList, pihakPertamaNama, pihakPertamaJabatan, pihakPertamaInstansi }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -56,6 +53,8 @@ export function PeminjamanClient({ peminjamanList, danaList, bukuNama, pihakPert
   const [saving, setSaving] = useState(false)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
   const [printingId, setPrintingId] = useState<number | null>(null)
+
+  const belumLunasCount = peminjamanList.filter(p => p.status !== 'lunas').length
 
   const openAdd = () => {
     setEditTarget(null)
@@ -180,129 +179,105 @@ export function PeminjamanClient({ peminjamanList, danaList, bukuNama, pihakPert
 
   return (
     <div className="animate-fade-in">
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
-            Peminjaman
-          </h1>
-          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            {peminjamanList.length} peminjaman · Buku {bukuNama}
-          </div>
-        </div>
-        <button
-          onClick={openAdd}
-          disabled={danaList.length === 0}
-          className="inline-flex items-center gap-1.5 h-[30px] px-3 rounded-[5px] text-[12px] font-medium"
-          style={{ background: 'var(--cu-primary)', color: '#ffffff', opacity: danaList.length === 0 ? 0.5 : 1 }}
-        >
-          <Plus className="w-3.5 h-3.5" /> Peminjaman Baru
-        </button>
-      </div>
+      <Topbar
+        title="Peminjaman"
+        subtitle={`${peminjamanList.length} peminjam · ${belumLunasCount} belum lunas`}
+        action={
+          <BarButton variant="primary" onClick={openAdd} disabled={danaList.length === 0}>
+            <span className="inline-flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Peminjaman</span>
+          </BarButton>
+        }
+      />
 
       <div className="cu-page">
-        <div className="cu-card overflow-hidden">
-          {peminjamanList.length === 0 ? (
-            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
-              Belum ada peminjaman
-            </div>
-          ) : (
-            <div className="cu-table-wrap">
-              <table className="cu-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 90 }}>Tanggal</th>
-                    <th>Peminjam</th>
-                    <th style={{ width: 160 }}>Wallet</th>
-                    <th className="cu-num" style={{ width: 130 }}>Jumlah</th>
-                    <th style={{ width: 100 }}>Status</th>
-                    <th style={{ width: 130 }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {peminjamanList.map(p => (
-                    <tr key={p.id}>
-                      <td className="cu-mono text-[11.5px] whitespace-nowrap" style={{ color: 'var(--cu-text-2)' }}>
-                        {formatTanggal(p.tanggal)}
-                      </td>
-                      <td>
-                        <div className="font-medium text-[12.5px]" style={{ color: 'var(--cu-text)' }}>
-                          {p.nama_peminjam}
-                        </div>
-                        {(p.jabatan || p.unit_kerja) && (
-                          <div className="text-[11px] mt-0.5" style={{ color: 'var(--cu-text-muted)' }}>
-                            {[p.jabatan, p.unit_kerja].filter(Boolean).join(' · ')}
-                          </div>
-                        )}
-                      </td>
-                      <td className="text-[12px] truncate max-w-[160px]" style={{ color: 'var(--cu-text-2)' }} title={p.nama_dana || ''}>
-                        {p.nama_dana || '—'}
-                      </td>
-                      <td className="cu-num cu-mono text-[12px] font-medium">
-                        {formatRupiah(Number(p.jumlah))}
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => handleToggleStatus(p)}
-                          disabled={updatingId === p.id}
-                          className={`cu-badge cu-badge-dot ${p.status === 'lunas' ? 'cu-badge-success' : 'cu-badge-warning'}`}
-                          style={{ cursor: 'pointer' }}
-                          title="Klik untuk ubah status"
-                        >
-                          {p.status === 'lunas' ? 'Lunas' : 'Belum Lunas'}
-                        </button>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-0.5">
-                          <button
-                            onClick={() => handlePrint(p)}
-                            disabled={printingId === p.id}
-                            title="Cetak Surat"
-                            aria-label="Cetak surat perjanjian"
-                            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]"
-                            style={{ color: 'var(--cu-text-muted)' }}
-                          >
-                            {printingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
-                          </button>
-                          <button
-                            onClick={() => openEdit(p)}
-                            title="Edit"
-                            aria-label="Edit peminjaman"
-                            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]"
-                            style={{ color: 'var(--cu-text-muted)' }}
-                          >
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => { setDelTarget(p); setOpenDel(true) }}
-                            title="Hapus"
-                            aria-label="Hapus peminjaman"
-                            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-danger-soft)]"
-                            style={{ color: 'var(--cu-text-muted)' }}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {peminjamanList.length === 0 ? (
+          <div className="card-shell py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            Belum ada peminjaman
+          </div>
+        ) : (
+          <div style={autoGrid(290)}>
+            {peminjamanList.map(p => (
+              <div key={p.id} className="card-shell relative" style={{ padding: 18 }}>
+                <div className="absolute right-2 top-2 flex items-center gap-0.5">
+                  <button
+                    onClick={() => openEdit(p)}
+                    title="Edit"
+                    aria-label="Edit peminjaman"
+                    className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-2)]"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => { setDelTarget(p); setOpenDel(true) }}
+                    title="Hapus"
+                    aria-label="Hapus peminjaman"
+                    className="w-6 h-6 flex items-center justify-center hover:bg-[var(--status-no-bg)]"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+
+                <div className="pr-14">
+                  <StatusBadge status={p.status} />
+                </div>
+
+                <div className="mt-2 text-[17px] font-extrabold tracking-[-0.01em] truncate" style={{ color: 'var(--text)' }}>
+                  {p.nama_peminjam}
+                </div>
+                {(p.jabatan || p.unit_kerja) && (
+                  <div className="text-[12px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+                    {[p.jabatan, p.unit_kerja].filter(Boolean).join(' · ')}
+                  </div>
+                )}
+
+                <div className="mt-3 text-[24px] font-extrabold whitespace-nowrap" style={{ color: 'var(--text)' }}>
+                  {formatRupiah(Number(p.jumlah))}
+                </div>
+                <div className="mt-1 text-[12px] truncate" style={{ color: 'var(--text-muted)' }}>
+                  {formatTanggal(p.tanggal)} · {p.nama_dana || '—'}
+                </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                  <BarButton
+                    variant="ink"
+                    className="flex-1"
+                    onClick={() => handleToggleStatus(p)}
+                    disabled={updatingId === p.id}
+                  >
+                    {updatingId === p.id
+                      ? <span className="inline-flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Memproses…</span>
+                      : (p.status === 'lunas' ? 'Tandai Belum Lunas' : 'Tandai Lunas')}
+                  </BarButton>
+                  <BarButton
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handlePrint(p)}
+                    disabled={printingId === p.id}
+                  >
+                    {printingId === p.id
+                      ? <span className="inline-flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Mencetak…</span>
+                      : <span className="inline-flex items-center gap-1.5"><Printer className="w-3.5 h-3.5" /> Cetak Bukti</span>}
+                  </BarButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Form Dialog */}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">
+            <DialogTitle className="text-[15px] font-extrabold">
               {editTarget ? 'Edit Peminjaman' : 'Peminjaman Baru'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Wallet *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Wallet *</Label>
               <Select
                 value={form.dana_id}
                 onValueChange={v => setForm(f => ({ ...f, dana_id: v ?? '' }))}
@@ -313,59 +288,59 @@ export function PeminjamanClient({ peminjamanList, danaList, bukuNama, pihakPert
               </Select>
             </div>
 
-            <div className="text-[11.5px] font-semibold pt-1" style={{ color: 'var(--cu-text-muted)' }}>
+            <div className="label-caps pt-1" style={{ color: 'var(--text-muted)' }}>
               Pihak Pertama (Pemberi)
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nama Pemberi *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Nama Pemberi *</Label>
               <Input value={form.pemberi_nama} onChange={e => setForm(f => ({ ...f, pemberi_nama: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jabatan</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Jabatan</Label>
                 <Input value={form.pemberi_jabatan} onChange={e => setForm(f => ({ ...f, pemberi_jabatan: e.target.value }))} className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Instansi</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Instansi</Label>
                 <Input value={form.pemberi_instansi} onChange={e => setForm(f => ({ ...f, pemberi_instansi: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
 
-            <div className="text-[11.5px] font-semibold pt-1" style={{ color: 'var(--cu-text-muted)' }}>
+            <div className="label-caps pt-1" style={{ color: 'var(--text-muted)' }}>
               Pihak Kedua (Peminjam)
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nama Peminjam *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Nama Peminjam *</Label>
               <Input value={form.nama_peminjam} onChange={e => setForm(f => ({ ...f, nama_peminjam: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jabatan</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Jabatan</Label>
                 <Input value={form.jabatan} onChange={e => setForm(f => ({ ...f, jabatan: e.target.value }))} className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Unit Kerja</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Unit Kerja</Label>
                 <Input value={form.unit_kerja} onChange={e => setForm(f => ({ ...f, unit_kerja: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jumlah *</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Jumlah *</Label>
                 <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal *</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Tanggal *</Label>
                 <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Keterangan</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Keterangan</Label>
               <Textarea placeholder="Keterangan tambahan (opsional)" rows={2} value={form.keterangan} onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))} className="text-[13px]" />
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenForm(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-primary)', color: '#fff' }}>
+            <Button onClick={handleSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -376,16 +351,16 @@ export function PeminjamanClient({ peminjamanList, danaList, bukuNama, pihakPert
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--cu-danger)' }}>
+            <DialogTitle className="text-[15px] font-extrabold" style={{ color: 'var(--accent-press)' }}>
               Hapus Peminjaman
             </DialogTitle>
           </DialogHeader>
-          <div className="py-3 text-[13px]" style={{ color: 'var(--cu-text-2)' }}>
-            Yakin ingin menghapus peminjaman <strong style={{ color: 'var(--cu-text)' }}>{delTarget?.nama_peminjam}</strong>? Tindakan ini tidak dapat dibatalkan.
+          <div className="py-3 text-[13px]" style={{ color: 'var(--text-2)' }}>
+            Yakin ingin menghapus peminjaman <strong style={{ color: 'var(--text)' }}>{delTarget?.nama_peminjam}</strong>? Tindakan ini tidak dapat dibatalkan.
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenDel(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-danger)', color: '#fff' }}>
+            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent-press)', color: '#fff' }}>
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

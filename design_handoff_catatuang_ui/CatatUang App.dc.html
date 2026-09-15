@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-85da27d7-2583-4e37-8fca-69e3d911c45f/styles.css">
+<script src="_ds/modernist-85da27d7-2583-4e37-8fca-69e3d911c45f/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body { margin:0; background:#f3f2f2; color:#201e1d; font-family:Archivo,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+a { color:#ec3013; text-decoration:none; } a:hover { color:#dd2b0f; }
+::selection { background:rgba(236,48,19,0.3); }
+input, select, textarea { font-family:Archivo,system-ui,sans-serif; }
+</style>
+</helmet>
+
+<div style="display:flex; min-height:100vh; background:#f3f2f2; font-variant-numeric:tabular-nums">
+
+  <aside style="width:76px; flex-shrink:0; background:#ffffff; border-right:2px solid rgba(32,30,29,0.4); display:flex; flex-direction:column; align-items:center; gap:2px; padding:14px 0; position:sticky; top:0; height:100vh; overflow-y:auto">
+    <div style="width:40px; height:40px; background:#ec3013; display:flex; align-items:center; justify-content:center; margin-bottom:10px; flex-shrink:0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f3f2f2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3v3H5a2 2 0 0 1-2-2V5"></path></svg>
+    </div>
+    <sc-for list="{{ nav }}" as="item" hint-placeholder-count="11">
+      <div onClick="{{ item.go }}" style="width:56px; padding:8px 0 6px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; flex-shrink:0; background: {{ item.bg }}; color: {{ item.fg }}" style-hover="background:#eae9e9">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ item.d }}"></path></svg>
+        <span style="font-size:8.5px; font-weight:700; letter-spacing:0.02em; text-align:center; line-height:1.1">{{ item.short }}</span>
+      </div>
+    </sc-for>
+  </aside>
+
+  <div style="flex:1; min-width:0; display:flex; flex-direction:column">
+
+    <div style="background:#ffffff; border-bottom:2px solid rgba(32,30,29,0.4); padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; position:sticky; top:0; z-index:10">
+      <div style="flex:1; min-width:180px">
+        <div style="font-family:Archivo; font-weight:800; font-size:24px; letter-spacing:-0.025em; line-height:1.1">{{ title }}</div>
+        <div style="font-size:12.5px; color:#605d5d; margin-top:2px">{{ subtitle }}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap">
+        <span style="padding:8px 12px; border:1px solid rgba(32,30,29,0.4); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap" style-hover="background:#eae9e9">Buku 2026 ▾</span>
+        <span onClick="{{ goMobile }}" style="padding:8px 12px; border:1px solid rgba(32,30,29,0.4); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap" style-hover="background:#eae9e9">Mobile</span>
+        <span onClick="{{ goLogin }}" style="padding:8px 12px; border:1px solid rgba(32,30,29,0.4); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap" style-hover="background:#eae9e9">Login</span>
+        <span style="padding:8px 12px; background:#ec3013; color:#f3f2f2; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap" style-hover="background:#dd2b0f">{{ primaryAction }}</span>
+      </div>
+    </div>
+
+    <div style="padding:20px 24px 32px; display:flex; flex-direction:column; gap:20px">
+
+      <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column; gap:20px">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+              <div style="min-width:0; background: {{ k.bg }}; color: {{ k.fg }}; padding:18px; display:flex; flex-direction:column; gap:12px">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px">
+                  <span style="font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; opacity:0.85">{{ k.label }}</span>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8; flex-shrink:0"><path d="{{ k.icon }}"></path></svg>
+                </div>
+                <div style="display:flex; align-items:baseline; gap:5px; flex-wrap:wrap">
+                  <span style="font-size:13px; font-weight:600; opacity:0.8">Rp</span>
+                  <span style="font-family:Archivo; font-weight:800; font-size:32px; letter-spacing:-0.035em; line-height:1">{{ k.value }}</span>
+                  <span style="font-size:15px; font-weight:700; opacity:0.85">{{ k.unit }}</span>
+                </div>
+                <div style="font-size:12px; opacity:0.9; text-wrap:pretty"><span style="font-weight:700">{{ k.delta }}</span> {{ k.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; align-items:start">
+            <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); min-width:0">
+              <div style="padding:14px 18px; border-bottom:2px solid rgba(32,30,29,0.4); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap">
+                <div style="font-family:Archivo; font-weight:800; font-size:16px; letter-spacing:-0.02em">Alokasi per Dana</div>
+                <span onClick="{{ goDana }}" style="font-size:12.5px; font-weight:700; color:#ae1800; cursor:pointer; white-space:nowrap">Lihat semua →</span>
+              </div>
+              <sc-for list="{{ danas }}" as="d" hint-placeholder-count="6">
+                <div onClick="{{ d.open }}" style="padding:13px 18px; border-bottom:1px solid #d7d3d3; display:flex; flex-direction:column; gap:8px; cursor:pointer" style-hover="background:#f8f4f4">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
+                    <div style="display:flex; align-items:center; gap:9px; min-width:0">
+                      <span style="width:10px; height:10px; flex-shrink:0; background: {{ d.color }}"></span>
+                      <span style="font-size:13.5px; font-weight:700; text-wrap:pretty">{{ d.nama }}</span>
+                      <span style="font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:2px 6px; background:#eae9e9; color:#444141; white-space:nowrap">{{ d.sumber }}</span>
+                    </div>
+                    <span style="font-size:13px; font-weight:800; white-space:nowrap">{{ d.sisa }}<span style="font-weight:600; font-size:11.5px; color:#605d5d"> sisa</span></span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:10px">
+                    <div style="flex:1; min-width:60px; height:9px; background:#eae9e9">
+                      <div style="height:100%; width: {{ d.pctWidth }}; background: {{ d.color }}"></div>
+                    </div>
+                    <span style="font-size:11.5px; font-weight:700; white-space:nowrap; color:#444141">{{ d.pct }}</span>
+                    <span style="font-size:11.5px; color:#605d5d; white-space:nowrap">{{ d.terpakai }} / {{ d.alokasi }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:16px; min-width:0">
+              <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); min-width:0">
+                <div style="padding:14px 18px; border-bottom:2px solid rgba(32,30,29,0.4); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap">
+                  <div style="font-family:Archivo; font-weight:800; font-size:16px; letter-spacing:-0.02em">Menunggu Approval</div>
+                  <span style="font-size:10px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; padding:4px 8px; background:#ffe0d9; color:#ae1800; white-space:nowrap">{{ pendingCount }} antre</span>
+                </div>
+                <sc-for list="{{ pendings }}" as="p" hint-placeholder-count="4">
+                  <div style="padding:13px 18px; border-bottom:1px solid #d7d3d3; display:flex; gap:12px; align-items:flex-start">
+                    <span style="width:4px; align-self:stretch; flex-shrink:0; background:#c07a00"></span>
+                    <div style="flex:1; min-width:0">
+                      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start">
+                        <span style="font-size:13.5px; font-weight:700; text-wrap:pretty">{{ p.uraian }}</span>
+                        <span style="font-size:14px; font-weight:800; white-space:nowrap">{{ p.jumlah }}</span>
+                      </div>
+                      <div style="font-size:11.5px; color:#605d5d; margin-top:3px; text-wrap:pretty">{{ p.meta }}</div>
+                      <div style="display:flex; gap:8px; margin-top:9px; flex-wrap:wrap">
+                        <span onClick="{{ p.approve }}" style="padding:5px 10px; background:#201e1d; color:#f3f2f2; font-size:11.5px; font-weight:700; cursor:pointer" style-hover="background:#444141">Setujui</span>
+                        <span onClick="{{ p.reject }}" style="padding:5px 10px; border:1px solid rgba(32,30,29,0.4); font-size:11.5px; font-weight:700; cursor:pointer" style-hover="background:#eae9e9">Tolak</span>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noPending }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:26px 18px; text-align:center; font-size:13px; color:#605d5d">Semua pengajuan sudah diproses.</div>
+                </sc-if>
+              </div>
+
+              <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:18px; min-width:0">
+                <div style="font-family:Archivo; font-weight:800; font-size:16px; letter-spacing:-0.02em">Pengeluaran per Kategori</div>
+                <div style="display:flex; flex-direction:column; gap:11px; margin-top:14px">
+                  <sc-for list="{{ kategori }}" as="c" hint-placeholder-count="5">
+                    <div style="display:flex; align-items:center; gap:10px">
+                      <span style="font-size:12.5px; font-weight:600; width:118px; flex-shrink:0; text-wrap:pretty">{{ c.nama }}</span>
+                      <div style="flex:1; min-width:40px; height:16px; background:#eae9e9">
+                        <div style="height:100%; width: {{ c.w }}; background: {{ c.color }}"></div>
+                      </div>
+                      <span style="font-size:12px; font-weight:700; white-space:nowrap; width:62px; text-align:right">{{ c.total }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDana }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px">
+          <sc-for list="{{ danas }}" as="d" hint-placeholder-count="6">
+            <div onClick="{{ d.open }}" style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); border-top:6px solid {{ d.color }}; padding:18px; min-width:0; cursor:pointer; display:flex; flex-direction:column; gap:12px" style-hover="background:#f8f4f4">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px">
+                <div style="font-family:Archivo; font-weight:800; font-size:17px; letter-spacing:-0.02em; text-wrap:pretty">{{ d.nama }}</div>
+                <span style="font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 7px; color:#ffffff; background: {{ d.color }}; white-space:nowrap">{{ d.sumber }}</span>
+              </div>
+              <div style="display:flex; gap:20px; flex-wrap:wrap">
+                <div><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Alokasi</div><div style="font-weight:800; font-size:18px; white-space:nowrap">{{ d.alokasi }}</div></div>
+                <div><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Sisa</div><div style="font-weight:800; font-size:18px; white-space:nowrap; color: {{ d.color }}">{{ d.sisa }}</div></div>
+              </div>
+              <div style="height:9px; background:#eae9e9"><div style="height:100%; width: {{ d.pctWidth }}; background: {{ d.color }}"></div></div>
+              <div style="font-size:12px; color:#605d5d">Terpakai {{ d.terpakai }} · {{ d.pct }} · {{ d.tanggal }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDanaDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:16px">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px">
+            <sc-for list="{{ detailStats }}" as="s" hint-placeholder-count="4">
+              <div style="background: {{ s.bg }}; color: {{ s.fg }}; padding:16px; min-width:0">
+                <div style="font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; opacity:0.85">{{ s.label }}</div>
+                <div style="font-family:Archivo; font-weight:800; font-size:26px; letter-spacing:-0.03em; margin-top:6px; white-space:nowrap">{{ s.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4)">
+            <div style="padding:14px 18px; border-bottom:2px solid rgba(32,30,29,0.4); font-family:Archivo; font-weight:800; font-size:16px">Transaksi Dana Ini</div>
+            <div style="overflow-x:auto">
+              <table style="width:100%; min-width:520px; border-collapse:collapse; font-size:13px">
+                <thead><tr style="border-bottom:2px solid rgba(32,30,29,0.4)">
+                  <th style="text-align:left; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Tanggal</th>
+                  <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Uraian</th>
+                  <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Jenis</th>
+                  <th style="text-align:right; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Jumlah</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ detailRows }}" as="r" hint-placeholder-count="6">
+                    <tr style="border-bottom:1px solid #d7d3d3" style-hover="background:#f8f4f4">
+                      <td style="padding:11px 16px; white-space:nowrap; color:#605d5d">{{ r.tanggal }}</td>
+                      <td style="padding:11px 8px; font-weight:600; text-wrap:pretty">{{ r.uraian }}</td>
+                      <td style="padding:11px 8px; white-space:nowrap"><span style="font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 7px; color:#ffffff; background: {{ r.color }}">{{ r.jenis }}</span></td>
+                      <td style="padding:11px 16px; text-align:right; white-space:nowrap; font-weight:800; color: {{ r.color }}">{{ r.jumlah }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isKeluar }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:16px">
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:16px 18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+            <span style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Filter</span>
+            <sc-for list="{{ statusFilters }}" as="f" hint-placeholder-count="4">
+              <span onClick="{{ f.pick }}" style="padding:7px 12px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; background: {{ f.bg }}; color: {{ f.fg }}; border:1px solid {{ f.border }}">{{ f.label }}</span>
+            </sc-for>
+            <div style="flex:1; min-width:120px"></div>
+            <span style="font-size:12.5px; color:#605d5d; white-space:nowrap">{{ keluarCount }} transaksi · {{ keluarTotal }}</span>
+          </div>
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4)">
+            <div style="overflow-x:auto">
+              <table style="width:100%; min-width:620px; border-collapse:collapse; font-size:13px">
+                <thead><tr style="border-bottom:2px solid rgba(32,30,29,0.4)">
+                  <th style="text-align:left; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Tanggal</th>
+                  <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Uraian</th>
+                  <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Kategori</th>
+                  <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Status</th>
+                  <th style="text-align:right; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Jumlah</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ keluarRows }}" as="r" hint-placeholder-count="8">
+                    <tr style="border-bottom:1px solid #d7d3d3" style-hover="background:#f8f4f4">
+                      <td style="padding:11px 16px; white-space:nowrap; color:#605d5d">{{ r.tanggal }}</td>
+                      <td style="padding:11px 8px; font-weight:600; text-wrap:pretty">{{ r.uraian }}<div style="font-size:11.5px; font-weight:500; color:#605d5d">{{ r.dana }}</div></td>
+                      <td style="padding:11px 8px; white-space:nowrap"><span style="font-size:11px; font-weight:700; padding:3px 7px; color:#ffffff; background: {{ r.katColor }}">{{ r.kategori }}</span></td>
+                      <td style="padding:11px 8px; white-space:nowrap"><span style="font-size:11px; font-weight:700; padding:3px 8px; color: {{ r.statusFg }}; background: {{ r.statusBg }}">{{ r.status }}</span></td>
+                      <td style="padding:11px 16px; text-align:right; white-space:nowrap; font-weight:800">{{ r.jumlah }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPinjam }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:16px">
+          <sc-for list="{{ pinjaman }}" as="p" hint-placeholder-count="5">
+            <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:18px; min-width:0; display:flex; flex-direction:column; gap:10px">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px">
+                <div style="min-width:0">
+                  <div style="font-family:Archivo; font-weight:800; font-size:17px; letter-spacing:-0.02em; text-wrap:pretty">{{ p.nama }}</div>
+                  <div style="font-size:12px; color:#605d5d; text-wrap:pretty">{{ p.jabatan }}</div>
+                </div>
+                <span style="font-size:10px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; padding:4px 8px; white-space:nowrap; color: {{ p.statusFg }}; background: {{ p.statusBg }}">{{ p.status }}</span>
+              </div>
+              <div style="font-family:Archivo; font-weight:800; font-size:24px; letter-spacing:-0.03em; white-space:nowrap">{{ p.jumlah }}</div>
+              <div style="font-size:12px; color:#605d5d; text-wrap:pretty">{{ p.tanggal }} · {{ p.dana }}</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap">
+                <span style="padding:6px 11px; background:#201e1d; color:#f3f2f2; font-size:12px; font-weight:700; cursor:pointer" style-hover="background:#444141">Tandai Lunas</span>
+                <span style="padding:6px 11px; border:1px solid rgba(32,30,29,0.4); font-size:12px; font-weight:700; cursor:pointer" style-hover="background:#eae9e9">Cetak Bukti</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isInvoice }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(520px,1fr)); gap:16px; align-items:start">
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); min-width:0">
+            <div style="padding:14px 18px; border-bottom:2px solid rgba(32,30,29,0.4); font-family:Archivo; font-weight:800; font-size:16px">Daftar Invoice</div>
+            <sc-for list="{{ invoices }}" as="i" hint-placeholder-count="5">
+              <div onClick="{{ i.pick }}" style="padding:13px 18px; border-bottom:1px solid #d7d3d3; display:flex; align-items:center; gap:12px; cursor:pointer; background: {{ i.rowBg }}" style-hover="background:#f8f4f4">
+                <span style="width:4px; align-self:stretch; flex-shrink:0; background: {{ i.statusColor }}"></span>
+                <div style="flex:1; min-width:0">
+                  <div style="font-size:13px; font-weight:800; letter-spacing:0.02em">{{ i.nomor }}</div>
+                  <div style="font-size:12px; color:#605d5d; text-wrap:pretty">{{ i.penerima }} · {{ i.tanggal }}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-weight:800; font-size:14px; white-space:nowrap">{{ i.total }}</div>
+                  <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color: {{ i.statusColor }}">{{ i.status }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:22px; min-width:0">
+            <div style="display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; border-bottom:2px solid rgba(32,30,29,0.4); padding-bottom:14px">
+              <div>
+                <div style="font-family:Archivo; font-weight:800; font-size:26px; letter-spacing:-0.03em">INVOICE</div>
+                <div style="font-size:12.5px; color:#605d5d; white-space:nowrap">{{ invoice.nomor }} · {{ invoice.tanggal }}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Jatuh Tempo</div>
+                <div style="font-weight:700; font-size:14px; white-space:nowrap">{{ invoice.jatuhTempo }}</div>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; padding:14px 0; border-bottom:1px solid #d7d3d3">
+              <div><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Dari</div><div style="font-weight:700; font-size:13.5px; text-wrap:pretty">{{ invoice.dari }}</div><div style="font-size:12px; color:#605d5d; text-wrap:pretty">{{ invoice.dariInstansi }}</div></div>
+              <div><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Kepada</div><div style="font-weight:700; font-size:13.5px; text-wrap:pretty">{{ invoice.kepada }}</div><div style="font-size:12px; color:#605d5d; text-wrap:pretty">{{ invoice.kepadaInstansi }}</div></div>
+            </div>
+            <div style="overflow-x:auto">
+              <table style="width:100%; min-width:300px; border-collapse:collapse; font-size:13px; margin-top:8px">
+                <thead><tr style="border-bottom:1px solid #d7d3d3">
+                  <th style="text-align:left; padding:8px 8px 8px 0; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Uraian</th>
+                  <th style="text-align:right; padding:8px 6px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Qty</th>
+                  <th style="text-align:right; padding:8px 6px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Harga</th>
+                  <th style="text-align:right; padding:8px 0 8px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Jumlah</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ invoice.items }}" as="it" hint-placeholder-count="3">
+                    <tr style="border-bottom:1px solid #eae9e9">
+                      <td style="padding:10px 8px 10px 0; font-weight:600; text-wrap:pretty">{{ it.uraian }}</td>
+                      <td style="padding:10px 6px; text-align:right; white-space:nowrap">{{ it.qty }}</td>
+                      <td style="padding:10px 6px; text-align:right; white-space:nowrap; color:#605d5d">{{ it.harga }}</td>
+                      <td style="padding:10px 0 10px 8px; text-align:right; white-space:nowrap; font-weight:700">{{ it.jumlah }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:14px">
+              <div style="min-width:220px; display:flex; flex-direction:column; gap:6px">
+                <div style="display:flex; justify-content:space-between; gap:12px; font-size:13px"><span style="color:#605d5d">Subtotal</span><span style="font-weight:700; white-space:nowrap">{{ invoice.subtotal }}</span></div>
+                <div style="display:flex; justify-content:space-between; gap:12px; font-size:13px"><span style="color:#605d5d">Pajak 11%</span><span style="font-weight:700; white-space:nowrap">{{ invoice.pajak }}</span></div>
+                <div style="display:flex; justify-content:space-between; gap:12px; padding-top:8px; border-top:2px solid rgba(32,30,29,0.4)"><span style="font-weight:800">Total</span><span style="font-family:Archivo; font-weight:800; font-size:20px; white-space:nowrap; color:#ec3013">{{ invoice.total }}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isKwitansi }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:16px">
+          <sc-for list="{{ kwitansis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); min-width:0">
+              <div style="background:#201e1d; color:#f3f2f2; padding:12px 18px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap">
+                <span style="font-family:Archivo; font-weight:800; font-size:15px; letter-spacing:0.06em">KWITANSI</span>
+                <span style="font-size:12px; opacity:0.85; white-space:nowrap">{{ k.nomor }}</span>
+              </div>
+              <div style="padding:18px; display:flex; flex-direction:column; gap:12px">
+                <div><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Telah diterima dari</div><div style="font-weight:700; font-size:14px; text-wrap:pretty">{{ k.dari }}</div></div>
+                <div style="background:#ffe0d9; padding:12px 14px"><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#ae1800">Jumlah</div><div style="font-family:Archivo; font-weight:800; font-size:26px; letter-spacing:-0.03em; color:#ae1800; white-space:nowrap">{{ k.jumlah }}</div><div style="font-size:11.5px; color:#7c1405; text-wrap:pretty">{{ k.terbilang }}</div></div>
+                <div><div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Untuk pembayaran</div><div style="font-size:13.5px; text-wrap:pretty">{{ k.untuk }}</div></div>
+                <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; border-top:1px solid #d7d3d3; padding-top:12px; font-size:12px; color:#605d5d">
+                  <span>{{ k.tanggal }}</span>
+                  <span style="font-weight:700; color:#201e1d; text-wrap:pretty">{{ k.penerima }}</span>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isRab }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4)">
+          <div style="padding:16px 18px; border-bottom:2px solid rgba(32,30,29,0.4); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-end">
+            <div>
+              <div style="font-family:Archivo; font-weight:800; font-size:19px; letter-spacing:-0.02em">{{ rab.judul }}</div>
+              <div style="font-size:12.5px; color:#605d5d">{{ rab.nomor }} · {{ rab.tanggal }} · Disusun {{ rab.penyusun }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Total RAB</div>
+              <div style="font-family:Archivo; font-weight:800; font-size:24px; letter-spacing:-0.03em; color:#ec3013; white-space:nowrap">{{ rab.total }}</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%; min-width:620px; border-collapse:collapse; font-size:13px">
+              <thead><tr style="border-bottom:2px solid rgba(32,30,29,0.4)">
+                <th style="text-align:left; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Kategori</th>
+                <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Uraian</th>
+                <th style="text-align:right; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Volume</th>
+                <th style="text-align:right; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Harga Satuan</th>
+                <th style="text-align:right; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Jumlah</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ rab.items }}" as="r" hint-placeholder-count="6">
+                  <tr style="border-bottom:1px solid #d7d3d3" style-hover="background:#f8f4f4">
+                    <td style="padding:11px 16px; white-space:nowrap"><span style="font-size:11px; font-weight:700; padding:3px 7px; color:#ffffff; background: {{ r.color }}">{{ r.kategori }}</span></td>
+                    <td style="padding:11px 8px; font-weight:600; text-wrap:pretty">{{ r.uraian }}</td>
+                    <td style="padding:11px 8px; text-align:right; white-space:nowrap; color:#605d5d">{{ r.volume }}</td>
+                    <td style="padding:11px 8px; text-align:right; white-space:nowrap; color:#605d5d">{{ r.harga }}</td>
+                    <td style="padding:11px 16px; text-align:right; white-space:nowrap; font-weight:800">{{ r.jumlah }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isLaporan }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:16px">
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:16px 18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+            <span style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d">Periode</span>
+            <span style="padding:7px 12px; border:1px solid rgba(32,30,29,0.4); font-size:12.5px; font-weight:700; white-space:nowrap">01 Jan 2026</span>
+            <span style="font-size:12.5px; color:#605d5d">s/d</span>
+            <span style="padding:7px 12px; border:1px solid rgba(32,30,29,0.4); font-size:12.5px; font-weight:700; white-space:nowrap">30 Sep 2026</span>
+            <div style="flex:1; min-width:80px"></div>
+            <span style="padding:7px 12px; background:#201e1d; color:#f3f2f2; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap">Unduh PDF</span>
+            <span style="padding:7px 12px; background:#0e8a5f; color:#ffffff; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap">Unduh Excel</span>
+          </div>
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:20px">
+            <div style="font-family:Archivo; font-weight:800; font-size:17px; letter-spacing:-0.02em">Dana Masuk vs Pengeluaran</div>
+            <div style="display:flex; align-items:flex-end; gap:14px; height:180px; margin-top:18px">
+              <sc-for list="{{ months }}" as="m" hint-placeholder-count="6">
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:flex-end">
+                  <div style="display:flex; align-items:flex-end; gap:4px; width:100%; height:100%">
+                    <div style="flex:1; background:#2563d9; height: {{ m.inH }}"></div>
+                    <div style="flex:1; background:#ec3013; height: {{ m.outH }}"></div>
+                  </div>
+                  <div style="font-size:11.5px; font-weight:700; color:#605d5d">{{ m.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; font-size:12.5px; color:#444141">
+              <span style="display:inline-flex; align-items:center; gap:7px"><span style="width:11px; height:11px; background:#2563d9"></span>Dana masuk</span>
+              <span style="display:inline-flex; align-items:center; gap:7px"><span style="width:11px; height:11px; background:#ec3013"></span>Pengeluaran disetujui</span>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px">
+            <sc-for list="{{ kategori }}" as="c" hint-placeholder-count="5">
+              <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); border-left:6px solid {{ c.color }}; padding:14px 16px; min-width:0">
+                <div style="font-size:12.5px; font-weight:700; text-wrap:pretty">{{ c.nama }}</div>
+                <div style="font-family:Archivo; font-weight:800; font-size:22px; letter-spacing:-0.03em; margin-top:4px; white-space:nowrap">{{ c.total }}</div>
+                <div style="font-size:11.5px; color:#605d5d">{{ c.share }} dari total pengeluaran</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isMaster }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; align-items:start">
+          <sc-for list="{{ masterLists }}" as="m" hint-placeholder-count="2">
+            <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); min-width:0">
+              <div style="padding:14px 18px; border-bottom:2px solid rgba(32,30,29,0.4); display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap">
+                <span style="font-family:Archivo; font-weight:800; font-size:16px">{{ m.judul }}</span>
+                <span style="padding:6px 10px; background:#ec3013; color:#f3f2f2; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap">+ Tambah</span>
+              </div>
+              <sc-for list="{{ m.items }}" as="row" hint-placeholder-count="5">
+                <div style="padding:11px 18px; border-bottom:1px solid #d7d3d3; display:flex; justify-content:space-between; gap:12px; align-items:center">
+                  <span style="display:flex; align-items:center; gap:9px; min-width:0"><span style="width:10px; height:10px; flex-shrink:0; background: {{ row.color }}"></span><span style="font-size:13.5px; font-weight:600; text-wrap:pretty">{{ row.nama }}</span></span>
+                  <span style="font-size:12px; color:#605d5d; white-space:nowrap">{{ row.pakai }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isUser }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4)">
+          <div style="overflow-x:auto">
+            <table style="width:100%; min-width:520px; border-collapse:collapse; font-size:13px">
+              <thead><tr style="border-bottom:2px solid rgba(32,30,29,0.4)">
+                <th style="text-align:left; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Nama</th>
+                <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Email</th>
+                <th style="text-align:left; padding:9px 8px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Peran</th>
+                <th style="text-align:left; padding:9px 16px; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; white-space:nowrap">Status</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ users }}" as="u" hint-placeholder-count="4">
+                  <tr style="border-bottom:1px solid #d7d3d3" style-hover="background:#f8f4f4">
+                    <td style="padding:11px 16px; font-weight:700; white-space:nowrap">{{ u.nama }}</td>
+                    <td style="padding:11px 8px; color:#605d5d; white-space:nowrap">{{ u.email }}</td>
+                    <td style="padding:11px 8px; white-space:nowrap"><span style="font-size:11px; font-weight:700; padding:3px 7px; color:#ffffff; background: {{ u.roleColor }}">{{ u.role }}</span></td>
+                    <td style="padding:11px 16px; white-space:nowrap; font-weight:700; color: {{ u.statusColor }}">{{ u.status }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSetting }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; align-items:start">
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:20px; min-width:0; display:flex; flex-direction:column; gap:14px">
+            <div style="font-family:Archivo; font-weight:800; font-size:16px">Identitas Direktorat</div>
+            <sc-for list="{{ settingFields }}" as="f" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:10.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; margin-bottom:5px">{{ f.label }}</div>
+                <div style="border:1px solid rgba(32,30,29,0.4); padding:10px 12px; font-size:13.5px; background:#f8f4f4; text-wrap:pretty">{{ f.value }}</div>
+              </div>
+            </sc-for>
+            <span style="align-self:flex-start; padding:9px 14px; background:#ec3013; color:#f3f2f2; font-size:13px; font-weight:700; cursor:pointer">Simpan Perubahan</span>
+          </div>
+          <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4); padding:20px; min-width:0">
+            <div style="font-family:Archivo; font-weight:800; font-size:16px">Buku Anggaran</div>
+            <sc-for list="{{ bukus }}" as="b" hint-placeholder-count="3">
+              <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; padding:11px 0; border-bottom:1px solid #d7d3d3">
+                <span style="font-size:13.5px; font-weight:700">{{ b.nama }}</span>
+                <span style="font-size:12px; color:#605d5d; white-space:nowrap">{{ b.info }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); border:2px solid rgba(32,30,29,0.4); min-height:460px">
+          <div style="background:#ec3013; color:#f3f2f2; padding:36px; display:flex; flex-direction:column; justify-content:space-between; gap:28px; min-width:0">
+            <div style="display:flex; align-items:center; gap:12px">
+              <div style="width:34px; height:34px; background:#f3f2f2"></div>
+              <span style="font-family:Archivo; font-weight:800; font-size:19px; letter-spacing:-0.02em">CatatUang</span>
+            </div>
+            <div style="font-family:Archivo; font-weight:800; font-size:38px; letter-spacing:-0.035em; line-height:1.05; text-wrap:pretty">Satu buku untuk seluruh keuangan direktorat.</div>
+            <div style="font-size:13px; opacity:0.9; text-wrap:pretty">Dana masuk, pengeluaran, peminjaman, invoice, kwitansi, dan RAB dalam satu catatan yang bisa diaudit.</div>
+          </div>
+          <div style="background:#ffffff; padding:36px; display:flex; flex-direction:column; justify-content:center; gap:16px; min-width:0">
+            <div>
+              <div style="font-family:Archivo; font-weight:800; font-size:24px; letter-spacing:-0.025em">Masuk</div>
+              <div style="font-size:13px; color:#605d5d">Gunakan akun yang terdaftar di direktorat.</div>
+            </div>
+            <div>
+              <div style="font-size:10.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; margin-bottom:5px">Email</div>
+              <div style="border:1px solid rgba(32,30,29,0.4); padding:11px 12px; font-size:13.5px; color:#7d7979">nama@direktorat.go.id</div>
+            </div>
+            <div>
+              <div style="font-size:10.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; margin-bottom:5px">Kata Sandi</div>
+              <div style="border:1px solid rgba(32,30,29,0.4); padding:11px 12px; font-size:13.5px; color:#7d7979">••••••••••</div>
+            </div>
+            <span onClick="{{ goDash }}" style="padding:12px 16px; background:#ec3013; color:#f3f2f2; font-size:14px; font-weight:800; cursor:pointer; text-align:left" style-hover="background:#dd2b0f">Masuk ke Dashboard</span>
+            <div style="font-size:12px; color:#605d5d">Lupa kata sandi? Hubungi super admin.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; gap:24px; flex-wrap:wrap; justify-content:center; padding:8px 0">
+          <div style="width:320px; border:2px solid rgba(32,30,29,0.4); background:#f3f2f2; display:flex; flex-direction:column; overflow:hidden">
+            <div style="background:#201e1d; color:#f3f2f2; padding:12px 14px; display:flex; align-items:center; gap:10px">
+              <span style="width:22px; height:22px; background:#ec3013; flex-shrink:0"></span>
+              <span style="font-weight:800; font-size:14px">CatatUang</span>
+              <span style="margin-left:auto; font-size:11px; color:#9b9797">Buku 2026</span>
+            </div>
+            <div style="padding:14px; display:flex; flex-direction:column; gap:10px">
+              <sc-for list="{{ mobileKpis }}" as="k" hint-placeholder-count="4">
+                <div style="background: {{ k.bg }}; color: {{ k.fg }}; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px">
+                  <span style="font-size:10.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.9; text-wrap:pretty">{{ k.label }}</span>
+                  <span style="font-family:Archivo; font-weight:800; font-size:18px; white-space:nowrap">{{ k.short }}</span>
+                </div>
+              </sc-for>
+              <div style="background:#ffffff; border:2px solid rgba(32,30,29,0.4)">
+                <div style="padding:10px 12px; border-bottom:2px solid rgba(32,30,29,0.4); font-weight:800; font-size:13px">Perlu Approval</div>
+                <sc-for list="{{ pendings }}" as="p" hint-placeholder-count="3">
+                  <div style="padding:10px 12px; border-bottom:1px solid #d7d3d3">
+                    <div style="display:flex; justify-content:space-between; gap:10px"><span style="font-size:12.5px; font-weight:700; text-wrap:pretty">{{ p.uraian }}</span><span style="font-size:12.5px; font-weight:800; white-space:nowrap">{{ p.jumlah }}</span></div>
+                    <div style="display:flex; gap:6px; margin-top:8px">
+                      <span style="flex:1; padding:9px 8px; background:#201e1d; color:#f3f2f2; font-size:12px; font-weight:700; text-align:center; cursor:pointer">Setujui</span>
+                      <span style="flex:1; padding:9px 8px; border:1px solid rgba(32,30,29,0.4); font-size:12px; font-weight:700; text-align:center; cursor:pointer">Tolak</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="margin-top:auto; display:grid; grid-template-columns:repeat(4,1fr); background:#ffffff; border-top:2px solid rgba(32,30,29,0.4)">
+              <sc-for list="{{ mobileTabs }}" as="t" hint-placeholder-count="4">
+                <div style="padding:10px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; color: {{ t.fg }}; min-height:52px; justify-content:center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.d }}"></path></svg>
+                  <span style="font-size:9.5px; font-weight:700">{{ t.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="width:320px; border:2px solid rgba(32,30,29,0.4); background:#ffffff; display:flex; flex-direction:column; overflow:hidden">
+            <div style="background:#ec3013; color:#f3f2f2; padding:12px 14px; font-weight:800; font-size:14px">Pengeluaran Baru</div>
+            <div style="padding:14px; display:flex; flex-direction:column; gap:12px">
+              <sc-for list="{{ mobileForm }}" as="f" hint-placeholder-count="5">
+                <div>
+                  <div style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#605d5d; margin-bottom:5px">{{ f.label }}</div>
+                  <div style="border:1px solid rgba(32,30,29,0.4); padding:12px; font-size:13.5px; min-height:44px; box-sizing:border-box; color: {{ f.color }}; text-wrap:pretty">{{ f.value }}</div>
+                </div>
+              </sc-for>
+              <span style="padding:14px; background:#201e1d; color:#f3f2f2; font-size:14px; font-weight:800; text-align:center; cursor:pointer">Simpan Pengeluaran</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const BLUE = '#2563d9', GREEN = '#0e8a5f', AMBER = '#c07a00', VIOLET = '#6d3fd4', TEAL = '#0f7d92', ACCENT = '#ec3013', INK = '#201e1d';
+const fmt = n => n.toFixed(1).replace('.', ',') + ' jt';
+const rp = n => 'Rp ' + n.toLocaleString('id-ID');
+
+class Component extends DCLogic {
+  state = { screen: 'dash', danaIdx: 0, filter: 'Semua', invoiceIdx: 0, done: {} };
+
+  go(screen) { this.setState({ screen }); }
+
+  renderVals() {
+    const s = this.state.screen;
+    const navDefs = [
+      ['dash', 'Dash', 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'],
+      ['dana', 'Dana', 'M19 7V4H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3v3H5a2 2 0 0 1-2-2V5'],
+      ['keluar', 'Keluar', 'M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z'],
+      ['pinjam', 'Pinjam', 'M11 15h2a2 2 0 1 0 0-4h-3l-5.4 5M7 21l1.6-1.4h5.4l6.2-5.8M2 16l6 6'],
+      ['invoice', 'Invoice', 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7zM14 2v5h6M8 13h8M8 17h8'],
+      ['kwitansi', 'Kwitansi', 'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1V2l-2 1-2-1-2 1-2-1-2 1-2-1zM8 8h8M8 12h8'],
+      ['rab', 'RAB', 'M8 2h8v4H8zM16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h7M9 16h7'],
+      ['laporan', 'Laporan', 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7zM14 2v5h6M8 18v-2M12 18v-5M16 18v-8'],
+      ['master', 'Master', 'M3 5c0-1.7 4-3 9-3s9 1.3 9 3v14c0 1.7-4 3-9 3s-9-1.3-9-3zM3 12c0 1.7 4 3 9 3s9-1.3 9-3'],
+      ['user', 'User', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8'],
+      ['setting', 'Setting', 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M19.4 15a1.7 1.7 0 0 0 .3 1.9a2 2 0 1 1-2.8 2.8a1.7 1.7 0 0 0-2.9 1.2a2 2 0 1 1-4 0A1.7 1.7 0 0 0 7 19.4a2 2 0 1 1-2.8-2.8A1.7 1.7 0 0 0 3 13.6a2 2 0 1 1 0-4A1.7 1.7 0 0 0 4.6 7a2 2 0 1 1 2.8-2.8A1.7 1.7 0 0 0 10 3.1a2 2 0 1 1 4 0a1.7 1.7 0 0 0 2.9 1.2a2 2 0 1 1 2.8 2.8a1.7 1.7 0 0 0 1.2 2.9a2 2 0 1 1 0 4a1.7 1.7 0 0 0-1.5 1'],
+    ];
+    const active = s === 'danaDetail' ? 'dana' : s;
+    const nav = navDefs.map(([key, short, d]) => ({
+      short, d, go: () => this.go(key),
+      bg: active === key ? INK : 'transparent',
+      fg: active === key ? '#f3f2f2' : '#605d5d',
+    }));
+
+    const srcColor = { APBN: BLUE, PNBP: VIOLET, Hibah: GREEN };
+    const danaRaw = [
+      ['APBN', 'Dana Operasional Direktorat', 620, 498, '12 Jan 2026'],
+      ['PNBP', 'Layanan Sertifikasi', 410, 352, '04 Feb 2026'],
+      ['Hibah', 'Penguatan Kapasitas SDM', 285, 96, '19 Mar 2026'],
+      ['APBN', 'Pemeliharaan Sarana', 240, 205, '02 Apr 2026'],
+      ['PNBP', 'Publikasi & Diseminasi', 180, 42, '15 Mei 2026'],
+      ['Hibah', 'Riset Kolaboratif 2026', 115, 17, '08 Jun 2026'],
+    ];
+    const danas = danaRaw.map(([sumber, nama, a, t, tanggal], i) => {
+      const pct = Math.round((t / a) * 100);
+      return {
+        sumber, nama, tanggal, color: srcColor[sumber],
+        alokasi: fmt(a), terpakai: fmt(t), sisa: fmt(a - t),
+        pct: pct + '%', pctWidth: pct + '%',
+        open: () => this.setState({ screen: 'danaDetail', danaIdx: i }),
+      };
+    });
+
+    const kpis = [
+      { label: 'Total Dana Masuk', value: '1,85', unit: 'M', bg: BLUE, fg: '#ffffff', delta: '↑ 12,4%', sub: 'vs bulan lalu', icon: 'M12 19V5M5 12l7-7 7 7' },
+      { label: 'Realisasi', value: '1,21', unit: 'M', bg: ACCENT, fg: '#ffffff', delta: '65,4%', sub: 'dari alokasi', icon: 'M3 3v18h18M7 15l4-4 3 3 5-6' },
+      { label: 'Sisa Saldo', value: '640,0', unit: 'jt', bg: GREEN, fg: '#ffffff', delta: '34,6%', sub: 'tersedia', icon: 'M19 7V4H5a2 2 0 0 0 0 4h15v9H5a2 2 0 0 1-2-2V5' },
+      { label: 'Menunggu Approval', value: '86,4', unit: 'jt', bg: INK, fg: '#f3f2f2', delta: '4', sub: 'transaksi perlu ditinjau', icon: 'M12 8v4l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18' },
+    ];
+
+    const pendingRaw = [
+      ['Belanja ATK triwulan III', 'Dana Operasional · Belanja Barang', 'Rp 18,4 jt'],
+      ['Honorarium narasumber workshop', 'Kapasitas SDM · Honorarium', 'Rp 24,0 jt'],
+      ['Perjalanan dinas monitoring Jatim', 'Dana Operasional · Perjalanan Dinas', 'Rp 31,2 jt'],
+      ['Cetak laporan tahunan', 'Publikasi & Diseminasi · Belanja Barang', 'Rp 12,8 jt'],
+    ];
+    const pendings = pendingRaw
+      .map(([uraian, meta, jumlah], i) => ({ uraian, meta, jumlah, i }))
+      .filter(p => !this.state.done[p.i])
+      .map(p => ({
+        ...p,
+        approve: () => this.setState(st => ({ done: { ...st.done, [p.i]: 'ok' } })),
+        reject: () => this.setState(st => ({ done: { ...st.done, [p.i]: 'no' } })),
+      }));
+
+    const katRaw = [['Perjalanan Dinas', 412, ACCENT], ['Belanja Barang', 318, BLUE], ['Honorarium', 246, VIOLET], ['Pemeliharaan', 152, GREEN], ['Konsumsi', 82, AMBER]];
+    const kmax = Math.max(...katRaw.map(k => k[1]));
+    const ktotal = katRaw.reduce((a, k) => a + k[1], 0);
+    const kategori = katRaw.map(([nama, v, color]) => ({
+      nama, color, total: fmt(v), w: Math.round((v / kmax) * 100) + '%',
+      share: Math.round((v / ktotal) * 100) + '%',
+    }));
+    const katColor = Object.fromEntries(katRaw.map(k => [k[0], k[2]]));
+
+    const dana = danaRaw[this.state.danaIdx];
+    const detailPct = Math.round((dana[3] / dana[2]) * 100);
+    const detailStats = [
+      { label: 'Alokasi', value: fmt(dana[2]), bg: srcColor[dana[0]], fg: '#ffffff' },
+      { label: 'Terpakai', value: fmt(dana[3]), bg: ACCENT, fg: '#ffffff' },
+      { label: 'Sisa', value: fmt(dana[2] - dana[3]), bg: GREEN, fg: '#ffffff' },
+      { label: 'Realisasi', value: detailPct + '%', bg: INK, fg: '#f3f2f2' },
+    ];
+    const detailRows = [
+      ['03 Sep 2026', 'Penerimaan tahap III', 'Masuk', 120, GREEN],
+      ['28 Agu 2026', 'Perjalanan dinas monitoring', 'Keluar', 31.2, ACCENT],
+      ['21 Agu 2026', 'Belanja ATK triwulan III', 'Keluar', 18.4, ACCENT],
+      ['12 Agu 2026', 'Honorarium tim teknis', 'Keluar', 24, ACCENT],
+      ['04 Agu 2026', 'Penerimaan tahap II', 'Masuk', 260, GREEN],
+      ['22 Jul 2026', 'Pemeliharaan AC gedung', 'Keluar', 9.6, ACCENT],
+    ].map(([tanggal, uraian, jenis, v, color]) => ({ tanggal, uraian, jenis, color, jumlah: fmt(v) }));
+
+    const keluarRaw = [
+      ['28 Agu 2026', 'Perjalanan dinas monitoring Jatim', 'Dana Operasional Direktorat', 'Perjalanan Dinas', 'Menunggu', 31.2],
+      ['24 Agu 2026', 'Honorarium narasumber workshop', 'Penguatan Kapasitas SDM', 'Honorarium', 'Menunggu', 24.0],
+      ['21 Agu 2026', 'Belanja ATK triwulan III', 'Dana Operasional Direktorat', 'Belanja Barang', 'Menunggu', 18.4],
+      ['18 Agu 2026', 'Servis kendaraan dinas', 'Pemeliharaan Sarana', 'Pemeliharaan', 'Disetujui', 14.5],
+      ['15 Agu 2026', 'Konsumsi rapat koordinasi', 'Dana Operasional Direktorat', 'Konsumsi', 'Disetujui', 6.2],
+      ['11 Agu 2026', 'Cetak laporan tahunan', 'Publikasi & Diseminasi', 'Belanja Barang', 'Menunggu', 12.8],
+      ['06 Agu 2026', 'Sewa ruang pelatihan', 'Penguatan Kapasitas SDM', 'Belanja Barang', 'Disetujui', 22.0],
+      ['02 Agu 2026', 'Perjalanan dinas Sulsel', 'Dana Operasional Direktorat', 'Perjalanan Dinas', 'Ditolak', 28.4],
+    ];
+    const statusStyle = {
+      Menunggu: { bg: '#f6efe1', fg: '#8a5600' },
+      Disetujui: { bg: '#e2f2ea', fg: '#0b6b49' },
+      Ditolak: { bg: '#ffe0d9', fg: '#ae1800' },
+    };
+    const filtered = keluarRaw.filter(r => this.state.filter === 'Semua' || r[4] === this.state.filter);
+    const keluarRows = filtered.map(([tanggal, uraian, dana2, kategoriNama, status, v]) => ({
+      tanggal, uraian, dana: dana2, kategori: kategoriNama, status,
+      katColor: katColor[kategoriNama] || INK,
+      statusBg: statusStyle[status].bg, statusFg: statusStyle[status].fg,
+      jumlah: fmt(v),
+    }));
+    const statusFilters = ['Semua', 'Menunggu', 'Disetujui', 'Ditolak'].map(label => ({
+      label,
+      pick: () => this.setState({ filter: label }),
+      bg: this.state.filter === label ? INK : '#ffffff',
+      fg: this.state.filter === label ? '#f3f2f2' : '#201e1d',
+      border: this.state.filter === label ? INK : 'rgba(32,30,29,0.4)',
+    }));
+
+    const pinjamStatus = { Lunas: { bg: '#e2f2ea', fg: '#0b6b49' }, 'Belum Lunas': { bg: '#f6efe1', fg: '#8a5600' } };
+    const pinjaman = [
+      ['Andi Prasetyo', 'Staf Administrasi · Sub Bagian Umum', 8.5, '12 Agu 2026', 'Belum Lunas', 'Dana Operasional Direktorat'],
+      ['Siti Nurhaliza', 'Analis Keuangan · Sub Bagian Keuangan', 5.0, '28 Jul 2026', 'Lunas', 'Dana Operasional Direktorat'],
+      ['Budi Santoso', 'Pranata Komputer · Sub Bagian TI', 12.0, '19 Jul 2026', 'Belum Lunas', 'Layanan Sertifikasi'],
+      ['Dewi Lestari', 'Arsiparis · Sub Bagian Umum', 3.2, '05 Jul 2026', 'Lunas', 'Dana Operasional Direktorat'],
+      ['Rizal Hakim', 'Penyuluh · Bidang Program', 7.4, '22 Jun 2026', 'Belum Lunas', 'Penguatan Kapasitas SDM'],
+    ].map(([nama, jabatan, v, tanggal, status, dana3]) => ({
+      nama, jabatan, tanggal, status, dana: dana3, jumlah: fmt(v),
+      statusBg: pinjamStatus[status].bg, statusFg: pinjamStatus[status].fg,
+    }));
+
+    const invoiceRaw = [
+      ['INV/2026/09/012', 'PT Cipta Sarana Mandiri', '02 Sep 2026', 'Belum Dibayar', 48_600_000],
+      ['INV/2026/08/011', 'CV Media Nusantara', '24 Agu 2026', 'Lunas', 27_300_000],
+      ['INV/2026/08/010', 'PT Bina Teknologi', '11 Agu 2026', 'Lunas', 63_900_000],
+      ['INV/2026/07/009', 'Koperasi Karya Bersama', '29 Jul 2026', 'Belum Dibayar', 18_750_000],
+      ['INV/2026/07/008', 'PT Sumber Data Andal', '14 Jul 2026', 'Lunas', 35_200_000],
+    ];
+    const invoices = invoiceRaw.map(([nomor, penerima, tanggal, status, total], i) => ({
+      nomor, penerima, tanggal, status, total: rp(total),
+      statusColor: status === 'Lunas' ? GREEN : ACCENT,
+      rowBg: this.state.invoiceIdx === i ? '#f8f4f4' : '#ffffff',
+      pick: () => this.setState({ invoiceIdx: i }),
+    }));
+    const inv = invoiceRaw[this.state.invoiceIdx];
+    const items = [
+      ['Jasa pengembangan modul pelaporan', 1, 28_000_000],
+      ['Pelatihan operator (3 hari)', 3, 4_200_000],
+      ['Lisensi perangkat lunak tahunan', 2, 3_800_000],
+    ];
+    const subtotal = items.reduce((a, it) => a + it[1] * it[2], 0);
+    const invoice = {
+      nomor: inv[0], tanggal: inv[2], jatuhTempo: '30 Sep 2026',
+      dari: 'Rahmat Iqbal', dariInstansi: 'Keuangan Direktorat',
+      kepada: inv[1], kepadaInstansi: 'Jl. Merdeka Timur No. 12, Jakarta',
+      items: items.map(([uraian, qty, harga]) => ({ uraian, qty, harga: rp(harga), jumlah: rp(qty * harga) })),
+      subtotal: rp(subtotal), pajak: rp(Math.round(subtotal * 0.11)), total: rp(Math.round(subtotal * 1.11)),
+    };
+
+    const kwitansis = [
+      ['KW/2026/09/031', 'PT Cipta Sarana Mandiri', 48_600_000, 'Empat puluh delapan juta enam ratus ribu rupiah', 'Pelunasan invoice INV/2026/09/012', '02 Sep 2026', 'Rahmat Iqbal'],
+      ['KW/2026/08/030', 'CV Media Nusantara', 27_300_000, 'Dua puluh tujuh juta tiga ratus ribu rupiah', 'Pembayaran jasa publikasi', '24 Agu 2026', 'Siti Nurhaliza'],
+      ['KW/2026/08/029', 'PT Bina Teknologi', 63_900_000, 'Enam puluh tiga juta sembilan ratus ribu rupiah', 'Pengadaan perangkat jaringan', '11 Agu 2026', 'Rahmat Iqbal'],
+      ['KW/2026/07/028', 'Koperasi Karya Bersama', 18_750_000, 'Delapan belas juta tujuh ratus lima puluh ribu rupiah', 'Sewa ruang pelatihan', '29 Jul 2026', 'Budi Santoso'],
+    ].map(([nomor, dari, v, terbilang, untuk, tanggal, penerima]) => ({ nomor, dari, terbilang, untuk, tanggal, penerima, jumlah: rp(v) }));
+
+    const rabItems = [
+      ['Honorarium', 'Narasumber pelatihan (4 orang × 2 hari)', '8 OJ', 1_500_000],
+      ['Perjalanan Dinas', 'Tiket pesawat peserta daerah', '12 Org', 2_400_000],
+      ['Belanja Barang', 'Modul dan perlengkapan peserta', '60 Paket', 185_000],
+      ['Konsumsi', 'Makan siang & snack (3 hari)', '180 Pax', 75_000],
+      ['Belanja Barang', 'Sewa ruang pelatihan', '3 Hari', 5_500_000],
+      ['Pemeliharaan', 'Dokumentasi dan pelaporan', '1 Paket', 4_200_000],
+    ];
+    const rabRows = rabItems.map(([kategoriNama, uraian, volume, harga]) => {
+      const n = parseFloat(volume);
+      return { kategori: kategoriNama, uraian, volume, harga: rp(harga), jumlah: rp(n * harga), color: katColor[kategoriNama] || INK };
+    });
+    const rabTotal = rabItems.reduce((a, [, , volume, harga]) => a + parseFloat(volume) * harga, 0);
+    const rab = {
+      judul: 'RAB Pelatihan Penguatan Kapasitas SDM 2026',
+      nomor: 'RAB/2026/07/004', tanggal: '18 Jul 2026', penyusun: 'Siti Nurhaliza',
+      items: rabRows, total: rp(rabTotal),
+    };
+
+    const monthRaw = [['Apr', 210, 140], ['Mei', 265, 185], ['Jun', 190, 205], ['Jul', 320, 230], ['Agu', 285, 250], ['Sep', 360, 300]];
+    const mmax = Math.max(...monthRaw.flatMap(r => [r[1], r[2]]));
+    const months = monthRaw.map(([label, i, o]) => ({ label, inH: Math.round((i / mmax) * 100) + '%', outH: Math.round((o / mmax) * 100) + '%' }));
+
+    const masterLists = [
+      { judul: 'Kategori Pengeluaran', items: katRaw.map(([nama, v, color]) => ({ nama, color, pakai: fmt(v) })) },
+      { judul: 'Sumber Dana', items: [['APBN', BLUE, '2 dana'], ['PNBP', VIOLET, '2 dana'], ['Hibah', GREEN, '2 dana'], ['Kerja Sama', TEAL, '0 dana']].map(([nama, color, pakai]) => ({ nama, color, pakai })) },
+    ];
+
+    const users = [
+      ['Rahmat Iqbal', 'rahmat@direktorat.go.id', 'Super Admin', 'Aktif'],
+      ['Siti Nurhaliza', 'siti@direktorat.go.id', 'Admin', 'Aktif'],
+      ['Budi Santoso', 'budi@direktorat.go.id', 'Admin', 'Aktif'],
+      ['Dewi Lestari', 'dewi@direktorat.go.id', 'Admin', 'Nonaktif'],
+    ].map(([nama, email, role, status]) => ({
+      nama, email, role, status,
+      roleColor: role === 'Super Admin' ? ACCENT : BLUE,
+      statusColor: status === 'Aktif' ? GREEN : '#7d7979',
+    }));
+
+    const settingFields = [
+      { label: 'Nama Direktorat', value: 'Keuangan Direktorat' },
+      { label: 'Penanggung Jawab', value: 'Rahmat Iqbal' },
+      { label: 'Alamat', value: 'Jl. Merdeka Timur No. 12, Jakarta Pusat' },
+      { label: 'Buku Aktif', value: '2026' },
+    ];
+    const bukus = [
+      { nama: '2026', info: 'aktif · 148 transaksi' },
+      { nama: '2025', info: 'arsip · 402 transaksi' },
+      { nama: '2024', info: 'arsip · 361 transaksi' },
+    ];
+
+    const mobileKpis = [
+      { label: 'Dana Masuk', short: '1,85 M', bg: BLUE, fg: '#ffffff' },
+      { label: 'Realisasi', short: '1,21 M', bg: ACCENT, fg: '#ffffff' },
+      { label: 'Sisa Saldo', short: '640 jt', bg: GREEN, fg: '#ffffff' },
+      { label: 'Approval', short: '86,4 jt', bg: INK, fg: '#f3f2f2' },
+    ];
+    const mobileTabs = [
+      { label: 'Dash', fg: ACCENT, d: 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z' },
+      { label: 'Dana', fg: '#605d5d', d: 'M19 7V4H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3v3H5a2 2 0 0 1-2-2V5' },
+      { label: 'Keluar', fg: '#605d5d', d: 'M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z' },
+      { label: 'Lapor', fg: '#605d5d', d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7zM14 2v5h6M8 18v-2M12 18v-5M16 18v-8' },
+    ];
+    const mobileForm = [
+      { label: 'Dana', value: 'Dana Operasional Direktorat', color: '#201e1d' },
+      { label: 'Uraian', value: 'Belanja ATK triwulan IV', color: '#201e1d' },
+      { label: 'Kategori', value: 'Belanja Barang', color: '#201e1d' },
+      { label: 'Jumlah', value: 'Rp 18.400.000', color: '#201e1d' },
+      { label: 'Tanggal', value: '11 Sep 2026', color: '#605d5d' },
+    ];
+
+    const meta = {
+      dash: ['Dashboard', 'Keuangan Direktorat · Buku 2026', '+ Pengeluaran'],
+      dana: ['Dana Masuk', '6 sumber dana aktif · Buku 2026', '+ Dana Baru'],
+      danaDetail: [dana[1], dana[0] + ' · masuk ' + dana[4], '+ Pemasukan'],
+      keluar: ['Pengeluaran', '148 transaksi · Buku 2026', '+ Pengeluaran'],
+      pinjam: ['Peminjaman', '5 peminjam · 3 belum lunas', '+ Peminjaman'],
+      invoice: ['Invoice', '5 invoice · 2 belum dibayar', '+ Invoice'],
+      kwitansi: ['Kwitansi', '4 kwitansi diterbitkan', '+ Kwitansi'],
+      rab: ['RAB', 'Rencana Anggaran Biaya · 2026', '+ RAB'],
+      laporan: ['Laporan', 'Periode 01 Jan – 30 Sep 2026', 'Cetak'],
+      master: ['Master Data', 'Kategori & sumber dana', '+ Data'],
+      user: ['Pengguna', '4 akun terdaftar', '+ Pengguna'],
+      setting: ['Pengaturan', 'Identitas & buku anggaran', 'Simpan'],
+      login: ['Halaman Masuk', 'Tampilan login CatatUang', 'Masuk'],
+      mobile: ['Tampilan Mobile', 'Dashboard & input cepat di ponsel', '+ Pengeluaran'],
+    }[s];
+
+    return {
+      nav, title: meta[0], subtitle: meta[1], primaryAction: meta[2],
+      isDash: s === 'dash', isDana: s === 'dana', isDanaDetail: s === 'danaDetail',
+      isKeluar: s === 'keluar', isPinjam: s === 'pinjam', isInvoice: s === 'invoice',
+      isKwitansi: s === 'kwitansi', isRab: s === 'rab', isLaporan: s === 'laporan',
+      isMaster: s === 'master', isUser: s === 'user', isSetting: s === 'setting',
+      isLogin: s === 'login', isMobile: s === 'mobile',
+      goDana: () => this.go('dana'), goDash: () => this.go('dash'),
+      goLogin: () => this.go('login'), goMobile: () => this.go('mobile'),
+      kpis, danas, pendings, pendingCount: pendings.length, noPending: pendings.length === 0,
+      kategori, detailStats, detailRows,
+      keluarRows, statusFilters, keluarCount: filtered.length,
+      keluarTotal: fmt(filtered.reduce((a, r) => a + r[5], 0)),
+      pinjaman, invoices, invoice, kwitansis, rab, months,
+      masterLists, users, settingFields, bukus,
+      mobileKpis, mobileTabs, mobileForm,
+    };
+  }
+}
+</script>
+</body>
+</html>

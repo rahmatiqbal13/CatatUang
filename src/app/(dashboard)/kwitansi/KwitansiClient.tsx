@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatRupiah, formatTanggal } from '@/lib/formatters'
+import { formatRupiah, formatTanggal, terbilang } from '@/lib/formatters'
 import { handleSupabaseError } from '@/lib/error-handler'
 import { generateNomor } from '@/lib/nomorDokumen'
 import { computeInvoiceTotals } from '@/lib/dokumenTotals'
 import type { Kwitansi, Invoice } from '@/lib/types'
+import { Topbar, BarButton } from '@/components/layout/Topbar'
+import { autoGrid } from '@/lib/tokens'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -166,87 +168,105 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
 
   return (
     <div className="animate-fade-in">
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>Kwitansi</h1>
-          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>{kwitansiList.length} kwitansi</div>
-        </div>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-1.5 h-[30px] px-3 rounded-[5px] text-[12px] font-medium"
-          style={{ background: 'var(--cu-primary)', color: '#ffffff' }}
-        >
-          <Plus className="w-3.5 h-3.5" /> Kwitansi Baru
-        </button>
-      </div>
+      <Topbar
+        title="Kwitansi"
+        subtitle={`${kwitansiList.length} kwitansi diterbitkan`}
+        action={
+          <BarButton variant="primary" onClick={openAdd}>
+            <span className="inline-flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Kwitansi</span>
+          </BarButton>
+        }
+      />
 
       <div className="cu-page">
-        <div className="cu-card overflow-hidden">
-          {kwitansiList.length === 0 ? (
-            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>Belum ada kwitansi</div>
-          ) : (
-            <div className="cu-table-wrap">
-              <table className="cu-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 110 }}>Nomor</th>
-                    <th style={{ width: 90 }}>Tanggal</th>
-                    <th>Diterima Dari</th>
-                    <th>Untuk Pembayaran</th>
-                    <th className="cu-num" style={{ width: 130 }}>Jumlah</th>
-                    <th style={{ width: 90 }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {kwitansiList.map(k => (
-                    <tr key={k.id}>
-                      <td className="cu-mono text-[12px]">{k.nomor}</td>
-                      <td className="cu-mono text-[11.5px] whitespace-nowrap" style={{ color: 'var(--cu-text-2)' }}>{formatTanggal(k.tanggal)}</td>
-                      <td className="text-[12.5px]" style={{ color: 'var(--cu-text)' }}>{k.diterima_dari}</td>
-                      <td className="text-[12px] truncate max-w-[220px]" style={{ color: 'var(--cu-text-2)' }} title={k.untuk_pembayaran}>{k.untuk_pembayaran}</td>
-                      <td className="cu-num cu-mono text-[12px] font-medium">{formatRupiah(Number(k.jumlah))}</td>
-                      <td>
-                        <div className="flex items-center gap-0.5">
-                          <button onClick={() => handlePrint(k)} disabled={printingId === k.id} title="Unduh PDF" aria-label="Unduh kwitansi PDF" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
-                            {printingId === k.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
-                          </button>
-                          <button onClick={() => openEdit(k)} title="Edit" aria-label="Edit kwitansi" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button onClick={() => { setDelTarget(k); setOpenDel(true) }} title="Hapus" aria-label="Hapus kwitansi" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-danger-soft)]" style={{ color: 'var(--cu-text-muted)' }}>
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {kwitansiList.length === 0 ? (
+          <div className="card-shell py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>Belum ada kwitansi</div>
+        ) : (
+          <div style={autoGrid(330)}>
+            {kwitansiList.map(k => (
+              <div key={k.id} className="card-shell overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-3 px-[18px] py-3" style={{ background: '#201e1d', color: '#f3f2f2' }}>
+                  <span className="text-[15px] font-extrabold" style={{ letterSpacing: '0.06em' }}>KWITANSI</span>
+                  <span className="text-[12px] font-bold whitespace-nowrap">{k.nomor}</span>
+                </div>
+
+                {/* Body */}
+                <div className="px-[18px] py-[18px] flex-1 flex flex-col">
+                  <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>Telah diterima dari</div>
+                  <div className="text-[14px] font-bold mt-0.5" style={{ color: 'var(--text)' }}>{k.diterima_dari}</div>
+
+                  <div className="mt-3 px-3 py-3" style={{ background: 'var(--accent-200)' }}>
+                    <div className="label-caps" style={{ color: 'var(--accent-press)' }}>Jumlah</div>
+                    <div className="text-[26px] font-extrabold whitespace-nowrap" style={{ color: 'var(--accent-press)' }}>
+                      {formatRupiah(Number(k.jumlah))}
+                    </div>
+                    <div className="text-[11.5px] mt-1" style={{ color: '#7c1405' }}>
+                      {terbilang(Number(k.jumlah))} Rupiah
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-[12.5px]" style={{ color: 'var(--text-2)' }}>
+                    Untuk pembayaran: {k.untuk_pembayaran}
+                  </div>
+
+                  <div className="mt-auto pt-3 flex items-center justify-between gap-2" style={{ borderTop: '1px solid var(--border-hairline)', marginTop: 14 }}>
+                    <span className="text-[11.5px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatTanggal(k.tanggal)}</span>
+                    <span className="text-[12px] font-bold truncate" style={{ color: 'var(--text)' }}>{k.penerima_nama}</span>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2">
+                    <BarButton variant="outline" className="flex-1" onClick={() => handlePrint(k)} disabled={printingId === k.id}>
+                      {printingId === k.id
+                        ? <span className="inline-flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Mencetak…</span>
+                        : <span className="inline-flex items-center gap-1.5"><Printer className="w-3.5 h-3.5" /> Unduh PDF</span>}
+                    </BarButton>
+                    <button
+                      onClick={() => openEdit(k)}
+                      title="Edit"
+                      aria-label="Edit kwitansi"
+                      className="w-9 h-9 flex items-center justify-center shrink-0 hover:bg-[var(--surface-2)]"
+                      style={{ color: 'var(--text-muted)', border: '1px solid var(--divider)' }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => { setDelTarget(k); setOpenDel(true) }}
+                      title="Hapus"
+                      aria-label="Hapus kwitansi"
+                      className="w-9 h-9 flex items-center justify-center shrink-0 hover:bg-[var(--status-no-bg)]"
+                      style={{ color: 'var(--text-muted)', border: '1px solid var(--divider)' }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">{editTarget ? 'Edit Kwitansi' : 'Kwitansi Baru'}</DialogTitle>
+            <DialogTitle className="text-[15px] font-extrabold">{editTarget ? 'Edit Kwitansi' : 'Kwitansi Baru'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nomor *</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Nomor *</Label>
                 <Input value={form.nomor} disabled className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal *</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Tanggal *</Label>
                 <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
 
             {invoiceList.length > 0 && (
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Kaitkan ke Invoice (opsional)</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Kaitkan ke Invoice (opsional)</Label>
                 <Select
                   value={form.invoice_id || NO_INVOICE_VALUE}
                   onValueChange={handlePickInvoice}
@@ -265,35 +285,35 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
             )}
 
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Diterima Dari *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Diterima Dari *</Label>
               <Input value={form.diterima_dari} onChange={e => setForm(f => ({ ...f, diterima_dari: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jumlah *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Jumlah *</Label>
               <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Untuk Pembayaran *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Untuk Pembayaran *</Label>
               <Input value={form.untuk_pembayaran} onChange={e => setForm(f => ({ ...f, untuk_pembayaran: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Penerima *</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Penerima *</Label>
                 <Input value={form.penerima_nama} onChange={e => setForm(f => ({ ...f, penerima_nama: e.target.value }))} className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jabatan</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Jabatan</Label>
                 <Input value={form.penerima_jabatan} onChange={e => setForm(f => ({ ...f, penerima_jabatan: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Catatan</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Catatan</Label>
               <Textarea placeholder="Catatan tambahan (opsional)" rows={2} value={form.catatan} onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))} className="text-[13px]" />
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenForm(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-primary)', color: '#fff' }}>
+            <Button onClick={handleSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -303,14 +323,14 @@ export function KwitansiClient({ kwitansiList, invoiceList }: Props) {
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--cu-danger)' }}>Hapus Kwitansi</DialogTitle>
+            <DialogTitle className="text-[15px] font-extrabold" style={{ color: 'var(--accent-press)' }}>Hapus Kwitansi</DialogTitle>
           </DialogHeader>
-          <div className="py-3 text-[13px]" style={{ color: 'var(--cu-text-2)' }}>
-            Yakin ingin menghapus kwitansi <strong style={{ color: 'var(--cu-text)' }}>{delTarget?.nomor}</strong>? Tindakan ini tidak dapat dibatalkan.
+          <div className="py-3 text-[13px]" style={{ color: 'var(--text-2)' }}>
+            Yakin ingin menghapus kwitansi <strong style={{ color: 'var(--text)' }}>{delTarget?.nomor}</strong>? Tindakan ini tidak dapat dibatalkan.
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenDel(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-danger)', color: '#fff' }}>
+            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent-press)', color: '#fff' }}>
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

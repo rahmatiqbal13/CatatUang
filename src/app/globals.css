@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-mono: var(--font-sans);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -48,161 +48,161 @@
 
 :root {
   /* ============================================================
-     CATATUANG — Modern Fintech Design System
-     Navy + Ivory · Compact density · Tabular numbers
+     CATATUANG — Modernist Design System
+     Grey ground + near-black ink + red accent · Zero radius · Flat
      ============================================================ */
 
-  /* Surfaces */
-  --background: #ffffff;
-  --foreground: #0c0e12;
-  --card: #ffffff;
-  --card-foreground: #0c0e12;
-  --popover: #ffffff;
-  --popover-foreground: #0c0e12;
+  /* Canonical Modernist tokens (source of truth — see design_handoff_catatuang_ui/README.md) */
+  --background: #f3f2f2;
+  --surface: #ffffff;
+  --surface-2: #eae9e9;
+  --surface-hover: #f8f4f4;
 
-  /* Brand — Navy */
-  --primary: #1d3557;
+  --text: #201e1d;
+  --text-2: #444141;
+  --text-muted: #605d5d;
+  --text-dim: #7d7979;
+
+  --divider: rgba(32, 30, 29, 0.4);
+  --border-hairline: #d7d3d3;
+
+  --accent: #ec3013;
+  --accent-hover: #dd2b0f;
+  --accent-press: #ae1800;
+  --accent-100: #fff2ef;
+  --accent-200: #ffe0d9;
+
+  /* Data palette */
+  --data-blue: #2563d9;
+  --data-red: #ec3013;
+  --data-green: #0e8a5f;
+  --data-purple: #6d3fd4;
+  --data-amber: #c07a00;
+  --data-teal: #0f7d92;
+  --data-ink: #201e1d;
+
+  /* Status */
+  --status-wait-bg: #f6efe1;
+  --status-wait-fg: #8a5600;
+  --status-ok-bg: #e2f2ea;
+  --status-ok-fg: #0b6b49;
+  --status-no-bg: #ffe0d9;
+  --status-no-fg: #ae1800;
+
+  /* Surfaces (shadcn semantic vars — aliased so Button/Dialog/Select/Input/Textarea repaint for free) */
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+
+  --primary: var(--accent);
   --primary-foreground: #ffffff;
 
-  /* Neutral secondary */
-  --secondary: #f4f3ef;
-  --secondary-foreground: #3a3a36;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-2);
 
-  /* Muted */
-  --muted: #f4f3ef;
-  --muted-foreground: #6b6a64;
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-muted);
 
-  /* Accent — primary-soft */
-  --accent: #eef2f7;
-  --accent-foreground: #1d3557;
-
-  /* Destructive — red only for destructive */
-  --destructive: #c4324a;
+  --destructive: var(--accent-press);
   --destructive-foreground: #ffffff;
 
-  /* Borders */
-  --border: #ebe9e3;
-  --input: #d6d3cb;
-  --ring: #1d3557;
+  --border: var(--border-hairline);
+  --input: var(--border-hairline);
+  --ring: var(--accent);
 
-  /* Radius — compact */
-  --radius: 0.375rem;
+  /* Radius — zero everywhere */
+  --radius: 0px;
 
-  /* Sidebar — light */
-  --sidebar: #fafaf8;
-  --sidebar-foreground: #0c0e12;
-  --sidebar-primary: #1d3557;
+  /* Sidebar (shadcn) */
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--accent);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef2f7;
-  --sidebar-accent-foreground: #1d3557;
-  --sidebar-border: #ebe9e3;
-  --sidebar-ring: #1d3557;
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border-hairline);
+  --sidebar-ring: var(--accent);
 
   /* Charts */
-  --chart-1: #1d3557;
-  --chart-2: #5d7fa3;
-  --chart-3: #a87b3a;
-  --chart-4: #2e7d5b;
-  --chart-5: #6b6a64;
+  --chart-1: var(--data-blue);
+  --chart-2: var(--data-red);
+  --chart-3: var(--data-amber);
+  --chart-4: var(--data-green);
+  --chart-5: var(--data-teal);
 
-  /* CatatUang semantic tokens */
-  --cu-surface: #fafaf8;
-  --cu-surface-2: #f4f3ef;
-  --cu-surface-elev: #ffffff;
-  --cu-divider: #f0eee8;
-  --cu-border-strong: #d6d3cb;
-  --cu-text: #0c0e12;
-  --cu-text-2: #3a3a36;
-  --cu-text-muted: #6b6a64;
-  --cu-text-dim: #9c9a92;
-  --cu-primary: #1d3557;
-  --cu-primary-hover: #16294a;
-  --cu-primary-soft: #eef2f7;
-  --cu-primary-soft-2: #dce4ee;
-  --cu-success: #2e7d5b;
-  --cu-success-soft: #e6f0ea;
-  --cu-warning: #a87b3a;
-  --cu-warning-soft: #f6efe1;
-  --cu-danger: #c4324a;
-  --cu-danger-soft: #fbe9ec;
-  --cu-info: #3a6ea5;
-  --cu-info-soft: #e8eff7;
-}
-
-.dark {
-  --background: #0c0e12;
-  --foreground: #f0eee8;
-  --card: #14161b;
-  --card-foreground: #f0eee8;
-  --popover: #181b21;
-  --popover-foreground: #f0eee8;
-  --primary: #8aa9d4;
-  --primary-foreground: #0c0e12;
-  --secondary: #1a1d23;
-  --secondary-foreground: #d3d1c9;
-  --muted: #1a1d23;
-  --muted-foreground: #9a978f;
-  --accent: #1e2a3c;
-  --accent-foreground: #8aa9d4;
-  --destructive: #e07485;
-  --destructive-foreground: #0c0e12;
-  --border: #25292f;
-  --input: #353a42;
-  --ring: #8aa9d4;
-  --sidebar: #14161b;
-  --sidebar-foreground: #f0eee8;
-  --sidebar-primary: #8aa9d4;
-  --sidebar-primary-foreground: #0c0e12;
-  --sidebar-accent: #1e2a3c;
-  --sidebar-accent-foreground: #8aa9d4;
-  --sidebar-border: #25292f;
-  --sidebar-ring: #8aa9d4;
-  --chart-1: #8aa9d4;
-  --chart-2: #5d7fa3;
-  --chart-3: #d4a86b;
-  --chart-4: #6fb88e;
-  --chart-5: #9a978f;
-
-  --cu-surface: #14161b;
-  --cu-surface-2: #1a1d23;
-  --cu-surface-elev: #181b21;
-  --cu-divider: #1c1f24;
-  --cu-border-strong: #353a42;
-  --cu-text: #f0eee8;
-  --cu-text-2: #d3d1c9;
-  --cu-text-muted: #9a978f;
-  --cu-text-dim: #6b6a64;
-  --cu-primary: #8aa9d4;
-  --cu-primary-hover: #a7bee0;
-  --cu-primary-soft: #1e2a3c;
-  --cu-primary-soft-2: #2a3a52;
-  --cu-success: #6fb88e;
-  --cu-success-soft: #1a2e26;
-  --cu-warning: #d4a86b;
-  --cu-warning-soft: #2e2618;
-  --cu-danger: #e07485;
-  --cu-danger-soft: #321c22;
-  --cu-info: #7aa7d6;
-  --cu-info-soft: #1a2433;
+  /* CatatUang legacy semantic tokens — aliased onto the Modernist palette so
+     screens not yet rewritten to the new primitives still repaint correctly. */
+  --cu-surface: var(--surface);
+  --cu-surface-2: var(--surface-2);
+  --cu-surface-elev: var(--surface);
+  --cu-divider: var(--border-hairline);
+  --cu-border-strong: var(--divider);
+  --cu-text: var(--text);
+  --cu-text-2: var(--text-2);
+  --cu-text-muted: var(--text-muted);
+  --cu-text-dim: var(--text-dim);
+  --cu-primary: var(--accent);
+  --cu-primary-hover: var(--accent-hover);
+  --cu-primary-soft: var(--accent-100);
+  --cu-primary-soft-2: var(--accent-200);
+  --cu-success: var(--data-green);
+  --cu-success-soft: var(--status-ok-bg);
+  --cu-warning: var(--data-amber);
+  --cu-warning-soft: var(--status-wait-bg);
+  --cu-danger: var(--accent-press);
+  --cu-danger-soft: var(--status-no-bg);
+  --cu-info: var(--data-teal);
+  --cu-info-soft: #e6f2f4;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    border-radius: 0 !important;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "tnum", "ss01", "cv11";
-    letter-spacing: -0.005em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    text-wrap: pretty;
   }
 
   html {
     @apply font-sans;
   }
 
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   ::selection {
-    background: rgba(29, 53, 87, 0.15);
+    background: var(--accent-200);
+    color: var(--accent-press);
+  }
+
+  [disabled] {
+    opacity: 0.45;
+  }
+}
+
+/* Shared atoms from the Modernist handoff — used by the new primitives. */
+@layer components {
+  .label-caps {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .card-shell {
+    background: var(--surface);
+    border: 2px solid var(--divider);
+  }
+  .row-rule {
+    border-bottom: 1px solid var(--border-hairline);
   }
 }
 
@@ -214,13 +214,14 @@
     gap: 4px;
     height: 20px;
     padding: 0 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: -0.005em;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
     background: var(--cu-surface-2);
     color: var(--cu-text-2);
-    border: 1px solid var(--border);
+    border: none;
   }
 
   .cu-badge-dot::before {
@@ -272,18 +273,19 @@
 
   .cu-table th {
     text-align: left;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--cu-text-muted);
-    font-size: 11px;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    padding: 9px 8px;
+    border-bottom: 2px solid var(--divider);
     background: var(--cu-surface);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     white-space: nowrap;
   }
 
   .cu-table td {
-    padding: 7px 12px;
+    padding: 11px 8px;
     border-bottom: 1px solid var(--cu-divider);
     vertical-align: middle;
     height: 36px;
@@ -314,8 +316,7 @@
   /* ── Card primitive ───────────────────────────────── */
   .cu-card {
     background: var(--cu-surface-elev);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 2px solid var(--divider);
   }
 
   /* ── Compact button ───────────────────────────────── */
@@ -325,13 +326,12 @@
     gap: 4px;
     height: 26px;
     padding: 0 8px;
-    border-radius: 5px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--divider);
     background: var(--cu-surface-elev);
     color: var(--cu-text);
     font-family: inherit;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.12s, border-color 0.12s;
     white-space: nowrap;
@@ -343,19 +343,20 @@
 
   /* ── Page layout helpers ──────────────────────────── */
   .cu-page {
-    padding: 20px;
+    padding: 20px 24px 32px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 20px;
   }
 
   .cu-topbar {
-    height: 56px;
-    border-bottom: 1px solid var(--border);
-    background: var(--background);
+    min-height: 56px;
+    border-bottom: 2px solid var(--divider);
+    background: var(--surface);
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    flex-wrap: wrap;
+    padding: 14px 24px;
     gap: 16px;
     position: sticky;
     top: 0;
@@ -413,10 +414,7 @@
 /* ─── Mobile responsive ──────────────────────────────────────── */
 @media (max-width: 767px) {
   .cu-topbar {
-    height: auto;
-    min-height: var(--topbar-h);
     padding: 0.625rem 1rem;
-    flex-wrap: wrap;
     gap: 0.5rem;
   }
 

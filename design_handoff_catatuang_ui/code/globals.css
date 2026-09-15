@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* ── CatatUang · Modernist tokens ───────────────────────────── */
+:root {
+  --background: #f3f2f2;
+  --surface: #ffffff;
+  --surface-2: #eae9e9;
+  --surface-hover: #f8f4f4;
+
+  --text: #201e1d;
+  --text-2: #444141;
+  --text-muted: #605d5d;
+  --text-dim: #7d7979;
+
+  --divider: rgba(32, 30, 29, 0.4);
+  --border-hairline: #d7d3d3;
+
+  --accent: #ec3013;
+  --accent-hover: #dd2b0f;
+  --accent-press: #ae1800;
+  --accent-100: #fff2ef;
+  --accent-200: #ffe0d9;
+
+  /* data palette */
+  --data-blue: #2563d9;
+  --data-red: #ec3013;
+  --data-green: #0e8a5f;
+  --data-purple: #6d3fd4;
+  --data-amber: #c07a00;
+  --data-teal: #0f7d92;
+  --data-ink: #201e1d;
+
+  /* status */
+  --status-wait-bg: #f6efe1;
+  --status-wait-fg: #8a5600;
+  --status-ok-bg: #e2f2ea;
+  --status-ok-fg: #0b6b49;
+  --status-no-bg: #ffe0d9;
+  --status-no-fg: #ae1800;
+
+  --radius: 0px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--text);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+}
+
+@layer base {
+  * { border-radius: 0 !important; }
+
+  body {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-200);
+    color: var(--accent-press);
+  }
+
+  [disabled], .disabled { opacity: 0.45; }
+}
+
+/* shared atoms the prototype leans on */
+@layer components {
+  .label-caps {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .card-shell {
+    background: var(--surface);
+    border: 2px solid var(--divider);
+  }
+  .row-rule { border-bottom: 1px solid var(--border-hairline); }
+}

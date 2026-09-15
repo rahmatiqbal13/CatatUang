@@ -10,6 +10,10 @@ import { computeRabGrandTotal, groupRabByKategori } from '@/lib/dokumenTotals'
 import type { Rab, RabItem } from '@/lib/types'
 import { pdf } from '@react-pdf/renderer'
 import { RabPDF } from '@/components/pdf/RabPDF'
+import { Topbar, BarButton } from '@/components/layout/Topbar'
+import { TableWrap, Th, Td } from '@/components/ui/TableWrap'
+import { SolidBadge } from '@/components/ui/StatusBadge'
+import { categoryColor } from '@/lib/tokens'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -148,63 +152,61 @@ export function RabClient({ rabList }: Props) {
     router.refresh()
   }
 
+  const tahun = new Date().getFullYear()
+
   return (
     <div className="animate-fade-in">
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>RAB</h1>
-          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>{rabList.length} rencana anggaran</div>
-        </div>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-1.5 h-[30px] px-3 rounded-[5px] text-[12px] font-medium"
-          style={{ background: 'var(--cu-primary)', color: '#ffffff' }}
-        >
-          <Plus className="w-3.5 h-3.5" /> RAB Baru
-        </button>
-      </div>
+      <Topbar
+        title="RAB"
+        subtitle={`Rencana Anggaran Biaya · ${tahun}`}
+        action={<BarButton variant="primary" onClick={openAdd}><Plus className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />RAB</BarButton>}
+      />
 
       <div className="cu-page">
-        <div className="cu-card overflow-hidden">
+        <div className="card-shell overflow-hidden">
           {rabList.length === 0 ? (
-            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>Belum ada RAB</div>
+            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>Belum ada RAB</div>
           ) : (
-            <div className="cu-table-wrap">
-              <table className="cu-table">
+            <TableWrap minWidth={620}>
+              <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    <th style={{ width: 110 }}>Nomor</th>
-                    <th style={{ width: 90 }}>Tanggal</th>
-                    <th>Judul</th>
-                    <th className="cu-num" style={{ width: 140 }}>Total</th>
-                    <th style={{ width: 90 }}>Aksi</th>
+                    <Th width={130}>Nomor</Th>
+                    <Th width={100}>Tanggal</Th>
+                    <Th>Judul</Th>
+                    <Th align="right" width={150}>Total</Th>
+                    <Th align="right" width={100}>Aksi</Th>
                   </tr>
                 </thead>
                 <tbody>
                   {rabList.map(r => (
                     <tr key={r.id}>
-                      <td className="cu-mono text-[12px]">{r.nomor}</td>
-                      <td className="cu-mono text-[11.5px] whitespace-nowrap" style={{ color: 'var(--cu-text-2)' }}>{formatTanggal(r.tanggal)}</td>
-                      <td className="text-[12.5px]" style={{ color: 'var(--cu-text)' }}>{r.judul}</td>
-                      <td className="cu-num cu-mono text-[12px] font-medium">{formatRupiah(computeRabGrandTotal(r.items))}</td>
-                      <td>
-                        <div className="flex items-center gap-0.5">
-                          <button onClick={() => handlePrint(r)} disabled={printingId === r.id} title="Unduh PDF" aria-label="Unduh RAB PDF" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
+                      <Td><span className="whitespace-nowrap text-[12px]" style={{ color: 'var(--text)' }}>{r.nomor}</span></Td>
+                      <Td><span className="whitespace-nowrap tabular-nums text-[11.5px]" style={{ color: 'var(--text-2)' }}>{formatTanggal(r.tanggal)}</span></Td>
+                      <Td><span className="text-[12.5px]" style={{ color: 'var(--text)' }}>{r.judul}</span></Td>
+                      <Td align="right">
+                        <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: 'var(--accent)' }}>
+                          {formatRupiah(computeRabGrandTotal(r.items))}
+                        </span>
+                      </Td>
+                      <Td align="right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => handlePrint(r)} disabled={printingId === r.id} title="Unduh PDF" aria-label="Unduh RAB PDF" className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]" style={{ color: 'var(--text-muted)' }}>
                             {printingId === r.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Printer className="w-3 h-3" />}
                           </button>
-                          <button onClick={() => openEdit(r)} title="Edit" aria-label="Edit RAB" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]" style={{ color: 'var(--cu-text-muted)' }}>
+                          <button onClick={() => openEdit(r)} title="Edit" aria-label="Edit RAB" className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]" style={{ color: 'var(--text-muted)' }}>
                             <Pencil className="w-3 h-3" />
                           </button>
-                          <button onClick={() => { setDelTarget(r); setOpenDel(true) }} title="Hapus" aria-label="Hapus RAB" className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-danger-soft)]" style={{ color: 'var(--cu-text-muted)' }}>
+                          <button onClick={() => { setDelTarget(r); setOpenDel(true) }} title="Hapus" aria-label="Hapus RAB" className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]" style={{ color: 'var(--text-muted)' }}>
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
-                      </td>
+                      </Td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableWrap>
           )}
         </div>
       </div>
@@ -217,51 +219,51 @@ export function RabClient({ rabList }: Props) {
           <div className="space-y-3 py-1 max-h-[70vh] overflow-y-auto pr-1">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nomor *</Label>
+                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Nomor *</Label>
                 <Input value={form.nomor} onChange={e => setForm(f => ({ ...f, nomor: e.target.value }))} className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal *</Label>
+                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Tanggal *</Label>
                 <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Judul *</Label>
+              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Judul *</Label>
               <Input placeholder="cth: RAB Kegiatan Lomba 17 Agustus" value={form.judul} onChange={e => setForm(f => ({ ...f, judul: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Penyusun *</Label>
+                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Penyusun *</Label>
                 <Input value={form.penyusun_nama} onChange={e => setForm(f => ({ ...f, penyusun_nama: e.target.value }))} className="h-9 text-[13px]" />
               </div>
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jabatan</Label>
+                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Jabatan</Label>
                 <Input value={form.penyusun_jabatan} onChange={e => setForm(f => ({ ...f, penyusun_jabatan: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
 
-            <div className="text-[11.5px] font-semibold pt-1" style={{ color: 'var(--cu-text-muted)' }}>Item Anggaran</div>
+            <div className="text-[11.5px] font-semibold pt-1" style={{ color: 'var(--text-muted)' }}>Item Anggaran</div>
             <div className="space-y-2">
               {items.map((it, i) => (
                 <div key={i} className="flex items-end gap-2 flex-wrap">
                   <div className="w-28">
-                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Kategori</Label>
+                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--text-2)' }}>Kategori</Label>
                     <Input value={it.kategori} onChange={e => updateItem(i, { kategori: e.target.value })} className="h-9 text-[13px]" />
                   </div>
                   <div className="flex-1 min-w-[140px]">
-                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Uraian</Label>
+                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--text-2)' }}>Uraian</Label>
                     <Input value={it.uraian} onChange={e => updateItem(i, { uraian: e.target.value })} className="h-9 text-[13px]" />
                   </div>
                   <div className="w-16">
-                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Volume</Label>
+                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--text-2)' }}>Volume</Label>
                     <Input type="number" value={it.volume} onChange={e => updateItem(i, { volume: e.target.value })} className="h-9 text-[13px]" />
                   </div>
                   <div className="w-20">
-                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Satuan</Label>
+                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--text-2)' }}>Satuan</Label>
                     <Input placeholder="unit" value={it.satuan} onChange={e => updateItem(i, { satuan: e.target.value })} className="h-9 text-[13px]" />
                   </div>
                   <div className="w-32">
-                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Harga Satuan</Label>
+                    <Label className="text-[11px] mb-1 block" style={{ color: 'var(--text-2)' }}>Harga Satuan</Label>
                     <Input type="number" value={it.harga_satuan} onChange={e => updateItem(i, { harga_satuan: e.target.value })} className="h-9 text-[13px]" />
                   </div>
                   <button
@@ -269,38 +271,38 @@ export function RabClient({ rabList }: Props) {
                     onClick={() => removeItemRow(i)}
                     disabled={items.length === 1}
                     aria-label="Hapus item"
-                    className="w-9 h-9 flex items-center justify-center rounded hover:bg-[var(--cu-danger-soft)] disabled:opacity-30"
-                    style={{ color: 'var(--cu-text-muted)' }}
+                    className="w-9 h-9 flex items-center justify-center rounded hover:bg-[var(--status-no-bg)] disabled:opacity-30"
+                    style={{ color: 'var(--text-muted)' }}
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={addItemRow} className="text-[12px] font-medium" style={{ color: 'var(--cu-primary)' }}>
+              <button type="button" onClick={addItemRow} className="text-[12px] font-medium" style={{ color: 'var(--accent)' }}>
                 + Tambah Item
               </button>
             </div>
 
-            <div className="rounded-md p-3 space-y-1" style={{ background: 'var(--cu-surface-2)' }}>
+            <div className="p-3 space-y-1.5" style={{ background: 'var(--surface-2)' }}>
               {grouped.map(g => (
-                <div key={g.kategori} className="flex justify-between text-[12px]">
-                  <span style={{ color: 'var(--cu-text-muted)' }}>{g.kategori}</span>
-                  <span className="cu-mono">{formatRupiah(g.subtotal)}</span>
+                <div key={g.kategori} className="flex items-center justify-between text-[12px]">
+                  <SolidBadge color={categoryColor(g.kategori)}>{g.kategori}</SolidBadge>
+                  <span className="tabular-nums font-bold whitespace-nowrap">{formatRupiah(g.subtotal)}</span>
                 </div>
               ))}
-              <div className="flex justify-between text-[13px] font-semibold pt-1" style={{ borderTop: '1px solid var(--border)' }}>
-                <span>Grand Total</span><span className="cu-mono">{formatRupiah(grandTotal)}</span>
+              <div className="flex justify-between text-[13px] font-extrabold pt-1.5" style={{ borderTop: '1px solid var(--divider)' }}>
+                <span>Grand Total</span><span className="tabular-nums whitespace-nowrap">{formatRupiah(grandTotal)}</span>
               </div>
             </div>
 
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Catatan</Label>
+              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Catatan</Label>
               <Textarea placeholder="Catatan tambahan (opsional)" rows={2} value={form.catatan} onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))} className="text-[13px]" />
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenForm(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-primary)', color: '#fff' }}>
+            <Button onClick={handleSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -310,14 +312,14 @@ export function RabClient({ rabList }: Props) {
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--cu-danger)' }}>Hapus RAB</DialogTitle>
+            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--accent)' }}>Hapus RAB</DialogTitle>
           </DialogHeader>
-          <div className="py-3 text-[13px]" style={{ color: 'var(--cu-text-2)' }}>
-            Yakin ingin menghapus RAB <strong style={{ color: 'var(--cu-text)' }}>{delTarget?.judul}</strong>? Tindakan ini tidak dapat dibatalkan.
+          <div className="py-3 text-[13px]" style={{ color: 'var(--text-2)' }}>
+            Yakin ingin menghapus RAB <strong style={{ color: 'var(--text)' }}>{delTarget?.judul}</strong>? Tindakan ini tidak dapat dibatalkan.
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenDel(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-danger)', color: '#fff' }}>
+            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

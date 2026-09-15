@@ -11,6 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { Topbar, BarButton } from '@/components/layout/Topbar'
+import { TableWrap, Th, Td } from '@/components/ui/TableWrap'
+import { StatusBadge, SolidBadge } from '@/components/ui/StatusBadge'
+import { ProgressBar } from '@/components/ui/ProgressBar'
+import { autoGrid, sumberColor, categoryColor, palette } from '@/lib/tokens'
 
 type Props = { dana: DanaMasuk; pengeluaranList: Pengeluaran[]; pemasukanList: Pemasukan[]; kategoriList: Kategori[] }
 type FormData = { uraian: string; kategori: string; jumlah: string; tanggal: string; keterangan: string }
@@ -25,16 +30,6 @@ function fmtCompact(n: number) {
   if (abs >= 1e6) return `${(n / 1e6).toFixed(1)} jt`
   if (abs >= 1e3) return `${(n / 1e3).toFixed(0)} rb`
   return String(n)
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    approved: 'cu-badge cu-badge-success cu-badge-dot',
-    pending:  'cu-badge cu-badge-warning cu-badge-dot',
-    rejected: 'cu-badge cu-badge-danger cu-badge-dot',
-  }
-  const labels: Record<string, string> = { approved: 'Disetujui', pending: 'Menunggu', rejected: 'Ditolak' }
-  return <span className={map[status] || 'cu-badge'}>{labels[status] || status}</span>
 }
 
 const TABS = [
@@ -67,7 +62,6 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
   const approved    = pengeluaranList.filter(p => p.status === 'approved')
   const pending     = pengeluaranList.filter(p => p.status === 'pending')
   const totalKeluar  = approved.reduce((s, p) => s + Number(p.jumlah), 0)
-  const totalPending = pending.reduce((s, p) => s + Number(p.jumlah), 0)
   const totalMasuk = pemasukanList.reduce((s, p) => s + Number(p.jumlah), 0)
   const sisa  = totalMasuk - totalKeluar
   const persen = hitungPersen(totalKeluar, totalMasuk)
@@ -240,151 +234,101 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
     startTransition(() => router.refresh())
   }
 
+  const danaColor = sumberColor(dana.sumber)
+
   return (
     <div className="animate-fade-in">
-      {/* Topbar */}
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
+      <Topbar
+        title={dana.nama_dana}
+        subtitle={`${dana.sumber} · masuk ${formatTanggal(dana.tanggal)}`}
+        action={
+          <div className="flex gap-2">
             <Link
-              href="/dana"
-              className="text-[12px] flex items-center gap-1 transition-colors"
-              style={{ color: 'var(--cu-text-muted)' }}
+              href={`/laporan?dana=${dana.id}`}
+              className="px-3 py-2 text-[13px] font-bold whitespace-nowrap text-left transition-colors inline-flex items-center"
+              style={{ background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--divider)' }}
             >
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-                <path d="M10 3L5 8l5 5" />
-              </svg>
-              Dana
+              Laporan
             </Link>
-            <span style={{ color: 'var(--cu-text-dim)' }}>/</span>
-            <span className="text-[12px] truncate max-w-[240px]" style={{ color: 'var(--cu-text)' }}>
-              {dana.nama_dana}
-            </span>
+            <BarButton variant="primary" onClick={openAddPemasukan}>+ Pemasukan</BarButton>
+            <BarButton variant="primary" onClick={openAdd}>+ Pengeluaran</BarButton>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="cu-badge" style={{ height: 18, padding: '0 6px', fontSize: 10 }}>
-              {dana.sumber}
-            </span>
-            <span className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-              {formatTanggal(dana.tanggal)}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/laporan?dana=${dana.id}`}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-[5px] border text-[12px] font-medium transition-colors hover:bg-[var(--cu-surface-2)]"
-            style={{ borderColor: 'var(--border)', color: 'var(--cu-text)' }}
-          >
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <path d="M8 2v9M4.5 7.5L8 11l3.5-3.5" /><path d="M2.5 13.5h11" />
-            </svg>
-            Laporan
-          </Link>
-          <button
-            onClick={openAddPemasukan}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-[5px] text-[12px] font-medium"
-            style={{ background: 'var(--cu-success)', color: '#fff' }}
-          >
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M6 1v10M1 6h10" />
-            </svg>
-            + Pemasukan
-          </button>
-          <button
-            onClick={openAdd}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-[5px] text-[12px] font-medium"
-            style={{ background: 'var(--cu-primary)', color: '#fff' }}
-          >
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M6 1v10M1 6h10" />
-            </svg>
-            Pengeluaran
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="cu-page">
         {/* KPI strip */}
-        <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
+        <div style={autoGrid(200)}>
           {[
-            { label: 'Total Dana', value: fmtCompact(totalMasuk), full: formatRupiah(totalMasuk), accent: 'var(--cu-primary)' },
-            { label: 'Terpakai', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), accent: 'var(--cu-warning)' },
-            { label: 'Pending', value: fmtCompact(totalPending), full: formatRupiah(totalPending), accent: 'var(--cu-danger)' },
-            { label: 'Sisa Saldo', value: fmtCompact(sisa), full: formatRupiah(sisa), accent: sisa >= 0 ? 'var(--cu-success)' : 'var(--cu-danger)' },
-          ].map((kpi, i) => (
-            <div
-              key={kpi.label}
-              className="px-4 py-3"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium uppercase tracking-[0.03em]" style={{ color: 'var(--cu-text-muted)' }}>
-                  {kpi.label}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: kpi.accent }} />
-              </div>
-              <div className="cu-mono text-[18px] font-semibold tracking-[-0.02em]" style={{ color: 'var(--cu-text)' }}>
+            { label: 'Alokasi', value: fmtCompact(totalMasuk), full: formatRupiah(totalMasuk), color: danaColor },
+            { label: 'Terpakai', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), color: 'var(--accent)' },
+            { label: 'Sisa', value: fmtCompact(sisa), full: formatRupiah(sisa), color: '#0e8a5f' },
+            { label: 'Realisasi %', value: `${persen.toFixed(1)}%`, full: '', color: 'var(--text)' },
+          ].map(kpi => (
+            <div key={kpi.label} className="card-shell" style={{ padding: 16 }}>
+              <div className="label-caps" style={{ color: 'var(--text-muted)' }}>{kpi.label}</div>
+              <div className="text-[26px] font-extrabold tracking-[-0.02em] mt-1 whitespace-nowrap tabular-nums" style={{ color: kpi.color }}>
                 {kpi.value}
               </div>
-              <div className="text-[10.5px] mt-0.5 cu-mono" style={{ color: 'var(--cu-text-dim)' }}>
-                {kpi.full}
-              </div>
+              {kpi.full && (
+                <div className="text-[11px] mt-0.5 tabular-nums" style={{ color: 'var(--text-dim)' }}>
+                  {kpi.full}
+                </div>
+              )}
             </div>
           ))}
         </div>
 
         {/* Progress bar */}
-        <div className="cu-card px-4 py-3">
+        <div className="card-shell" style={{ padding: 16 }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[12.5px] font-medium" style={{ color: 'var(--cu-text)' }}>
+            <span className="text-[12.5px] font-bold" style={{ color: 'var(--text)' }}>
               Penggunaan Dana
             </span>
-            <span className="cu-mono text-[12.5px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+            <span className="text-[12.5px] font-bold tabular-nums" style={{ color: 'var(--text)' }}>
               {persen.toFixed(1)}%
             </span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--cu-surface-2)' }}>
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${Math.min(persen, 100)}%`,
-                background: persen > 80 ? 'var(--cu-warning)' : 'var(--cu-primary)',
-              }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5 text-[11px] cu-mono" style={{ color: 'var(--cu-text-muted)' }}>
+          <ProgressBar used={totalKeluar} total={totalMasuk} color="var(--accent)" />
+          <div className="flex justify-between mt-1.5 text-[11px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
             <span>{fmtCompact(totalKeluar)} terpakai</span>
             <span>{fmtCompact(sisa)} tersisa</span>
           </div>
         </div>
 
-        {/* Tab + table */}
-        <div className="cu-card overflow-hidden">
-          {/* Tab bar */}
-          <div
-            className="flex items-center gap-0 px-3 pt-2.5"
-            style={{ borderBottom: '1px solid var(--border)' }}
-          >
+        {/* Transaksi Dana Ini */}
+        <div className="card-shell overflow-hidden">
+          <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
+            <div className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
+              Transaksi Dana Ini
+            </div>
+          </div>
+
+          {/* Filter chips */}
+          <div className="flex flex-wrap items-center gap-2 px-[18px] py-3">
             {TABS.map(tab => {
               const active = activeTab === tab.key
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className="relative flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap"
                   style={{
-                    color: active ? 'var(--cu-primary)' : 'var(--cu-text-muted)',
-                    borderBottom: active ? '2px solid var(--cu-primary)' : '2px solid transparent',
-                    marginBottom: -1,
+                    padding: '7px 12px',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    background: active ? '#201e1d' : '#fff',
+                    color: active ? '#f3f2f2' : 'var(--text)',
+                    border: active ? '1px solid #201e1d' : '1px solid var(--divider)',
                   }}
                 >
                   {tab.label}
                   {counts[tab.key] > 0 && (
                     <span
-                      className="cu-mono text-[10px] px-1.5 rounded-full"
+                      className="text-[10.5px] px-1.5"
                       style={{
-                        background: active ? 'var(--cu-primary-soft)' : 'var(--cu-surface-2)',
-                        color: active ? 'var(--cu-primary)' : 'var(--cu-text-muted)',
+                        background: active ? 'rgba(255,255,255,0.18)' : 'var(--surface-2)',
+                        color: active ? '#f3f2f2' : 'var(--text-muted)',
                       }}
                     >
                       {counts[tab.key]}
@@ -396,164 +340,164 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
           </div>
 
           {filtered.length === 0 ? (
-            <div className="py-14 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+            <div className="py-14 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
               Tidak ada pengeluaran
             </div>
           ) : (
-            <div className="cu-table-wrap">
-            <table className="cu-table">
-              <thead>
-                <tr>
-                  <th>Tanggal</th>
-                  <th>Uraian</th>
-                  <th>Kategori</th>
-                  <th className="cu-num">Jumlah</th>
-                  <th>Status</th>
-                  <th className="cu-num">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(p => (
-                  <tr
-                    key={p.id}
-                    style={
-                      p.status === 'pending'
-                        ? { background: 'color-mix(in srgb, var(--cu-warning-soft) 40%, transparent)' }
-                        : undefined
-                    }
-                  >
-                    <td className="cu-mono text-[12px] whitespace-nowrap" style={{ color: 'var(--cu-text-muted)' }}>
-                      {formatTanggal(p.tanggal)}
-                    </td>
-                    <td className="max-w-[200px]">
-                      <div className="truncate text-[12.5px] font-medium" style={{ color: 'var(--cu-text)' }}>
-                        {p.uraian}
-                      </div>
-                      {p.keterangan && (
-                        <div className="truncate text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
-                          {p.keterangan}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <span className="cu-badge" style={{ height: 18, padding: '0 6px', fontSize: 10 }}>
-                        {p.kategori}
-                      </span>
-                    </td>
-                    <td className="cu-num cu-mono text-[12.5px] font-semibold" style={{ color: 'var(--cu-text)' }}>
-                      {formatRupiah(Number(p.jumlah))}
-                    </td>
-                    <td>
-                      <StatusBadge status={p.status} />
-                    </td>
-                    <td className="cu-num">
-                      <div className="flex items-center justify-end gap-1">
-                        {p.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(p.id)}
-                              title="Setujui"
-                              className="w-6 h-6 rounded flex items-center justify-center text-white text-[11px] font-bold"
-                              style={{ background: 'var(--cu-primary)' }}
-                            >
-                              ✓
-                            </button>
-                            <button
-                              onClick={() => handleReject(p.id)}
-                              title="Tolak"
-                              className="w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold"
-                              style={{
-                                border: '1px solid var(--cu-danger)',
-                                color: 'var(--cu-danger)',
-                                background: 'transparent',
-                              }}
-                            >
-                              ✕
-                            </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() => openEdit(p)}
-                          title="Edit"
-                          className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[var(--cu-surface-2)]"
-                          style={{ color: 'var(--cu-text-muted)' }}
-                        >
-                          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M11.5 2.5l2 2L5 13H3v-2L11.5 2.5z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => { setDelTarget(p); setOpenDel(true) }}
-                          title="Hapus"
-                          className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[var(--cu-surface-2)]"
-                          style={{ color: 'var(--cu-text-muted)' }}
-                        >
-                          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
+            <TableWrap minWidth={620}>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <Th width={100}>Tanggal</Th>
+                    <Th>Uraian</Th>
+                    <Th width={140}>Kategori</Th>
+                    <Th align="right" width={120}>Jumlah</Th>
+                    <Th width={110}>Status</Th>
+                    <Th align="right" width={110}>Aksi</Th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            </div>
+                </thead>
+                <tbody>
+                  {filtered.map(p => (
+                    <tr key={p.id}>
+                      <Td>
+                        <span className="whitespace-nowrap tabular-nums text-[12px]" style={{ color: 'var(--text-2)' }}>
+                          {formatTanggal(p.tanggal)}
+                        </span>
+                      </Td>
+                      <Td>
+                        <div className="font-semibold text-[12.5px]" style={{ color: 'var(--text)' }}>
+                          {p.uraian}
+                        </div>
+                        {p.keterangan && (
+                          <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                            {p.keterangan}
+                          </div>
+                        )}
+                      </Td>
+                      <Td>
+                        <SolidBadge color={categoryColor(p.kategori)}>{p.kategori}</SolidBadge>
+                      </Td>
+                      <Td align="right">
+                        <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: 'var(--text)' }}>
+                          {formatRupiah(Number(p.jumlah))}
+                        </span>
+                      </Td>
+                      <Td>
+                        <StatusBadge status={p.status} />
+                      </Td>
+                      <Td align="right">
+                        <div className="flex items-center justify-end gap-1">
+                          {p.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(p.id)}
+                                title="Setujui"
+                                className="w-6 h-6 flex items-center justify-center text-[11px] font-bold"
+                                style={{ background: palette.green, color: '#fff' }}
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={() => handleReject(p.id)}
+                                title="Tolak"
+                                className="w-6 h-6 flex items-center justify-center text-[11px] font-bold"
+                                style={{
+                                  border: '1px solid var(--accent)',
+                                  color: 'var(--accent)',
+                                  background: '#fff',
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => openEdit(p)}
+                            title="Edit"
+                            className="w-6 h-6 flex items-center justify-center transition-colors hover:bg-[var(--surface-hover)]"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11.5 2.5l2 2L5 13H3v-2L11.5 2.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => { setDelTarget(p); setOpenDel(true) }}
+                            title="Hapus"
+                            className="w-6 h-6 flex items-center justify-center transition-colors hover:bg-[var(--surface-hover)]"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4" />
+                            </svg>
+                          </button>
+                        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableWrap>
           )}
         </div>
 
         {/* Riwayat Pemasukan */}
-        <div className="cu-card overflow-hidden">
-          <div
-            className="px-4 py-3"
-            style={{ borderBottom: '1px solid var(--border)' }}
-          >
-            <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+        <div className="card-shell overflow-hidden">
+          <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
+            <div className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
               Riwayat Pemasukan
             </div>
           </div>
           {pemasukanList.length === 0 ? (
-            <div className="py-14 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+            <div className="py-14 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
               Belum ada pemasukan
             </div>
           ) : (
-            <div className="cu-table-wrap">
-              <table className="cu-table">
+            <TableWrap minWidth={520}>
+              <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    <th>Tanggal</th>
-                    <th>Uraian</th>
-                    <th className="cu-num">Jumlah</th>
-                    <th className="cu-num">Aksi</th>
+                    <Th width={100}>Tanggal</Th>
+                    <Th>Uraian</Th>
+                    <Th width={110}>Jenis</Th>
+                    <Th align="right" width={140}>Jumlah</Th>
+                    <Th align="right" width={80}>Aksi</Th>
                   </tr>
                 </thead>
                 <tbody>
                   {pemasukanList.map(p => (
                     <tr key={p.id}>
-                      <td className="cu-mono text-[12px] whitespace-nowrap" style={{ color: 'var(--cu-text-muted)' }}>
-                        {formatTanggal(p.tanggal)}
-                      </td>
-                      <td className="max-w-[240px]">
-                        <div className="truncate text-[12.5px] font-medium" style={{ color: 'var(--cu-text)' }}>
+                      <Td>
+                        <span className="whitespace-nowrap tabular-nums text-[12px]" style={{ color: 'var(--text-2)' }}>
+                          {formatTanggal(p.tanggal)}
+                        </span>
+                      </Td>
+                      <Td>
+                        <div className="font-semibold text-[12.5px]" style={{ color: 'var(--text)' }}>
                           {p.uraian}
                         </div>
                         {p.keterangan && (
-                          <div className="truncate text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
+                          <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                             {p.keterangan}
                           </div>
                         )}
-                      </td>
-                      <td className="cu-num cu-mono text-[12.5px] font-semibold" style={{ color: 'var(--cu-success)' }}>
-                        {formatRupiah(Number(p.jumlah))}
-                      </td>
-                      <td className="cu-num">
+                      </Td>
+                      <Td>
+                        <SolidBadge color={palette.green}>Masuk</SolidBadge>
+                      </Td>
+                      <Td align="right">
+                        <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: palette.green }}>
+                          {formatRupiah(Number(p.jumlah))}
+                        </span>
+                      </Td>
+                      <Td align="right">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => openEditPemasukan(p)}
                             title="Edit"
                             aria-label="Edit pemasukan"
-                            className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[var(--cu-surface-2)]"
-                            style={{ color: 'var(--cu-text-muted)' }}
+                            className="w-6 h-6 flex items-center justify-center transition-colors hover:bg-[var(--surface-hover)]"
+                            style={{ color: 'var(--text-muted)' }}
                           >
                             <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M11.5 2.5l2 2L5 13H3v-2L11.5 2.5z" />
@@ -563,56 +507,48 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                             onClick={() => { setDelPemasukanTarget(p); setOpenDelPemasukan(true) }}
                             title="Hapus"
                             aria-label="Hapus pemasukan"
-                            className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[var(--cu-surface-2)]"
-                            style={{ color: 'var(--cu-text-muted)' }}
+                            className="w-6 h-6 flex items-center justify-center transition-colors hover:bg-[var(--surface-hover)]"
+                            style={{ color: 'var(--text-muted)' }}
                           >
                             <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4" />
                             </svg>
                           </button>
                         </div>
-                      </td>
+                      </Td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableWrap>
           )}
         </div>
 
         {/* Per Kategori */}
         {perKategori.length > 0 && (
-          <div className="cu-card overflow-hidden">
-            <div
-              className="px-4 py-3"
-              style={{ borderBottom: '1px solid var(--border)' }}
-            >
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+          <div className="card-shell overflow-hidden">
+            <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
+              <div className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
                 Breakdown per Kategori
               </div>
             </div>
-            <div className="px-4 py-3 space-y-2.5">
+            <div className="px-[18px] py-4 flex flex-col gap-3">
               {perKategori.map(k => {
-                const pct = hitungPersen(k.total, totalKeluar)
+                const p = hitungPersen(k.total, totalKeluar)
                 return (
                   <div key={k.nama}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[12.5px]" style={{ color: 'var(--cu-text)' }}>{k.nama}</span>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[12.5px] font-semibold" style={{ color: 'var(--text)' }}>{k.nama}</span>
                       <div className="flex items-center gap-2">
-                        <span className="cu-mono text-[12px] font-medium" style={{ color: 'var(--cu-text)' }}>
+                        <span className="text-[12px] font-bold tabular-nums" style={{ color: 'var(--text)' }}>
                           {fmtCompact(k.total)}
                         </span>
-                        <span className="cu-mono text-[11px] w-9 text-right" style={{ color: 'var(--cu-text-muted)' }}>
-                          {pct.toFixed(1)}%
+                        <span className="text-[11px] w-9 text-right tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                          {p.toFixed(1)}%
                         </span>
                       </div>
                     </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--cu-surface-2)' }}>
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, background: 'var(--cu-primary)' }}
-                      />
-                    </div>
+                    <ProgressBar used={k.total} total={totalKeluar} color={categoryColor(k.nama)} height={8} />
                   </div>
                 )
               })}
@@ -631,8 +567,8 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                Uraian <span style={{ color: 'var(--cu-danger)' }}>*</span>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                Uraian <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <input
                 type="text"
@@ -640,13 +576,13 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                 value={form.uraian}
                 onChange={e => setForm(f => ({ ...f, uraian: e.target.value }))}
                 className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                  Kategori <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                  Kategori <span style={{ color: 'var(--accent)' }}>*</span>
                 </label>
                 <Select
                   value={form.kategori}
@@ -655,7 +591,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                 >
                   <SelectTrigger
                     className="h-[34px] text-[13px] rounded-[5px]"
-                    style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)' }}
+                    style={{ background: 'var(--surface)', border: '1px solid var(--divider)' }}
                   >
                     <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
@@ -667,8 +603,8 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                 </Select>
               </div>
               <div>
-                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                  Jumlah <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                  Jumlah <span style={{ color: 'var(--accent)' }}>*</span>
                 </label>
                 <input
                   type="number"
@@ -676,24 +612,24 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                   value={form.jumlah}
                   onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))}
                   className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none cu-mono"
-                  style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                  style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                Tanggal <span style={{ color: 'var(--cu-danger)' }}>*</span>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                Tanggal <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <input
                 type="date"
                 value={form.tanggal}
                 onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))}
                 className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
               />
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
                 Keterangan
               </label>
               <Textarea
@@ -702,7 +638,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                 value={form.keterangan}
                 onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))}
                 className="text-[13px] resize-none"
-                style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
               />
             </div>
           </div>
@@ -710,7 +646,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
             <button
               onClick={() => setOpenForm(false)}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
-              style={{ border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              style={{ border: '1px solid var(--divider)', color: 'var(--text)' }}
             >
               Batal
             </button>
@@ -718,7 +654,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleSave}
               disabled={saving}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--cu-primary)', color: '#fff' }}
+              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Simpan'}
             </button>
@@ -732,14 +668,14 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
           <DialogHeader>
             <DialogTitle className="text-[14px]">Hapus Pengeluaran</DialogTitle>
           </DialogHeader>
-          <p className="text-[12.5px]" style={{ color: 'var(--cu-text-muted)' }}>
-            Hapus <strong style={{ color: 'var(--cu-text)' }}>{delTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
+          <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
+            Hapus <strong style={{ color: 'var(--text)' }}>{delTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
           </p>
           <DialogFooter>
             <button
               onClick={() => setOpenDel(false)}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
-              style={{ border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              style={{ border: '1px solid var(--divider)', color: 'var(--text)' }}
             >
               Batal
             </button>
@@ -747,7 +683,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleDelete}
               disabled={saving}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--cu-danger)', color: '#fff' }}
+              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </button>
@@ -757,7 +693,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
 
       {/* Tambah/Edit Pemasukan Dialog */}
       <Dialog open={openTambahDana} onOpenChange={setOpenTambahDana}>
-        <DialogContent className="sm:max-w-md" style={{ background: '#fff' }}>
+        <DialogContent className="sm:max-w-md" style={{ background: 'var(--surface)' }}>
           <DialogHeader>
             <DialogTitle className="text-[15px] font-semibold">
               {editPemasukanTarget ? 'Edit Pemasukan' : 'Tambah Pemasukan'}
@@ -765,8 +701,8 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                Uraian <span style={{ color: 'var(--cu-danger)' }}>*</span>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                Uraian <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <input
                 type="text"
@@ -774,13 +710,13 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                 value={tambahDanaForm.uraian}
                 onChange={e => setTambahDanaForm(f => ({ ...f, uraian: e.target.value }))}
                 className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                  Jumlah <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                  Jumlah <span style={{ color: 'var(--accent)' }}>*</span>
                 </label>
                 <input
                   type="number"
@@ -788,24 +724,24 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                   value={tambahDanaForm.jumlah}
                   onChange={e => setTambahDanaForm(f => ({ ...f, jumlah: e.target.value }))}
                   className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none cu-mono"
-                  style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                  style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
-                  Tanggal <span style={{ color: 'var(--cu-danger)' }}>*</span>
+                <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
+                  Tanggal <span style={{ color: 'var(--accent)' }}>*</span>
                 </label>
                 <input
                   type="date"
                   value={tambahDanaForm.tanggal}
                   onChange={e => setTambahDanaForm(f => ({ ...f, tanggal: e.target.value }))}
                   className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                  style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                  style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
                 Keterangan
               </label>
               <Textarea
@@ -814,18 +750,18 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                 value={tambahDanaForm.keterangan}
                 onChange={e => setTambahDanaForm(f => ({ ...f, keterangan: e.target.value }))}
                 className="text-[13px] resize-none"
-                style={{ background: 'var(--cu-surface)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
               />
             </div>
-            <div className="px-3 py-2 rounded-[5px] mt-2" style={{ background: 'var(--cu-surface-2)' }}>
-              <div className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>Saldo Saat Ini: {formatRupiah(totalMasuk)}</div>
+            <div className="px-3 py-2 rounded-[5px] mt-2" style={{ background: 'var(--surface-2)' }}>
+              <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Saldo Saat Ini: {formatRupiah(totalMasuk)}</div>
             </div>
           </div>
           <DialogFooter className="gap-2">
             <button
               onClick={() => { setOpenTambahDana(false); setEditPemasukanTarget(null) }}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
-              style={{ border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              style={{ border: '1px solid var(--divider)', color: 'var(--text)' }}
             >
               Batal
             </button>
@@ -833,7 +769,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleTambahDana}
               disabled={savingDana}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--cu-primary)', color: '#fff' }}
+              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {savingDana ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Simpan'}
             </button>
@@ -847,14 +783,14 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
           <DialogHeader>
             <DialogTitle className="text-[14px]">Hapus Pemasukan</DialogTitle>
           </DialogHeader>
-          <p className="text-[12.5px]" style={{ color: 'var(--cu-text-muted)' }}>
-            Hapus <strong style={{ color: 'var(--cu-text)' }}>{delPemasukanTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
+          <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
+            Hapus <strong style={{ color: 'var(--text)' }}>{delPemasukanTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
           </p>
           <DialogFooter>
             <button
               onClick={() => setOpenDelPemasukan(false)}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium"
-              style={{ border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+              style={{ border: '1px solid var(--divider)', color: 'var(--text)' }}
             >
               Batal
             </button>
@@ -862,7 +798,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleDeletePemasukan}
               disabled={savingDana}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--cu-danger)', color: '#fff' }}
+              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {savingDana ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </button>

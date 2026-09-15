@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { formatRupiah, formatTanggal, hitungPersen } from '@/lib/formatters'
+import { formatRupiah, formatTanggal } from '@/lib/formatters'
 import { handleSupabaseError } from '@/lib/error-handler'
 import { validateForm, danaMasukSchema, danaMasukEditSchema } from '@/lib/validation'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -12,6 +12,10 @@ import { usePagination, PaginationControls } from '@/hooks/use-pagination'
 import { useSupabaseMutation } from '@/hooks/use-supabase-mutation'
 import { ExcelExportButton } from '@/components/excel-export-button'
 import type { DanaMasukWithSaldo, Pengeluaran, SumberDana } from '@/lib/types'
+import { Topbar, BarButton } from '@/components/layout/Topbar'
+import { SolidBadge } from '@/components/ui/StatusBadge'
+import { ProgressBar } from '@/components/ui/ProgressBar'
+import { sumberColor, formatRp, pct, autoGrid } from '@/lib/tokens'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, Search, Pencil, Trash2, Loader2, MoreHorizontal } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Loader2 } from 'lucide-react'
 
 type Props = {
   danaList: DanaMasukWithSaldo[]
@@ -139,34 +143,22 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
 
   return (
     <div className="animate-fade-in">
-      {/* Top bar */}
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
+      <Topbar
+        title="Dana Masuk"
+        subtitle={`${danaList.length} sumber dana aktif · Buku ${bukuNama}`}
+        action={
           <div className="flex items-center gap-2">
-            <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
-              Dana Masuk
-            </h1>
-            <span className="cu-mono text-[11px]" style={{ color: 'var(--cu-text-dim)' }}>
-              {danaList.length} wallet · Buku {bukuNama}
-            </span>
+            <ExcelExportButton type="dana" danaList={danaList} filename="dana_masuk" />
+            <BarButton variant="primary" onClick={openAdd} disabled={bukuKosong}>
+              <span className="inline-flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Dana Baru</span>
+            </BarButton>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <ExcelExportButton type="dana" danaList={danaList} filename="dana_masuk" />
-          <button
-            onClick={openAdd}
-            disabled={bukuKosong}
-            className="inline-flex items-center gap-1.5 h-[30px] px-3 rounded-[5px] text-[12px] font-medium"
-            style={{ background: 'var(--cu-primary)', color: '#ffffff', opacity: bukuKosong ? 0.5 : 1 }}
-          >
-            <Plus className="w-3.5 h-3.5" /> Dana Baru
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {bukuKosong && (
         <div className="cu-page">
-          <div className="cu-card py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
+          <div className="card-shell py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
             Belum ada buku. Buat buku pertama Anda lewat pemilih buku di sidebar.
           </div>
         </div>
@@ -175,21 +167,21 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
       {!bukuKosong && (
       <div className="cu-page">
         {/* Summary strip */}
-        <div className="cu-card overflow-hidden grid grid-cols-2 md:grid-cols-4 cu-stats-strip">
+        <div style={autoGrid(200)}>
           {[
             { label: 'Total Alokasi', value: fmtCompact(totalAlokasi), sub: `${danaList.length} dana aktif` },
             { label: 'Realisasi', value: fmtCompact(totalKeluar), sub: `${totalAlokasi > 0 ? ((totalKeluar / totalAlokasi) * 100).toFixed(1) : 0}% dari alokasi` },
             { label: 'Sisa Saldo', value: fmtCompact(totalSisa), sub: 'tersedia' },
             { label: 'Dana Terbanyak', value: danaList[0]?.sumber ?? '—', sub: danaList[0]?.nama_dana ?? '' },
           ].map((s, i) => (
-            <div key={i} className="px-4 py-3">
-              <div className="text-[11px] font-medium uppercase tracking-[0.02em]" style={{ color: 'var(--cu-text-muted)' }}>
+            <div key={i} className="card-shell px-4 py-3">
+              <div className="label-caps" style={{ color: 'var(--text-muted)' }}>
                 {s.label}
               </div>
-              <div className="cu-mono text-[18px] font-semibold mt-1 tracking-[-0.02em]" style={{ color: 'var(--cu-text)' }}>
+              <div className="text-[18px] font-extrabold mt-1 tracking-[-0.02em] whitespace-nowrap" style={{ color: 'var(--text)' }}>
                 {s.value}
               </div>
-              <div className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--cu-text-dim)' }}>
+              <div className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-dim)' }}>
                 {s.sub}
               </div>
             </div>
@@ -199,155 +191,124 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
         {/* Filter bar */}
         <div className="flex items-center gap-2">
           <div
-            className="flex items-center gap-2 px-2.5 h-[30px] rounded-[5px] flex-1 max-w-xs"
-            style={{ border: '1px solid var(--border)', background: 'var(--cu-surface)' }}
+            className="flex items-center gap-2 px-2.5 h-[38px] flex-1 max-w-xs"
+            style={{ border: '1px solid var(--divider)', background: 'var(--surface)' }}
           >
-            <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--cu-text-muted)' }} />
+            <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
             <input
               className="flex-1 bg-transparent text-[12.5px] outline-none"
-              style={{ color: 'var(--cu-text)' }}
+              style={{ color: 'var(--text)' }}
               placeholder="Cari nama dana atau sumber…"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <span className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            <span className="cu-mono font-semibold" style={{ color: 'var(--cu-text)' }}>{filtered.length}</span> dari {danaList.length} dana
+          <span className="text-[12px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+            <span className="font-bold" style={{ color: 'var(--text)' }}>{filtered.length}</span> dari {danaList.length} dana
           </span>
         </div>
 
-        {/* Table */}
-        <div className="cu-card overflow-hidden">
-          {paginatedData.length === 0 ? (
-            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--cu-text-muted)' }}>
-              {debouncedSearch ? 'Tidak ada dana yang cocok' : 'Belum ada data dana masuk'}
+        {/* Card grid */}
+        {paginatedData.length === 0 ? (
+          <div className="card-shell py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            {debouncedSearch ? 'Tidak ada dana yang cocok' : 'Belum ada data dana masuk'}
+          </div>
+        ) : (
+          <>
+            <div style={autoGrid(280)}>
+              {paginatedData.map(dana => {
+                const keluar  = getKeluar(dana.id)
+                const pending = getPending(dana.id)
+                const sisa    = Number(dana.jumlah) - keluar
+                const p       = pct(keluar, Number(dana.jumlah))
+                const color   = sumberColor(dana.sumber)
+                return (
+                  <div
+                    key={dana.id}
+                    className="relative transition-colors hover:bg-[var(--surface-hover)]"
+                    style={{ border: '2px solid var(--divider)', borderTop: `6px solid ${color}`, background: 'var(--surface)' }}
+                  >
+                    <div className="absolute right-2 top-2 flex items-center gap-0.5 z-10">
+                      <button
+                        onClick={() => openEdit(dana)}
+                        title="Edit"
+                        aria-label="Edit dana"
+                        className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-2)]"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => { setDeleteTarget(dana); setOpenDelete(true) }}
+                        title="Hapus"
+                        aria-label="Hapus dana"
+                        className="w-6 h-6 flex items-center justify-center hover:bg-[var(--status-no-bg)]"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <Link href={`/dana/${dana.id}`} className="block" style={{ padding: 18 }}>
+                      <div className="pr-14">
+                        <h3 className="text-[17px] font-extrabold tracking-[-0.01em] truncate" style={{ color: 'var(--text)' }}>
+                          {dana.nama_dana}
+                        </h3>
+                      </div>
+                      <div className="mt-1.5">
+                        <SolidBadge color={color}>{dana.sumber}</SolidBadge>
+                      </div>
+                      {dana.keterangan && (
+                        <div className="mt-1.5 text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
+                          {dana.keterangan}
+                        </div>
+                      )}
+
+                      <div className="mt-3" style={autoGrid(100, 12)}>
+                        <div>
+                          <div className="label-caps" style={{ color: 'var(--text-muted)' }}>Alokasi</div>
+                          <div className="text-[18px] font-extrabold whitespace-nowrap" style={{ color: 'var(--text)' }}>
+                            Rp {formatRp(Number(dana.jumlah))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="label-caps" style={{ color: 'var(--text-muted)' }}>Sisa</div>
+                          <div className="text-[18px] font-extrabold whitespace-nowrap" style={{ color: sisa < 0 ? 'var(--accent-press)' : color }}>
+                            Rp {formatRp(sisa)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3">
+                        <ProgressBar used={keluar} total={Number(dana.jumlah)} color={color} height={9} />
+                      </div>
+
+                      <div className="mt-2 text-[12px] whitespace-nowrap truncate" style={{ color: 'var(--text-muted)' }}>
+                        Terpakai Rp {formatRp(keluar)} · {p}% · {formatTanggal(dana.tanggal)}
+                        {pending > 0 && ` · Rp ${formatRp(pending)} pending`}
+                      </div>
+                    </Link>
+                  </div>
+                )
+              })}
             </div>
-          ) : (
-            <>
-              <div className="cu-table-wrap">
-              <table className="cu-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 80 }}>ID</th>
-                    <th>Nama Dana</th>
-                    <th style={{ width: 80 }}>Sumber</th>
-                    <th style={{ width: 88 }}>Tanggal</th>
-                    <th className="cu-num" style={{ width: 130 }}>Alokasi</th>
-                    <th className="cu-num" style={{ width: 130 }}>Terpakai</th>
-                    <th style={{ width: 130 }}>Realisasi</th>
-                    <th className="cu-num" style={{ width: 130 }}>Sisa</th>
-                    <th style={{ width: 40 }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map(dana => {
-                    const keluar  = getKeluar(dana.id)
-                    const pending = getPending(dana.id)
-                    const sisa    = Number(dana.jumlah) - keluar
-                    const pct     = hitungPersen(keluar, Number(dana.jumlah))
-                    return (
-                      <tr key={dana.id}>
-                        <td className="cu-mono text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
-                          D-{String(dana.id).padStart(4, '0')}
-                        </td>
-                        <td>
-                          <div className="font-medium text-[12.5px]" style={{ color: 'var(--cu-text)' }}>
-                            {dana.nama_dana}
-                          </div>
-                          {dana.keterangan && (
-                            <div className="text-[11px] mt-0.5 truncate max-w-[240px]" style={{ color: 'var(--cu-text-muted)' }}>
-                              {dana.keterangan}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <span className="cu-badge">{dana.sumber}</span>
-                        </td>
-                        <td className="cu-mono text-[11.5px]" style={{ color: 'var(--cu-text-2)' }}>
-                          {formatTanggal(dana.tanggal)}
-                        </td>
-                        <td className="cu-num cu-mono text-[12px]">
-                          {fmtCompact(Number(dana.jumlah))}
-                        </td>
-                        <td className="cu-num cu-mono text-[12px]" style={{ color: 'var(--cu-text-2)' }}>
-                          {fmtCompact(keluar)}
-                        </td>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--cu-surface-2)' }}>
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: `${Math.min(pct, 100)}%`,
-                                  background: pct > 80 ? 'var(--cu-warning)' : pct > 50 ? 'var(--cu-primary)' : '#5d7fa3',
-                                }}
-                              />
-                            </div>
-                            <span className="cu-mono text-[11px] w-8 text-right" style={{ color: 'var(--cu-text-muted)' }}>
-                              {pct.toFixed(0)}%
-                            </span>
-                          </div>
-                        </td>
-                        <td
-                          className="cu-num cu-mono text-[12px] font-medium"
-                          style={{ color: sisa < 0 ? 'var(--cu-danger)' : 'var(--cu-text)' }}
-                        >
-                          {fmtCompact(sisa)}
-                        </td>
-                        <td>
-                          <div className="flex items-center gap-0.5">
-                            <Link
-                              href={`/dana/${dana.id}`}
-                              className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]"
-                              style={{ color: 'var(--cu-text-muted)' }}
-                              title="Lihat detail"
-                            >
-                              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                                <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5l3 3"/>
-                              </svg>
-                            </Link>
-                            <button
-                              onClick={() => openEdit(dana)}
-                              className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-surface-2)]"
-                              style={{ color: 'var(--cu-text-muted)' }}
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => { setDeleteTarget(dana); setOpenDelete(true) }}
-                              className="w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--cu-danger-soft)]"
-                              style={{ color: 'var(--cu-text-muted)' }}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-              </div>
-              <div
-                className="flex items-center justify-between px-4 py-2.5"
-                style={{ borderTop: '1px solid var(--border)', background: 'var(--cu-surface)' }}
-              >
-                <span className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-                  Menampilkan {((currentPage - 1) * itemsPerPage) + 1}–{Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
-                </span>
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
-                  itemsPerPage={itemsPerPage}
-                  onItemsPerPageChange={setItemsPerPage}
-                  totalItems={totalItems}
-                  showItemsPerPage
-                />
-              </div>
-            </>
-          )}
-        </div>
+            <div
+              className="flex items-center justify-between px-4 py-2.5 card-shell"
+            >
+              <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1}–{Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
+              </span>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+                totalItems={totalItems}
+                showItemsPerPage
+              />
+            </div>
+          </>
+        )}
       </div>
       )}
 
@@ -355,39 +316,39 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">
+            <DialogTitle className="text-[15px] font-extrabold">
               {editTarget ? 'Edit Dana' : 'Tambah Dana Masuk'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             {formErrors.length > 0 && (
-              <div className="text-[12px] rounded-md px-3 py-2 space-y-0.5" style={{ background: 'var(--cu-danger-soft)', color: 'var(--cu-danger)' }}>
+              <div className="text-[12px] px-3 py-2 space-y-0.5" style={{ background: 'var(--status-no-bg)', color: 'var(--status-no-fg)' }}>
                 {formErrors.map((err, i) => <p key={i}>· {err}</p>)}
               </div>
             )}
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Nama Dana *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Nama Dana *</Label>
               <Input placeholder="cth: Dana DIPA Semester Ganjil 2026" value={form.nama_dana} onChange={e => setForm(f => ({ ...f, nama_dana: e.target.value }))} className="h-9 text-[13px]" />
             </div>
             <div className={editTarget ? '' : 'grid grid-cols-2 gap-3'}>
               {!editTarget && (
                 <div>
-                  <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Saldo Awal</Label>
+                  <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Saldo Awal</Label>
                   <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
                 </div>
               )}
               <div>
-                <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal *</Label>
+                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Tanggal *</Label>
                 <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
               </div>
             </div>
             {editTarget && (
-              <p className="text-[11px]" style={{ color: 'var(--cu-text-muted)' }}>
-                Untuk menambah saldo, buka detail wallet ini lalu gunakan tombol "+ Pemasukan".
+              <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                Untuk menambah saldo, buka detail wallet ini lalu gunakan tombol &quot;+ Pemasukan&quot;.
               </p>
             )}
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Sumber Dana *</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Sumber Dana *</Label>
               <Select
                 value={form.sumber}
                 onValueChange={v => setForm(f => ({ ...f, sumber: v ?? '' }))}
@@ -400,13 +361,13 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
               </Select>
             </div>
             <div>
-              <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Keterangan</Label>
+              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Keterangan</Label>
               <Textarea placeholder="Keterangan tambahan (opsional)" rows={2} value={form.keterangan} onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))} className="text-[13px]" />
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenForm(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={validateAndSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-primary)', color: '#fff' }}>
+            <Button onClick={validateAndSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -417,16 +378,16 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--cu-danger)' }}>
+            <DialogTitle className="text-[15px] font-extrabold" style={{ color: 'var(--accent-press)' }}>
               Hapus Dana
             </DialogTitle>
           </DialogHeader>
-          <div className="py-3 text-[13px]" style={{ color: 'var(--cu-text-2)' }}>
-            Yakin ingin menghapus <strong style={{ color: 'var(--cu-text)' }}>{deleteTarget?.nama_dana}</strong>? Tindakan ini tidak dapat dibatalkan.
+          <div className="py-3 text-[13px]" style={{ color: 'var(--text-2)' }}>
+            Yakin ingin menghapus <strong style={{ color: 'var(--text)' }}>{deleteTarget?.nama_dana}</strong>? Tindakan ini tidak dapat dibatalkan.
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpenDelete(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={deleting} className="h-8 text-[12px]" style={{ background: 'var(--cu-danger)', color: '#fff' }}>
+            <Button onClick={handleDelete} disabled={deleting} className="h-8 text-[12px]" style={{ background: 'var(--accent-press)', color: '#fff' }}>
               {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

@@ -8,14 +8,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
-  const { data: setting } = await supabase
-    .from('settings')
-    .select('value')
-    .eq('key', 'nama_direktorat')
-    .single()
-
   return (
-    <DashboardShell namaDirektorat={setting?.value || 'Keuangan Direktorat'}>
+    <DashboardShell>
       {children}
     </DashboardShell>
   )

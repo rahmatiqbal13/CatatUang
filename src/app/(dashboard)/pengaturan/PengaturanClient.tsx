@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Topbar, BarButton } from '@/components/layout/Topbar'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -84,49 +85,45 @@ export function PengaturanClient({ settingsMap }: Props) {
     startTransition(() => router.refresh())
   }
 
+  const inputStyle = {
+    background: 'var(--surface)',
+    border: '1px solid var(--divider)',
+    color: 'var(--text)',
+  } as const
+
   return (
     <div className="animate-fade-in">
-      {/* Topbar */}
-      <div className="cu-topbar">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[16px] font-semibold tracking-[-0.015em]" style={{ color: 'var(--cu-text)' }}>
-            Pengaturan
-          </h1>
-          <div className="text-[12px]" style={{ color: 'var(--cu-text-muted)' }}>
-            Konfigurasi sistem keuangan direktorat
-          </div>
-        </div>
-      </div>
+      <Topbar title="Pengaturan" subtitle="Identitas & buku anggaran" />
 
       <div className="cu-page max-w-xl">
         {/* Identitas Direktorat */}
-        <div className="cu-card overflow-hidden">
-          <div
-            className="flex items-center gap-2 px-4 py-3"
-            style={{ borderBottom: '1px solid var(--border)' }}
+        <section className="card-shell">
+          <header
+            className="flex items-center gap-2 px-[18px] py-[14px]"
+            style={{ borderBottom: '2px solid var(--divider)' }}
           >
             <div
-              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-              style={{ background: 'var(--cu-primary-soft)' }}
+              className="flex h-5 w-5 shrink-0 items-center justify-center"
+              style={{ background: 'var(--accent-100)' }}
             >
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round">
                 <rect x="2" y="3" width="12" height="10" rx="1.5" />
                 <path d="M5 7h6M5 10h4" />
               </svg>
             </div>
             <div>
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
                 Identitas Direktorat
-              </div>
-              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+              </h2>
+              <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
                 Tampil di sidebar dan header laporan PDF
-              </div>
+              </p>
             </div>
-          </div>
+          </header>
 
-          <div className="px-4 py-4">
+          <div className="px-[18px] py-[16px]">
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Nama Direktorat
               </label>
               <input
@@ -134,47 +131,43 @@ export function PengaturanClient({ settingsMap }: Props) {
                 placeholder="cth: Direktorat Kemahasiswaan"
                 value={namaDirektorat}
                 onChange={e => setNamaDirektorat(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{
-                  background: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--cu-text)',
-                }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
-              <p className="text-[11px] mt-1.5" style={{ color: 'var(--cu-text-muted)' }}>
+              <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
                 Nama ini muncul di header sidebar dan laporan PDF
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Valuta */}
-        <div className="cu-card overflow-hidden">
-          <div
-            className="flex items-center gap-2 px-4 py-3"
-            style={{ borderBottom: '1px solid var(--border)' }}
+        <section className="card-shell">
+          <header
+            className="flex items-center gap-2 px-[18px] py-[14px]"
+            style={{ borderBottom: '2px solid var(--divider)' }}
           >
             <div
-              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-              style={{ background: 'var(--cu-primary-soft)' }}
+              className="flex h-5 w-5 shrink-0 items-center justify-center"
+              style={{ background: 'var(--accent-100)' }}
             >
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round">
                 <circle cx="8" cy="8" r="6" />
                 <path d="M8 4v1.5M8 10.5V12M6 6.5C6 5.7 6.9 5 8 5s2 .7 2 1.5-1 1.3-2 1.5-2 .8-2 1.5S6.9 11 8 11s2-.7 2-1.5" />
               </svg>
             </div>
             <div>
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
                 Valuta
-              </div>
-              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+              </h2>
+              <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
                 Mata uang yang digunakan pada seluruh tampilan nominal
-              </div>
+              </p>
             </div>
-          </div>
+          </header>
 
-          <div className="px-4 py-4">
-            <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+          <div className="px-[18px] py-[16px]">
+            <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
               Mata Uang
             </label>
             <Select
@@ -188,10 +181,7 @@ export function PengaturanClient({ settingsMap }: Props) {
                 MYR: 'MYR — Ringgit Malaysia',
               }}
             >
-              <SelectTrigger
-                className="h-[34px] text-[13px] rounded-[5px] w-52"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
-              >
+              <SelectTrigger className="h-[34px] w-52 text-[13px]" style={inputStyle}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -203,36 +193,36 @@ export function PengaturanClient({ settingsMap }: Props) {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </section>
 
         {/* Identitas Penandatangan */}
-        <div className="cu-card overflow-hidden">
-          <div
-            className="flex items-center gap-2 px-4 py-3"
-            style={{ borderBottom: '1px solid var(--border)' }}
+        <section className="card-shell">
+          <header
+            className="flex items-center gap-2 px-[18px] py-[14px]"
+            style={{ borderBottom: '2px solid var(--divider)' }}
           >
             <div
-              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-              style={{ background: 'var(--cu-primary-soft)' }}
+              className="flex h-5 w-5 shrink-0 items-center justify-center"
+              style={{ background: 'var(--accent-100)' }}
             >
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round">
                 <path d="M2 13.5c0-2.5 2.5-3.5 6-3.5s6 1 6 3.5" />
                 <circle cx="8" cy="5.5" r="3" />
               </svg>
             </div>
             <div>
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
                 Identitas Penandatangan
-              </div>
-              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+              </h2>
+              <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
                 Isian awal untuk Pihak Pertama saat membuat peminjaman baru — bisa diubah manual tiap peminjaman
-              </div>
+              </p>
             </div>
-          </div>
+          </header>
 
-          <div className="px-4 py-4 space-y-3">
+          <div className="space-y-3 px-[18px] py-[16px]">
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Nama
               </label>
               <input
@@ -240,12 +230,12 @@ export function PengaturanClient({ settingsMap }: Props) {
                 placeholder="cth: Rahmat Iqbal Rizaldi Pratama, S.Kom."
                 value={pihakPertamaNama}
                 onChange={e => setPihakPertamaNama(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Jabatan
               </label>
               <input
@@ -253,12 +243,12 @@ export function PengaturanClient({ settingsMap }: Props) {
                 placeholder="cth: Admin USC (Mewakili Koperasi Kantin Kolam Renang UNESA)"
                 value={pihakPertamaJabatan}
                 onChange={e => setPihakPertamaJabatan(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Instansi
               </label>
               <input
@@ -266,41 +256,41 @@ export function PengaturanClient({ settingsMap }: Props) {
                 placeholder="cth: Direktorat Unesa Science Center"
                 value={pihakPertamaInstansi}
                 onChange={e => setPihakPertamaInstansi(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Keamanan Akun */}
-        <div className="cu-card overflow-hidden">
-          <div
-            className="flex items-center gap-2 px-4 py-3"
-            style={{ borderBottom: '1px solid var(--border)' }}
+        <section className="card-shell">
+          <header
+            className="flex items-center gap-2 px-[18px] py-[14px]"
+            style={{ borderBottom: '2px solid var(--divider)' }}
           >
             <div
-              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-              style={{ background: 'var(--cu-primary-soft)' }}
+              className="flex h-5 w-5 shrink-0 items-center justify-center"
+              style={{ background: 'var(--accent-100)' }}
             >
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--cu-primary)" strokeWidth="1.8" strokeLinecap="round">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round">
                 <rect x="3.5" y="7" width="9" height="6.5" rx="1.5" />
                 <path d="M5.5 7V5a2.5 2.5 0 015 0v2" />
               </svg>
             </div>
             <div>
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--cu-text)' }}>
+              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
                 Keamanan Akun
-              </div>
-              <div className="text-[11.5px]" style={{ color: 'var(--cu-text-muted)' }}>
+              </h2>
+              <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
                 Ubah password akun Anda
-              </div>
+              </p>
             </div>
-          </div>
+          </header>
 
-          <div className="px-4 py-4 space-y-3">
+          <div className="space-y-3 px-[18px] py-[16px]">
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Password Saat Ini
               </label>
               <input
@@ -308,12 +298,12 @@ export function PengaturanClient({ settingsMap }: Props) {
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Password Baru
               </label>
               <input
@@ -321,15 +311,15 @@ export function PengaturanClient({ settingsMap }: Props) {
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
-              <p className="text-[11px] mt-1.5" style={{ color: 'var(--cu-text-muted)' }}>
+              <p className="mt-1.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
                 Minimal 6 karakter
               </p>
             </div>
             <div>
-              <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--cu-text-2)' }}>
+              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Konfirmasi Password Baru
               </label>
               <input
@@ -337,39 +327,35 @@ export function PengaturanClient({ settingsMap }: Props) {
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full h-[34px] px-3 text-[13px] rounded-[5px] outline-none"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--cu-text)' }}
+                className="h-[34px] w-full px-3 text-[13px] outline-none"
+                style={inputStyle}
               />
             </div>
-            <button
+            <BarButton
+              variant="ink"
               onClick={handleChangePassword}
               disabled={changingPassword}
-              className="inline-flex items-center gap-2 h-8 px-4 rounded-[5px] text-[13px] font-medium transition-opacity"
-              style={{ background: 'var(--cu-text)', color: 'var(--background)', opacity: changingPassword ? 0.7 : 1 }}
+              className="!inline-flex !items-center !gap-2"
             >
               {changingPassword ? (
-                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Mengubah...</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Mengubah...</>
               ) : (
                 'Ubah Password'
               )}
-            </button>
+            </BarButton>
           </div>
-        </div>
+        </section>
 
         {/* Save button */}
         <div>
-          <button
+          <BarButton
+            variant="primary"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 h-8 px-4 rounded-[5px] text-[13px] font-medium transition-opacity"
-            style={{
-              background: 'var(--cu-primary)',
-              color: '#ffffff',
-              opacity: saving ? 0.7 : 1,
-            }}
+            className="!inline-flex !items-center !gap-2"
           >
             {saving ? (
-              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</>
+              <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Menyimpan...</>
             ) : (
               <>
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -378,7 +364,7 @@ export function PengaturanClient({ settingsMap }: Props) {
                 Simpan Pengaturan
               </>
             )}
-          </button>
+          </BarButton>
         </div>
       </div>
     </div>
