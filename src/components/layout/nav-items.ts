@@ -1,6 +1,6 @@
 import {
-  LayoutDashboard, Landmark, Receipt, HandCoins, FileText,
-  ReceiptText, ClipboardList, FileBarChart, Database, Users, Settings, Wallet,
+  LayoutDashboard, Landmark, Receipt, HandCoins,
+  ReceiptText, FileBarChart, Database, Users, Settings, Wallet,
 } from 'lucide-react'
 
 export type NavItem = { href: string; label: string; Icon: typeof Wallet; superAdminOnly?: boolean }
@@ -11,9 +11,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/dana', label: 'Dana', Icon: Landmark },
   { href: '/pengeluaran', label: 'Keluar', Icon: Receipt },
   { href: '/peminjaman', label: 'Pinjam', Icon: HandCoins },
-  { href: '/invoice', label: 'Invoice', Icon: FileText },
-  { href: '/kwitansi', label: 'Kwitansi', Icon: ReceiptText },
-  { href: '/rab', label: 'RAB', Icon: ClipboardList },
+  { href: '/bukti-uang', label: 'Bukti', Icon: ReceiptText },
   { href: '/laporan', label: 'Laporan', Icon: FileBarChart },
   { href: '/master-data', label: 'Master', Icon: Database },
   { href: '/pengguna', label: 'User', Icon: Users, superAdminOnly: true },
