@@ -88,11 +88,14 @@ function LoginForm() {
 
           <form onSubmit={handleLogin} className="max-w-[340px] space-y-4">
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label htmlFor="login-email" className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Email
               </label>
               <input
+                id="login-email"
+                name="email"
                 type="email"
+                spellCheck={false}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
@@ -104,10 +107,12 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label htmlFor="login-password" className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
                 Password
               </label>
               <input
+                id="login-password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -121,6 +126,7 @@ function LoginForm() {
 
             {error && (
               <div
+                role="alert"
                 className="flex items-center gap-2 px-3 py-2 text-[12px]"
                 style={{
                   background: 'var(--accent-100)',
@@ -128,7 +134,7 @@ function LoginForm() {
                   color: 'var(--accent-press)',
                 }}
               >
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
                   <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2.5a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5A.75.75 0 008 5.5zm0 5.5a.75.75 0 100 1.5.75.75 0 000-1.5z" />
                 </svg>
                 {error}
@@ -146,7 +152,7 @@ function LoginForm() {
               }}
             >
               {loading ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memproses...</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memproses…</>
               ) : (
                 'Masuk ke Dashboard'
               )}

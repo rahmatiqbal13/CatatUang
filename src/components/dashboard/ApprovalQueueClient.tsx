@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSupabaseMutation } from '@/hooks/use-supabase-mutation'
 import { handleSupabaseError } from '@/lib/error-handler'
+import { setPengeluaranStatus } from '@/lib/pengeluaran'
+import { useUserProfile } from '@/hooks/use-user-profile'
 import { formatRp } from '@/lib/tokens'
 import { toast } from 'sonner'
 
@@ -14,32 +16,25 @@ export type PendingItem = {
   meta: string // "12 Sep · Belanja Barang · Dana Operasional"
 }
 
-/**
- * Same approve/reject mutation the Pengeluaran screen uses
- * (see PengeluaranClient.tsx's handleApprove/handleReject) — just surfaced here too.
- */
+/** Approve/reject queue; the buttons only show for super admins (the DB enforces it too). */
 export function ApprovalQueueClient({ items }: { items: PendingItem[] }) {
   const router = useRouter()
   const supabase = createClient()
+  const { profile } = useUserProfile()
+  const canApprove = profile?.role === 'super_admin'
   const { mutate: approvePengeluaran, isLoading: approving } = useSupabaseMutation()
   const { mutate: rejectPengeluaran, isLoading: rejecting } = useSupabaseMutation()
 
   const handleApprove = async (id: number) => {
     await approvePengeluaran(
-      async () => {
-        const { error } = await supabase.from('pengeluaran').update({ status: 'approved', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id)
-        if (error) throw error
-      },
+      () => setPengeluaranStatus(supabase, id, 'approved'),
       { onSuccess: () => { toast.success('Pengeluaran disetujui'); router.refresh() }, onError: e => toast.error(handleSupabaseError(e)) }
     )
   }
 
   const handleReject = async (id: number) => {
     await rejectPengeluaran(
-      async () => {
-        const { error } = await supabase.from('pengeluaran').update({ status: 'rejected', updated_at: new Date().toISOString() }).eq('id', id)
-        if (error) throw error
-      },
+      () => setPengeluaranStatus(supabase, id, 'rejected'),
       { onSuccess: () => { toast.success('Pengeluaran ditolak'); router.refresh() }, onError: e => toast.error(handleSupabaseError(e)) }
     )
   }
@@ -70,7 +65,7 @@ export function ApprovalQueueClient({ items }: { items: PendingItem[] }) {
                   <p className="shrink-0 text-[14px] font-extrabold whitespace-nowrap">Rp {formatRp(it.jumlah)}</p>
                 </div>
                 <p className="mt-[2px] text-[11.5px]" style={{ color: 'var(--text-muted)' }}>{it.meta}</p>
-                <div className="mt-[10px] flex gap-2">
+                {canApprove && <div className="mt-[10px] flex gap-2">
                   <button
                     onClick={() => handleApprove(it.id)}
                     disabled={approving}
@@ -87,7 +82,7 @@ export function ApprovalQueueClient({ items }: { items: PendingItem[] }) {
                   >
                     Tolak
                   </button>
-                </div>
+                </div>}
               </div>
             </li>
           ))}

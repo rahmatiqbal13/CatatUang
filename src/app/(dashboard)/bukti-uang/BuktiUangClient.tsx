@@ -143,6 +143,14 @@ export function BuktiUangClient({ buktiList }: Props) {
       toast.success('Bukti diperbarui')
     } else {
       const { error } = await supabase.from('bukti_uang').insert(payload)
+      if (error?.code === '23505') {
+        // Someone else took this number meanwhile — hand out the next free one.
+        const nomor = await generateNomor(supabase, form.jenis, JENIS_PREFIX[form.jenis])
+        setForm(f => ({ ...f, nomor }))
+        toast.error(`Nomor sudah dipakai. Nomor baru: ${nomor} — silakan simpan lagi.`)
+        setSaving(false)
+        return
+      }
       if (error) { toast.error(handleSupabaseError(error)); setSaving(false); return }
       toast.success('Bukti ditambahkan')
     }

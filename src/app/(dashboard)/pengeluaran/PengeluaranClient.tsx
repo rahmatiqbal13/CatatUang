@@ -9,6 +9,8 @@ import { validateForm, pengeluaranSchema } from '@/lib/validation'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination, PaginationControls } from '@/hooks/use-pagination'
 import { useSupabaseMutation } from '@/hooks/use-supabase-mutation'
+import { useUserProfile } from '@/hooks/use-user-profile'
+import { setPengeluaranStatus } from '@/lib/pengeluaran'
 import { ExcelExportButton } from '@/components/excel-export-button'
 import type { Pengeluaran, DanaMasuk, Kategori } from '@/lib/types'
 import { Topbar } from '@/components/layout/Topbar'
@@ -48,6 +50,8 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  const { profile } = useUserProfile()
+  const isSuperAdmin = profile?.role === 'super_admin'
 
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 300)
@@ -115,14 +119,14 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
 
   const handleApprove = async (id: number) => {
     await approvePengeluaran(
-      async () => { const { error } = await supabase.from('pengeluaran').update({ status: 'approved', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id); if (error) throw error },
+      () => setPengeluaranStatus(supabase, id, 'approved'),
       { onSuccess: () => { toast.success('Pengeluaran disetujui'); router.refresh() }, onError: (e) => toast.error(handleSupabaseError(e)) }
     )
   }
 
   const handleReject = async (id: number) => {
     await rejectPengeluaran(
-      async () => { const { error } = await supabase.from('pengeluaran').update({ status: 'rejected', updated_at: new Date().toISOString() }).eq('id', id); if (error) throw error },
+      () => setPengeluaranStatus(supabase, id, 'rejected'),
       { onSuccess: () => { toast.success('Pengeluaran ditolak'); router.refresh() }, onError: (e) => toast.error(handleSupabaseError(e)) }
     )
   }
@@ -264,52 +268,55 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
                           </span>
                         </Td>
                         <Td align="right">
-                          {p.status === 'pending' ? (
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => handleApprove(p.id)}
-                                disabled={approving}
-                                className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
-                                style={{ background: palette.green, color: '#fff' }}
-                                title="Setujui"
-                              >
-                                <Check className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={() => handleReject(p.id)}
-                                disabled={rejecting}
-                                className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
-                                style={{ background: '#fff', color: 'var(--accent)', border: '1px solid var(--accent)' }}
-                                title="Tolak"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={() => openEdit(p)}
-                                className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
-                                style={{ color: 'var(--text-muted)' }}
-                              >
-                                <Pencil className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1">
+                            {p.status === 'pending' && isSuperAdmin && (
+                              <>
+                                <button
+                                  onClick={() => handleApprove(p.id)}
+                                  disabled={approving}
+                                  className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
+                                  style={{ background: palette.green, color: '#fff' }}
+                                  title="Setujui"
+                                  aria-label={`Setujui ${p.uraian}`}
+                                >
+                                  <Check className="w-3 h-3" aria-hidden />
+                                </button>
+                                <button
+                                  onClick={() => handleReject(p.id)}
+                                  disabled={rejecting}
+                                  className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
+                                  style={{ background: '#fff', color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                                  title="Tolak"
+                                  aria-label={`Tolak ${p.uraian}`}
+                                >
+                                  <X className="w-3 h-3" aria-hidden />
+                                </button>
+                              </>
+                            )}
+                            {/* Approved spending is locked; only a super admin may delete it. */}
+                            {p.status !== 'approved' && (
                               <button
                                 onClick={() => openEdit(p)}
                                 className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
                                 style={{ color: 'var(--text-muted)' }}
+                                title="Edit"
+                                aria-label={`Edit ${p.uraian}`}
                               >
-                                <Pencil className="w-3 h-3" />
+                                <Pencil className="w-3 h-3" aria-hidden />
                               </button>
+                            )}
+                            {(p.status !== 'approved' || isSuperAdmin) && (
                               <button
                                 onClick={() => { setDelTarget(p); setOpenDel(true) }}
                                 className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
                                 style={{ color: 'var(--text-muted)' }}
+                                title="Hapus"
+                                aria-label={`Hapus ${p.uraian}`}
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3 h-3" aria-hidden />
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </Td>
                       </tr>
                     ))}

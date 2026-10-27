@@ -34,7 +34,7 @@ VALUES (
   'authenticated',
   'authenticated',
   'admin@direktorat.ac.id',
-  crypt('uscadmin@_140451', gen_salt('bf')),
+  crypt('GANTI_DENGAN_PASSWORD_KUAT', gen_salt('bf')),  -- ganti sebelum dijalankan; jangan commit password asli
   NOW(),
   NOW(),
   '{"provider": "email", "providers": ["email"]}',

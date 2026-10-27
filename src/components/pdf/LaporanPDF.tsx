@@ -446,7 +446,7 @@ export function LaporanDanaPDF({
           <View style={{ borderWidth: 1, borderColor: BORDER, borderRadius: 4, padding: '10 12', backgroundColor: LIGHT, marginTop: 8 }}>
             <Text style={{ fontSize: 7, color: '#475569' }}>
               Laporan ini dibuat secara otomatis oleh Sistem Informasi Keuangan {namaDirektorat} pada {now()}.
-              Laporan mencakup seluruh pengeluaran dari dana "{dana.nama_dana}".
+              Laporan mencakup seluruh pengeluaran dari dana “{dana.nama_dana}”.
             </Text>
           </View>
         </View>

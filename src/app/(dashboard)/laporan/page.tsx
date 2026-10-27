@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAll } from '@/lib/fetchAll'
 import { resolveBuku } from '@/lib/buku'
 import { LaporanClient } from './LaporanClient'
 import type { DanaMasuk, Pemasukan, Pengeluaran } from '@/lib/types'
@@ -13,8 +14,8 @@ export default async function LaporanPage({ searchParams }: { searchParams: Prom
 
   const [{ data: danaList }, { data: pengeluaranList }, { data: pemasukanList }, { data: settings }] = await Promise.all([
     supabase.from('dana_masuk').select('*').eq('buku_id', bukuId).order('created_at', { ascending: false }),
-    supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }),
-    supabase.from('pemasukan').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }),
+    fetchAll((from, to) => supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }).order('id').range(from, to)),
+    fetchAll((from, to) => supabase.from('pemasukan').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }).order('id').range(from, to)),
     supabase.from('settings').select('key, value'),
   ])
 

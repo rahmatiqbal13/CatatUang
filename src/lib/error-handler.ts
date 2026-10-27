@@ -24,6 +24,7 @@ const errorMessages: Record<string, string> = {
   '23505': 'Data sudah ada (duplicate entry)',
   '23502': 'Field wajib diisi tidak boleh kosong',
   '23514': 'Nilai tidak memenuhi kriteria validasi',
+  '42501': 'Anda tidak memiliki izin untuk tindakan ini',
   
   // PostgREST errors
   'PGRST116': 'Data tidak ditemukan',
@@ -41,10 +42,18 @@ const errorMessages: Record<string, string> = {
   'timeout': 'Waktu habis, silakan coba lagi',
 }
 
+type ErrorLike = {
+  code?: string
+  message?: string
+  error?: { code?: string; message?: string }
+  errors?: { message: string }[]
+} | null | undefined
+
 /**
  * Extract error code dari Supabase error object
  */
-function extractErrorCode(error: any): string {
+function extractErrorCode(err: unknown): string {
+  const error = err as ErrorLike
   if (!error) return 'unknown'
   
   // PostgreSQL error code
@@ -78,15 +87,15 @@ function extractErrorCode(error: any): string {
 /**
  * Handle Supabase error dan return user-friendly message
  */
-export function handleSupabaseError(error: any): string {
+export function handleSupabaseError(error: unknown): string {
   const code = extractErrorCode(error)
-  return errorMessages[code] || error?.message || 'Terjadi kesalahan, silakan coba lagi'
+  return errorMessages[code] || (error as ErrorLike)?.message || 'Terjadi kesalahan, silakan coba lagi'
 }
 
 /**
  * Handle error untuk toast notification
  */
-export function handleErrorToast(error: any, fallbackMessage = 'Terjadi kesalahan'): string {
+export function handleErrorToast(error: unknown, fallbackMessage = 'Terjadi kesalahan'): string {
   const message = handleSupabaseError(error)
   console.error('[Error]', error)
   return message || fallbackMessage
@@ -95,16 +104,17 @@ export function handleErrorToast(error: any, fallbackMessage = 'Terjadi kesalaha
 /**
  * Check if error is a specific type
  */
-export function isErrorType(error: any, code: ErrorCode): boolean {
+export function isErrorType(error: unknown, code: ErrorCode): boolean {
   return extractErrorCode(error) === code
 }
 
 /**
  * Format validation errors dari Zod
  */
-export function formatZodError(error: any): string {
+export function formatZodError(err: unknown): string {
+  const error = err as ErrorLike
   if (error?.errors && Array.isArray(error.errors)) {
-    return error.errors.map((e: any) => e.message).join(', ')
+    return error.errors.map(e => e.message).join(', ')
   }
   return error?.message || 'Validasi gagal'
 }

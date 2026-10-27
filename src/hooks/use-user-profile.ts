@@ -26,7 +26,8 @@ async function fetchUserProfile(): Promise<UserProfile | null> {
     .split('.')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
-  return { nama: formattedName, role: 'super_admin' }
+  // Never assume elevated rights when the profile can't be read.
+  return { nama: formattedName, role: 'admin' }
 }
 
 // Sidebar and MobileMoreMenu mount together (and twice under StrictMode); concurrent

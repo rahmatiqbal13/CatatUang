@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAll } from '@/lib/fetchAll'
 import { resolveBuku } from '@/lib/buku'
 import { PengeluaranClient } from './PengeluaranClient'
 import type { Pengeluaran, DanaMasuk, Kategori } from '@/lib/types'
@@ -12,7 +13,7 @@ export default async function PengeluaranPage({ searchParams }: { searchParams: 
   const bukuId = currentBuku?.id ?? -1
 
   const [{ data: pengeluaranList }, { data: danaList }, { data: kategoriList }] = await Promise.all([
-    supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }),
+    fetchAll((from, to) => supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }).order('id').range(from, to)),
     supabase.from('dana_masuk').select('id, nama_dana').eq('buku_id', bukuId).order('nama_dana'),
     supabase.from('kategori').select('*').order('nama'),
   ])

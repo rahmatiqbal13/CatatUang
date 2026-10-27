@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAll } from '@/lib/fetchAll'
 import { resolveBuku } from '@/lib/buku'
 import { DanaClient } from './DanaClient'
 import type { DanaMasuk, Pemasukan, Pengeluaran, SumberDana } from '@/lib/types'
@@ -13,8 +14,8 @@ export default async function DanaPage({ searchParams }: { searchParams: Promise
 
   const [{ data: danaList }, { data: pengeluaranList }, { data: pemasukanList }, { data: sumberList }] = await Promise.all([
     supabase.from('dana_masuk').select('*').eq('buku_id', bukuId).order('created_at', { ascending: false }),
-    supabase.from('pengeluaran').select('dana_id, jumlah, status, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId),
-    supabase.from('pemasukan').select('dana_id, jumlah, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId),
+    fetchAll((from, to) => supabase.from('pengeluaran').select('dana_id, jumlah, status, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('id').range(from, to)),
+    fetchAll((from, to) => supabase.from('pemasukan').select('dana_id, jumlah, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('id').range(from, to)),
     supabase.from('sumber_dana').select('*').order('nama'),
   ])
 

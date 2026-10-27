@@ -18,7 +18,7 @@ interface ExportOptions {
 /**
  * Export array of objects ke Excel
  */
-export function exportToExcel<T extends Record<string, any>>(
+export function exportToExcel<T extends Record<string, unknown>>(
   data: T[],
   options: ExportOptions = {}
 ): void {
@@ -206,7 +206,7 @@ export function exportLaporanLengkap(
 /**
  * Calculate optimal column widths based on content
  */
-function calculateColumnWidths<T extends Record<string, any>>(data: T[]): { wch: number }[] {
+function calculateColumnWidths<T extends Record<string, unknown>>(data: T[]): { wch: number }[] {
   if (data.length === 0) return []
 
   const keys = Object.keys(data[0])

@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "design_handoff_catatuang_ui/**",
+    ".agents/**",
+    ".claude/**",
   ]),
 ]);
 

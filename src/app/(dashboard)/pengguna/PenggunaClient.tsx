@@ -76,8 +76,13 @@ export function PenggunaClient({ profiles, currentUserId }: Props) {
 
   async function handleToggleActive(profile: Profile) {
     setUpdatingId(profile.id)
-    const { error } = await supabase.from('profiles').update({ is_active: !profile.is_active }).eq('id', profile.id)
-    if (error) toast.error('Gagal mengubah status: ' + error.message)
+    const res = await fetch('/api/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: profile.id, is_active: !profile.is_active }),
+    })
+    const result = await res.json()
+    if (!res.ok) toast.error('Gagal mengubah status: ' + (result.error || res.statusText))
     else { toast.success(profile.is_active ? 'Pengguna dinonaktifkan' : 'Pengguna diaktifkan'); refresh() }
     setUpdatingId(null)
   }

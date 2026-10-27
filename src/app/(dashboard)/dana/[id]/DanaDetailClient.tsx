@@ -4,6 +4,9 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { handleSupabaseError } from '@/lib/error-handler'
+import { setPengeluaranStatus } from '@/lib/pengeluaran'
+import { useUserProfile } from '@/hooks/use-user-profile'
 import { formatRupiah, formatTanggal, hitungPersen } from '@/lib/formatters'
 import type { DanaMasuk, Pemasukan, Pengeluaran, Kategori } from '@/lib/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -42,6 +45,8 @@ const TABS = [
 export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategoriList }: Props) {
   const router   = useRouter()
   const supabase = createClient()
+  const { profile } = useUserProfile()
+  const isSuperAdmin = profile?.role === 'super_admin'
   const [, startTransition] = useTransition()
   const [openForm, setOpenForm]     = useState(false)
   const [openDel, setOpenDel]       = useState(false)
@@ -91,21 +96,25 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
     if (!form.uraian || !form.kategori || !form.jumlah || !form.tanggal) {
       toast.error('Lengkapi semua field wajib'); return
     }
+    const jumlah = parseFloat(form.jumlah)
+    if (isNaN(jumlah) || jumlah <= 0) {
+      toast.error('Jumlah tidak valid'); return
+    }
     setSaving(true)
     const payload = {
       dana_id: dana.id, nama_dana: dana.nama_dana,
       uraian: form.uraian, kategori: form.kategori,
-      jumlah: parseFloat(form.jumlah), tanggal: form.tanggal,
+      jumlah, tanggal: form.tanggal,
       keterangan: form.keterangan || null,
       updated_at: new Date().toISOString(),
     }
     if (editTarget) {
       const { error } = await supabase.from('pengeluaran').update(payload).eq('id', editTarget.id)
-      if (error) { toast.error('Gagal memperbarui'); setSaving(false); return }
+      if (error) { toast.error(handleSupabaseError(error)); setSaving(false); return }
       toast.success('Pengeluaran diperbarui')
     } else {
       const { error } = await supabase.from('pengeluaran').insert({ ...payload, status: 'pending' })
-      if (error) { toast.error('Gagal menambah pengeluaran'); setSaving(false); return }
+      if (error) { toast.error(handleSupabaseError(error)); setSaving(false); return }
       toast.success('Pengeluaran ditambahkan')
     }
     setSaving(false); setOpenForm(false)
@@ -116,27 +125,19 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
     if (!delTarget) return
     setSaving(true)
     const { error } = await supabase.from('pengeluaran').delete().eq('id', delTarget.id)
-    if (error) { toast.error('Gagal menghapus'); setSaving(false); return }
+    if (error) { toast.error(handleSupabaseError(error)); setSaving(false); return }
     toast.success('Pengeluaran dihapus')
     setSaving(false); setOpenDel(false)
     startTransition(() => router.refresh())
   }
 
-  async function handleApprove(id: number) {
-    const { error } = await supabase.from('pengeluaran').update({
-      status: 'approved', approved_at: new Date().toISOString(), updated_at: new Date().toISOString()
-    }).eq('id', id)
-    if (error) { toast.error('Gagal menyetujui'); return }
-    toast.success('Pengeluaran disetujui')
-    startTransition(() => router.refresh())
-  }
-
-  async function handleReject(id: number) {
-    const { error } = await supabase.from('pengeluaran').update({
-      status: 'rejected', updated_at: new Date().toISOString()
-    }).eq('id', id)
-    if (error) { toast.error('Gagal menolak'); return }
-    toast.success('Pengeluaran ditolak')
+  async function handleStatus(id: number, status: 'approved' | 'rejected') {
+    try {
+      await setPengeluaranStatus(supabase, id, status)
+    } catch (e) {
+      toast.error(handleSupabaseError(e)); return
+    }
+    toast.success(status === 'approved' ? 'Pengeluaran disetujui' : 'Pengeluaran ditolak')
     startTransition(() => router.refresh())
   }
 
@@ -195,18 +196,15 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
         return
       }
 
-      // Log aktivitas (optional - tidak error jika tabel belum ada)
-      try {
-        await supabase.from('activity_log').insert({
-          aksi: 'TAMBAH_PEMASUKAN',
-          keterangan: `${tambahDanaForm.uraian}: ${fmtCompact(tambahanJumlah)}`,
-          entity_type: 'dana_masuk',
-          entity_id: dana.id,
-          created_at: new Date().toISOString()
-        })
-      } catch {
-        // Abaikan error jika tabel activity_log belum ada
-      }
+      // Log aktivitas — best effort; supabase returns errors rather than throwing
+      const { error: logError } = await supabase.from('activity_log').insert({
+        aksi: 'TAMBAH_PEMASUKAN',
+        keterangan: `${tambahDanaForm.uraian}: ${fmtCompact(tambahanJumlah)}`,
+        entity_type: 'dana_masuk',
+        entity_id: dana.id,
+        created_at: new Date().toISOString()
+      })
+      if (logError) console.error('activity_log insert failed:', logError)
 
       toast.success(`Berhasil menambah ${fmtCompact(tambahanJumlah)} ke ${dana.nama_dana}`)
     }
@@ -387,19 +385,21 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                       </Td>
                       <Td align="right">
                         <div className="flex items-center justify-end gap-1">
-                          {p.status === 'pending' && (
+                          {p.status === 'pending' && isSuperAdmin && (
                             <>
                               <button
-                                onClick={() => handleApprove(p.id)}
+                                onClick={() => handleStatus(p.id, 'approved')}
                                 title="Setujui"
+                                aria-label={`Setujui ${p.uraian}`}
                                 className="w-6 h-6 flex items-center justify-center text-[11px] font-bold"
                                 style={{ background: palette.green, color: '#fff' }}
                               >
                                 ✓
                               </button>
                               <button
-                                onClick={() => handleReject(p.id)}
+                                onClick={() => handleStatus(p.id, 'rejected')}
                                 title="Tolak"
+                                aria-label={`Tolak ${p.uraian}`}
                                 className="w-6 h-6 flex items-center justify-center text-[11px] font-bold"
                                 style={{
                                   border: '1px solid var(--accent)',
@@ -411,26 +411,29 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                               </button>
                             </>
                           )}
-                          <button
+                          {/* Approved spending is locked; only a super admin may delete it. */}
+                          {p.status !== 'approved' && <button
                             onClick={() => openEdit(p)}
                             title="Edit"
+                            aria-label={`Edit ${p.uraian}`}
                             className="w-6 h-6 flex items-center justify-center transition-colors hover:bg-[var(--surface-hover)]"
                             style={{ color: 'var(--text-muted)' }}
                           >
                             <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M11.5 2.5l2 2L5 13H3v-2L11.5 2.5z" />
                             </svg>
-                          </button>
-                          <button
+                          </button>}
+                          {(p.status !== 'approved' || isSuperAdmin) && <button
                             onClick={() => { setDelTarget(p); setOpenDel(true) }}
                             title="Hapus"
+                            aria-label={`Hapus ${p.uraian}`}
                             className="w-6 h-6 flex items-center justify-center transition-colors hover:bg-[var(--surface-hover)]"
                             style={{ color: 'var(--text-muted)' }}
                           >
                             <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9.5h5L11 4" />
                             </svg>
-                          </button>
+                          </button>}
                         </div>
                       </Td>
                     </tr>

@@ -4,17 +4,17 @@ import { useState, useCallback } from 'react'
 
 interface UseSupabaseMutationOptions<T> {
   onSuccess?: (data: T) => void
-  onError?: (error: any) => void
+  onError?: (error: unknown) => void
   onSettled?: () => void
 }
 
-interface UseSupabaseMutationReturn<T, V> {
+interface UseSupabaseMutationReturn<T> {
   mutate: (operation: () => Promise<T>, options?: UseSupabaseMutationOptions<T>) => Promise<T | undefined>
   mutateAsync: (operation: () => Promise<T>) => Promise<T>
   isLoading: boolean
   isError: boolean
   isSuccess: boolean
-  error: any
+  error: unknown
   data: T | undefined
   reset: () => void
 }
@@ -36,11 +36,11 @@ interface UseSupabaseMutationReturn<T, V> {
  *   )
  * }
  */
-export function useSupabaseMutation<T = any, V = any>(): UseSupabaseMutationReturn<T, V> {
+export function useSupabaseMutation<T = unknown>(): UseSupabaseMutationReturn<T> {
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [error, setError] = useState<any>(null)
+  const [error, setError] = useState<unknown>(null)
   const [data, setData] = useState<T | undefined>(undefined)
 
   const reset = useCallback(() => {
@@ -96,51 +96,5 @@ export function useSupabaseMutation<T = any, V = any>(): UseSupabaseMutationRetu
     error,
     data,
     reset,
-  }
-}
-
-/**
- * Hook untuk batch mutations
- */
-export function useBatchMutation<T = any>() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [results, setResults] = useState<{ success: T[]; failed: any[] }>({ success: [], failed: [] })
-
-  const executeBatch = useCallback(async (
-    operations: (() => Promise<T>)[],
-    options?: {
-      stopOnError?: boolean
-      onProgress?: (completed: number, total: number) => void
-    }
-  ) => {
-    setIsLoading(true)
-    setProgress(0)
-    const success: T[] = []
-    const failed: any[] = []
-
-    for (let i = 0; i < operations.length; i++) {
-      try {
-        const result = await operations[i]()
-        success.push(result)
-      } catch (err) {
-        failed.push({ index: i, error: err })
-        if (options?.stopOnError) break
-      }
-      
-      setProgress(((i + 1) / operations.length) * 100)
-      options?.onProgress?.(i + 1, operations.length)
-    }
-
-    setResults({ success, failed })
-    setIsLoading(false)
-    return { success, failed }
-  }, [])
-
-  return {
-    executeBatch,
-    isLoading,
-    progress,
-    results,
   }
 }

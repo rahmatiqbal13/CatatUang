@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAll } from '@/lib/fetchAll'
 import { notFound } from 'next/navigation'
 import { DanaDetailClient } from './DanaDetailClient'
 import type { DanaMasuk, Pemasukan, Pengeluaran, Kategori } from '@/lib/types'
@@ -11,8 +12,8 @@ export default async function DanaDetailPage({ params }: { params: Promise<{ id:
 
   const [{ data: dana }, { data: pengeluaranList }, { data: pemasukanList }, { data: kategoriList }] = await Promise.all([
     supabase.from('dana_masuk').select('*').eq('id', id).single(),
-    supabase.from('pengeluaran').select('*').eq('dana_id', id).order('tanggal', { ascending: false }),
-    supabase.from('pemasukan').select('*').eq('dana_id', id).order('tanggal', { ascending: false }),
+    fetchAll((from, to) => supabase.from('pengeluaran').select('*').eq('dana_id', id).order('tanggal', { ascending: false }).order('id').range(from, to)),
+    fetchAll((from, to) => supabase.from('pemasukan').select('*').eq('dana_id', id).order('tanggal', { ascending: false }).order('id').range(from, to)),
     supabase.from('kategori').select('*').order('nama'),
   ])
 
