@@ -144,13 +144,14 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
   return (
     <div className="animate-fade-in">
       <Topbar
+        crumb={`${bukuNama} / Dana Masuk`}
         title="Dana Masuk"
         subtitle={`${danaList.length} sumber dana aktif · Buku ${bukuNama}`}
         action={
           <div className="flex items-center gap-2">
             <ExcelExportButton type="dana" danaList={danaList} filename="dana_masuk" />
             <BarButton variant="primary" onClick={openAdd} disabled={bukuKosong}>
-              <span className="inline-flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Dana Baru</span>
+              <Plus className="h-4 w-4" /> Dompet baru
             </BarButton>
           </div>
         }
@@ -174,11 +175,11 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
             { label: 'Sisa Saldo', value: fmtCompact(totalSisa), sub: 'tersedia' },
             { label: 'Dana Terbanyak', value: danaList[0]?.sumber ?? '—', sub: danaList[0]?.nama_dana ?? '' },
           ].map((s, i) => (
-            <div key={i} className="card-shell px-4 py-3">
+            <div key={i} className="card-shell px-5 py-[18px]">
               <div className="label-caps" style={{ color: 'var(--text-muted)' }}>
                 {s.label}
               </div>
-              <div className="text-[18px] font-extrabold mt-1 tracking-[-0.02em] whitespace-nowrap" style={{ color: 'var(--text)' }}>
+              <div className="serif text-[30px] mt-[6px] tracking-[-0.02em] whitespace-nowrap" style={{ color: 'var(--text)' }}>
                 {s.value}
               </div>
               <div className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-dim)' }}>
@@ -191,12 +192,12 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
         {/* Filter bar */}
         <div className="flex items-center gap-2">
           <div
-            className="flex items-center gap-2 px-2.5 h-[38px] flex-1 max-w-xs"
+            className="flex h-[42px] max-w-xs flex-1 items-center gap-2 rounded-full px-[14px] focus-within:border-[var(--brand)]"
             style={{ border: '1px solid var(--divider)', background: 'var(--surface)' }}
           >
-            <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
+            <Search className="h-4 w-4 shrink-0" style={{ color: 'var(--text-muted)' }} />
             <input
-              className="flex-1 bg-transparent text-[12.5px] outline-none"
+              className="flex-1 bg-transparent text-[14px] outline-none"
               style={{ color: 'var(--text)' }}
               placeholder="Cari nama dana atau sumber…"
               value={search}
@@ -225,67 +226,65 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
                 return (
                   <div
                     key={dana.id}
-                    className="relative transition-colors hover:bg-[var(--surface-hover)]"
-                    style={{ border: '2px solid var(--divider)', borderTop: `6px solid ${color}`, background: 'var(--surface)' }}
+                    className="card-shell relative transition-[transform,box-shadow] duration-200 hover:-translate-y-[2px] hover:shadow-[0_16px_30px_-22px_rgba(24,36,30,.45)]"
                   >
-                    <div className="absolute right-2 top-2 flex items-center gap-0.5 z-10">
+                    <div className="absolute right-3 bottom-3 z-10 flex items-center gap-1">
                       <button
                         onClick={() => openEdit(dana)}
                         title="Edit"
                         aria-label="Edit dana"
-                        className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-2)]"
+                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--surface-2)]"
                         style={{ color: 'var(--text-muted)' }}
                       >
-                        <Pencil className="w-3 h-3" />
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => { setDeleteTarget(dana); setOpenDelete(true) }}
                         title="Hapus"
                         aria-label="Hapus dana"
-                        className="w-6 h-6 flex items-center justify-center hover:bg-[var(--status-no-bg)]"
+                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--danger-soft)]"
                         style={{ color: 'var(--text-muted)' }}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <Link href={`/dana/${dana.id}`} className="block" style={{ padding: 18 }}>
-                      <div className="pr-14">
-                        <h3 className="text-[17px] font-extrabold tracking-[-0.01em] truncate" style={{ color: 'var(--text)' }}>
-                          {dana.nama_dana}
-                        </h3>
-                      </div>
-                      <div className="mt-1.5">
+                    <Link href={`/dana/${dana.id}`} className="flex flex-col gap-4 p-[22px]">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="label-caps text-[11px]" style={{ color: 'var(--text-muted)' }}>{formatTanggal(dana.tanggal)}</span>
                         <SolidBadge color={color}>{dana.sumber}</SolidBadge>
                       </div>
-                      {dana.keterangan && (
-                        <div className="mt-1.5 text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
-                          {dana.keterangan}
+                      <div>
+                        <h3 className="text-[25px] leading-[1.15] tracking-[-0.01em]" style={{ color: 'var(--text)', textWrap: 'pretty' }}>
+                          {dana.nama_dana}
+                        </h3>
+                        {dana.keterangan && (
+                          <div className="mt-1.5 text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
+                            {dana.keterangan}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>Sisa saldo</div>
+                        <div className="serif mt-[2px] text-[32px] tracking-[-0.02em] whitespace-nowrap" style={{ color: sisa < 0 ? 'var(--danger)' : 'var(--text)' }}>
+                          Rp {formatRp(sisa)}
+                        </div>
+                      </div>
+                      <ProgressBar used={keluar} total={Number(dana.jumlah)} color={color} />
+                      <div className="rule-dashed grid grid-cols-2 gap-[10px] pt-[14px] pr-16">
+                        <div>
+                          <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>Masuk</div>
+                          <div className="cu-mono mt-[3px] text-[13px] font-semibold whitespace-nowrap">Rp {formatRp(Number(dana.jumlah))}</div>
+                        </div>
+                        <div>
+                          <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>Terpakai · {String(p).replace('.', ',')}%</div>
+                          <div className="cu-mono mt-[3px] text-[13px] font-semibold whitespace-nowrap">Rp {formatRp(keluar)}</div>
+                        </div>
+                      </div>
+                      {pending > 0 && (
+                        <div className="-mt-2 text-[12px]" style={{ color: 'var(--status-wait-fg)' }}>
+                          Rp {formatRp(pending)} menunggu persetujuan
                         </div>
                       )}
-
-                      <div className="mt-3" style={autoGrid(100, 12)}>
-                        <div>
-                          <div className="label-caps" style={{ color: 'var(--text-muted)' }}>Alokasi</div>
-                          <div className="text-[18px] font-extrabold whitespace-nowrap" style={{ color: 'var(--text)' }}>
-                            Rp {formatRp(Number(dana.jumlah))}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="label-caps" style={{ color: 'var(--text-muted)' }}>Sisa</div>
-                          <div className="text-[18px] font-extrabold whitespace-nowrap" style={{ color: sisa < 0 ? 'var(--accent-press)' : color }}>
-                            Rp {formatRp(sisa)}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-3">
-                        <ProgressBar used={keluar} total={Number(dana.jumlah)} color={color} height={9} />
-                      </div>
-
-                      <div className="mt-2 text-[12px] whitespace-nowrap truncate" style={{ color: 'var(--text-muted)' }}>
-                        Terpakai Rp {formatRp(keluar)} · {p}% · {formatTanggal(dana.tanggal)}
-                        {pending > 0 && ` · Rp ${formatRp(pending)} pending`}
-                      </div>
                     </Link>
                   </div>
                 )
@@ -316,7 +315,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-extrabold">
+            <DialogTitle>
               {editTarget ? 'Edit Dana' : 'Tambah Dana Masuk'}
             </DialogTitle>
           </DialogHeader>
@@ -327,19 +326,19 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
               </div>
             )}
             <div>
-              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Nama Dana *</Label>
-              <Input placeholder="cth: Dana DIPA Semester Ganjil 2026" value={form.nama_dana} onChange={e => setForm(f => ({ ...f, nama_dana: e.target.value }))} className="h-9 text-[13px]" />
+              <Label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>Nama Dana *</Label>
+              <Input placeholder="cth: Dana DIPA Semester Ganjil 2026" value={form.nama_dana} onChange={e => setForm(f => ({ ...f, nama_dana: e.target.value }))} className="text-[14px]" />
             </div>
             <div className={editTarget ? '' : 'grid grid-cols-2 gap-3'}>
               {!editTarget && (
                 <div>
-                  <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Saldo Awal</Label>
-                  <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
+                  <Label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>Saldo Awal</Label>
+                  <Input type="number" placeholder="0" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="text-[14px]" />
                 </div>
               )}
               <div>
-                <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Tanggal *</Label>
-                <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
+                <Label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>Tanggal *</Label>
+                <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="text-[14px]" />
               </div>
             </div>
             {editTarget && (
@@ -348,26 +347,26 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
               </p>
             )}
             <div>
-              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Sumber Dana *</Label>
+              <Label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>Sumber Dana *</Label>
               <Select
                 value={form.sumber}
                 onValueChange={v => setForm(f => ({ ...f, sumber: v ?? '' }))}
                 items={Object.fromEntries(sumberList.map(s => [s.nama, s.nama]))}
               >
-                <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="Pilih sumber dana" /></SelectTrigger>
+                <SelectTrigger className="text-[14px]"><SelectValue placeholder="Pilih sumber dana" /></SelectTrigger>
                 <SelectContent>
                   {sumberList.map(s => <SelectItem key={s.id} value={s.nama}>{s.nama}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="label-caps mb-1 block" style={{ color: 'var(--text-2)' }}>Keterangan</Label>
+              <Label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>Keterangan</Label>
               <Textarea placeholder="Keterangan tambahan (opsional)" rows={2} value={form.keterangan} onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))} className="text-[13px]" />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenForm(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={validateAndSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
+            <Button variant="outline" onClick={() => setOpenForm(false)}>Batal</Button>
+            <Button onClick={validateAndSave} disabled={saving}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -378,7 +377,7 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-extrabold" style={{ color: 'var(--accent-press)' }}>
+            <DialogTitle style={{ color: 'var(--danger)' }}>
               Hapus Dana
             </DialogTitle>
           </DialogHeader>
@@ -386,8 +385,8 @@ export function DanaClient({ danaList, pengeluaranList, sumberList, bukuId, buku
             Yakin ingin menghapus <strong style={{ color: 'var(--text)' }}>{deleteTarget?.nama_dana}</strong>? Tindakan ini tidak dapat dibatalkan.
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenDelete(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={deleting} className="h-8 text-[12px]" style={{ background: 'var(--accent-press)', color: '#fff' }}>
+            <Button variant="outline" onClick={() => setOpenDelete(false)}>Batal</Button>
+            <Button onClick={handleDelete} disabled={deleting} style={{ background: 'var(--danger)', color: 'var(--surface-elev)' }}>
               {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

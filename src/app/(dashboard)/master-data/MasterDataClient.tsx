@@ -71,10 +71,10 @@ function MasterList({
       {/* Card header */}
       <header
         className="flex items-center justify-between gap-3 px-[18px] py-[14px]"
-        style={{ borderBottom: '2px solid var(--divider)' }}
+        style={{ borderBottom: '1px solid var(--border-hairline)' }}
       >
         <div>
-          <h2 className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
+          <h2 className="text-[24px] tracking-[-0.01em]" style={{ color: 'var(--text)' }}>
             {title}
           </h2>
           <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
@@ -174,7 +174,7 @@ function MasterList({
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[14px] font-extrabold">Edit {title}</DialogTitle>
+            <DialogTitle>Edit {title}</DialogTitle>
           </DialogHeader>
           <input
             type="text"
@@ -200,7 +200,7 @@ function MasterList({
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[14px] font-extrabold">Hapus {title}</DialogTitle>
+            <DialogTitle>Hapus {title}</DialogTitle>
           </DialogHeader>
           <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
             Hapus <strong style={{ color: 'var(--text)' }}>{delTarget?.nama}</strong>? Pastikan tidak sedang digunakan.
@@ -212,8 +212,8 @@ function MasterList({
             <button
               onClick={handleDelete}
               disabled={saving}
-              className="flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-bold text-white"
-              style={{ background: 'var(--data-red)' }}
+              className="flex items-center gap-1.5 rounded-full px-[18px] py-[10px] text-[14px] font-semibold"
+              style={{ background: 'var(--danger)', color: 'var(--surface-elev)' }}
             >
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Hapus'}
             </button>

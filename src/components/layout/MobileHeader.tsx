@@ -1,23 +1,24 @@
 'use client'
 
-import { Wallet } from 'lucide-react'
-import { useBukuList } from '@/hooks/use-buku-list'
-import { MobileMoreMenu } from './MobileMoreMenu'
+import { useUserProfile } from '@/hooks/use-user-profile'
+import { BukuPill } from './BukuSwitcher'
+import { initials } from './nav-items'
 
-/** Ink-colored mobile top bar: logo + wordmark + active buku + "more" menu. */
+/** Mobile top row: active-buku pill on the left, user initials on the right. */
 export function MobileHeader() {
-  const { currentBuku, loadingBuku } = useBukuList()
+  const { profile } = useUserProfile()
 
   return (
-    <div className="flex items-center gap-2.5 h-12 px-4 shrink-0 md:hidden" style={{ background: '#201e1d', color: '#f3f2f2' }}>
-      <span className="flex h-7 w-7 items-center justify-center shrink-0" style={{ background: 'var(--accent)' }}>
-        <Wallet size={15} strokeWidth={2} color="#ffffff" />
+    <div className="flex shrink-0 items-center gap-[10px] px-5 pt-3 pb-1 md:hidden">
+      <BukuPill />
+      <span className="flex-1" />
+      <span
+        title={profile?.nama}
+        className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-[13px] font-bold"
+        style={{ background: 'var(--keluar)', color: 'var(--surface-elev)' }}
+      >
+        {profile ? initials(profile.nama) : ''}
       </span>
-      <span className="font-extrabold text-[13.5px] tracking-[-0.01em]">CatatUang</span>
-      <span className="min-w-0 truncate text-[11px] font-medium" style={{ color: '#c9c6c5' }}>
-        {loadingBuku ? '' : currentBuku ? `Buku ${currentBuku.nama}` : ''}
-      </span>
-      <MobileMoreMenu />
     </div>
   )
 }

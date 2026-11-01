@@ -100,7 +100,7 @@ export function PengaturanClient({ settingsMap }: Props) {
         <section className="card-shell">
           <header
             className="flex items-center gap-2 px-[18px] py-[14px]"
-            style={{ borderBottom: '2px solid var(--divider)' }}
+            style={{ borderBottom: '1px solid var(--border-hairline)' }}
           >
             <div
               className="flex h-5 w-5 shrink-0 items-center justify-center"
@@ -112,7 +112,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               </svg>
             </div>
             <div>
-              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
+              <h2 className="text-[24px]" style={{ color: 'var(--text)' }}>
                 Identitas Direktorat
               </h2>
               <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
@@ -123,7 +123,7 @@ export function PengaturanClient({ settingsMap }: Props) {
 
           <div className="px-[18px] py-[16px]">
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Nama Direktorat
               </label>
               <input
@@ -145,7 +145,7 @@ export function PengaturanClient({ settingsMap }: Props) {
         <section className="card-shell">
           <header
             className="flex items-center gap-2 px-[18px] py-[14px]"
-            style={{ borderBottom: '2px solid var(--divider)' }}
+            style={{ borderBottom: '1px solid var(--border-hairline)' }}
           >
             <div
               className="flex h-5 w-5 shrink-0 items-center justify-center"
@@ -157,7 +157,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               </svg>
             </div>
             <div>
-              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
+              <h2 className="text-[24px]" style={{ color: 'var(--text)' }}>
                 Valuta
               </h2>
               <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
@@ -167,7 +167,7 @@ export function PengaturanClient({ settingsMap }: Props) {
           </header>
 
           <div className="px-[18px] py-[16px]">
-            <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+            <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
               Mata Uang
             </label>
             <Select
@@ -199,7 +199,7 @@ export function PengaturanClient({ settingsMap }: Props) {
         <section className="card-shell">
           <header
             className="flex items-center gap-2 px-[18px] py-[14px]"
-            style={{ borderBottom: '2px solid var(--divider)' }}
+            style={{ borderBottom: '1px solid var(--border-hairline)' }}
           >
             <div
               className="flex h-5 w-5 shrink-0 items-center justify-center"
@@ -211,7 +211,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               </svg>
             </div>
             <div>
-              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
+              <h2 className="text-[24px]" style={{ color: 'var(--text)' }}>
                 Identitas Penandatangan
               </h2>
               <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
@@ -222,7 +222,7 @@ export function PengaturanClient({ settingsMap }: Props) {
 
           <div className="space-y-3 px-[18px] py-[16px]">
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Nama
               </label>
               <input
@@ -235,7 +235,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               />
             </div>
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Jabatan
               </label>
               <input
@@ -248,7 +248,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               />
             </div>
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Instansi
               </label>
               <input
@@ -267,7 +267,7 @@ export function PengaturanClient({ settingsMap }: Props) {
         <section className="card-shell">
           <header
             className="flex items-center gap-2 px-[18px] py-[14px]"
-            style={{ borderBottom: '2px solid var(--divider)' }}
+            style={{ borderBottom: '1px solid var(--border-hairline)' }}
           >
             <div
               className="flex h-5 w-5 shrink-0 items-center justify-center"
@@ -279,7 +279,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               </svg>
             </div>
             <div>
-              <h2 className="text-[13px] font-extrabold" style={{ color: 'var(--text)' }}>
+              <h2 className="text-[24px]" style={{ color: 'var(--text)' }}>
                 Keamanan Akun
               </h2>
               <p className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
@@ -290,7 +290,7 @@ export function PengaturanClient({ settingsMap }: Props) {
 
           <div className="space-y-3 px-[18px] py-[16px]">
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Password Saat Ini
               </label>
               <input
@@ -303,7 +303,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               />
             </div>
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Password Baru
               </label>
               <input
@@ -319,7 +319,7 @@ export function PengaturanClient({ settingsMap }: Props) {
               </p>
             </div>
             <div>
-              <label className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
+              <label className="mb-[7px] block text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
                 Konfirmasi Password Baru
               </label>
               <input

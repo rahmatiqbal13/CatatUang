@@ -1,18 +1,21 @@
-/** Modernist design tokens shared by every CatatUang screen. */
+/** Buku Kas design tokens shared by every CatatUang screen. */
 
 import type { CSSProperties } from 'react'
 
 export const palette = {
-  blue: '#2563d9',
-  red: '#ec3013',
-  green: '#0e8a5f',
-  purple: '#6d3fd4',
-  amber: '#c07a00',
-  teal: '#0f7d92',
-  ink: '#201e1d',
+  blue: '#3B5488',
+  red: '#C2412D',
+  green: '#2E7650',
+  purple: '#7F4A74',
+  amber: '#A8741F',
+  teal: '#2F7F80',
+  rust: '#C0562E',
+  brand: '#1E4D3A',
+  grey: '#6F766F',
+  ink: '#18241E',
 } as const
 
-const dataCycle = [palette.blue, palette.purple, palette.green, palette.teal, palette.amber, palette.red]
+const dataCycle = [palette.blue, palette.teal, palette.purple, palette.green, palette.amber, palette.rust]
 
 /** Stable color for a name outside the known maps below — same name always picks the same hue. */
 function hashColor(name: string): string {
@@ -28,10 +31,14 @@ function hashColor(name: string): string {
  * else (custom master data) still gets a stable colour via the hash fallback.
  */
 const namedSumberColor: Record<string, string> = {
+  dipa: palette.blue,
   apbn: palette.blue,
+  blu: palette.teal,
   pnbp: palette.purple,
   hibah: palette.green,
-  'kerja sama': palette.teal,
+  kerjasama: palette.amber,
+  'kerja sama': palette.amber,
+  'dana mandiri': palette.rust,
 }
 
 export const sumberColor = (sumber: string): string =>
@@ -39,11 +46,18 @@ export const sumberColor = (sumber: string): string =>
 
 /** Expense-category colour — drives badges and bars. Same free-text situation as sumber. */
 const namedKategoriColor: Record<string, string> = {
+  'atk & perlengkapan kantor': palette.blue,
   'belanja barang': palette.blue,
   'perjalanan dinas': palette.red,
-  pemeliharaan: palette.green,
+  'honor & jasa': palette.purple,
   honorarium: palette.purple,
+  'konsumsi & akomodasi': palette.amber,
   konsumsi: palette.amber,
+  'pemeliharaan & perbaikan': palette.teal,
+  pemeliharaan: palette.teal,
+  'pengembangan sdm': palette.green,
+  'kegiatan mahasiswa': palette.brand,
+  'operasional lainnya': palette.grey,
 }
 
 export const categoryColor = (name: string): string =>
@@ -52,9 +66,16 @@ export const categoryColor = (name: string): string =>
 export type StatusKind = 'wait' | 'ok' | 'no'
 
 export const statusStyle: Record<StatusKind, { bg: string; fg: string }> = {
-  wait: { bg: '#f6efe1', fg: '#8a5600' },
-  ok: { bg: '#e2f2ea', fg: '#0b6b49' },
-  no: { bg: '#ffe0d9', fg: '#ae1800' },
+  wait: { bg: '#F3E6CB', fg: '#7A5312' },
+  ok: { bg: '#DCE7DF', fg: '#1E4D3A' },
+  no: { bg: '#F6DED6', fg: '#B03A26' },
+}
+
+/** Ink colour for the rubber-stamp status label (outlined, slightly rotated). */
+export const stampColor: Record<StatusKind, string> = {
+  wait: '#A8741F',
+  ok: '#2E7650',
+  no: '#B03A26',
 }
 
 /** Map this repo's status strings (pengeluaran/peminjaman/invoice) onto the three visual kinds. */
@@ -80,10 +101,10 @@ export const statusLabel = (s: string): string => {
 
 const rp = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 })
 
-/** 1850000000 -> "1.850.000.000" (prefix "Rp" separately, at 13px/600 per the KPI/list specs). */
+/** 1850000000 -> "1.850.000.000" (prefix "Rp" separately). */
 export const formatRp = (n: number) => rp.format(Math.round(n))
 
-/** 1850000000 -> { value: "1,85", unit: "M" } for the 32px KPI numerals. */
+/** 1850000000 -> { value: "1,85", unit: "M" } for the serif KPI numerals. */
 export const formatCompact = (n: number): { value: string; unit: string } => {
   const one = (x: number) => x.toFixed(2).replace('.', ',').replace(/,00$/, '')
   const abs = Math.abs(n)
@@ -102,3 +123,9 @@ export const autoGrid = (min: number, gap = 16): CSSProperties => ({
   gridTemplateColumns: `repeat(auto-fit, minmax(${min}px, 1fr))`,
   gap,
 })
+
+/** 1850000000 -> "Rp 1,85 M" — compact money for dense rows. */
+export const formatRpCompact = (n: number) => {
+  const { value, unit } = formatCompact(n)
+  return unit ? `Rp ${value} ${unit}` : `Rp ${value}`
+}

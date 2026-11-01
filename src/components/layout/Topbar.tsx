@@ -1,38 +1,43 @@
 import type { ReactNode } from 'react'
 
 /**
- * Sticky page header. `bookSwitcher` receives <BukuSwitcher/> for book-scoped
- * routes, `action` the red primary button for the route (see the handoff
- * README's per-route title/subtitle/action table).
+ * Page header: mono kicker, large serif title, subtitle, and the route's
+ * actions on the right. `back` renders above the kicker (e.g. "← Semua dompet").
  */
 export function Topbar({
   title,
   subtitle,
-  bookSwitcher,
+  crumb,
+  back,
   action,
 }: {
   title: string
   subtitle?: string
-  bookSwitcher?: ReactNode
+  crumb?: string
+  back?: ReactNode
   action?: ReactNode
 }) {
   return (
     <header className="cu-topbar">
-      <div className="min-w-0 flex-1">
-        <h1 className="text-[24px] font-extrabold leading-[1.1] tracking-[-0.025em]" style={{ color: 'var(--text)' }}>{title}</h1>
+      <div className="min-w-0 flex-[1_1_320px]">
+        {back && <div className="mb-[10px]">{back}</div>}
+        {crumb && <div className="label-caps text-[11px]" style={{ color: 'var(--text-muted)' }}>{crumb}</div>}
+        <h1
+          className="mt-2 text-[34px] leading-[1.08] tracking-[-0.02em] md:text-[46px] md:leading-[1.05] md:tracking-[-0.025em]"
+          style={{ color: 'var(--text)', textWrap: 'pretty' }}
+        >
+          {title}
+        </h1>
         {subtitle && (
-          <p className="mt-[2px] text-[12.5px]" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
+          <p className="mt-2 text-[13.5px] md:text-[14.5px]" style={{ color: 'var(--text-2)' }}>{subtitle}</p>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {bookSwitcher}
-        {action}
-      </div>
+      {action && <div className="flex flex-wrap items-center gap-[10px]">{action}</div>}
     </header>
   )
 }
 
-/** Flush-left, zero-radius buttons. Labels never center, even when the button is wide. */
+/** Pill buttons. `primary`/`green` is the filled green action, `outline` an ink-outlined pill, `ink` the soft green. */
 export function BarButton({
   variant = 'outline',
   className,
@@ -40,17 +45,16 @@ export function BarButton({
   ...rest
 }: { variant?: 'outline' | 'primary' | 'ink' | 'green' } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const skin = {
-    outline: { background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--divider)' },
-    primary: { background: 'var(--accent)', color: '#f3f2f2', border: '1px solid var(--accent)' },
-    ink: { background: '#201e1d', color: '#f3f2f2', border: '1px solid #201e1d' },
-    green: { background: '#0e8a5f', color: '#ffffff', border: '1px solid #0e8a5f' },
+    outline: 'border-[var(--text)] bg-transparent text-[var(--text)] hover:bg-[var(--surface-2)]',
+    primary: 'border-[var(--accent)] bg-[var(--accent)] text-[var(--background)] hover:bg-[var(--accent-hover)]',
+    green: 'border-[var(--accent)] bg-[var(--accent)] text-[var(--background)] hover:bg-[var(--accent-hover)]',
+    ink: 'border-transparent bg-[var(--accent-100)] text-[var(--accent-fg)] hover:bg-[var(--accent-200)]',
   }[variant]
 
   return (
     <button
       {...rest}
-      className={`px-3 py-2 text-[13px] font-bold whitespace-nowrap text-left transition-colors ${className ?? ''}`}
-      style={skin}
+      className={`inline-flex items-center gap-2 rounded-full border px-[18px] py-[10px] text-[14px] font-semibold whitespace-nowrap transition-colors disabled:pointer-events-none ${skin} ${className ?? ''}`}
     >
       {children}
     </button>

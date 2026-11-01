@@ -12,13 +12,13 @@ export function DashboardShell({ children }: Props) {
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
       <Sidebar />
 
-      {/* Main content area — rail is hidden below md */}
+      {/* Main content area — sidebar is hidden below md */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <Suspense fallback={<div className="h-12 shrink-0 md:hidden" style={{ background: '#201e1d' }} />}>
+        <Suspense fallback={<div className="h-[52px] shrink-0 md:hidden" />}>
           <MobileHeader />
         </Suspense>
 
-        <main className="flex-1 overflow-y-auto pb-14 md:pb-0">
+        <main className="flex-1 overflow-y-auto pb-28 md:pb-0">
           {children}
         </main>
       </div>

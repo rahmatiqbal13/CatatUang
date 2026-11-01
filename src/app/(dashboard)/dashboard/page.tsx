@@ -1,29 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchAll } from '@/lib/fetchAll'
 import { resolveBuku } from '@/lib/buku'
-import { Landmark, Receipt, Wallet, Clock } from 'lucide-react'
-import { autoGrid, palette } from '@/lib/tokens'
 import { Topbar } from '@/components/layout/Topbar'
-import { BukuSwitcher } from '@/components/layout/BukuSwitcher'
-import { StatCard } from '@/components/ui/StatCard'
+import { SaldoHero } from '@/components/dashboard/SaldoHero'
 import { AlokasiList, type DanaRow } from '@/components/dashboard/AlokasiList'
 import { ApprovalQueueClient, type PendingItem } from '@/components/dashboard/ApprovalQueueClient'
 import { KategoriBars, type KategoriRow } from '@/components/dashboard/KategoriBars'
+import { RecentList, type RecentRow } from '@/components/dashboard/RecentList'
 import type { DanaMasuk, Pemasukan, Pengeluaran } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
 const shortDate = (d: string) => new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' }).format(new Date(d))
-
-function monthlyTotal(items: { tanggal: string; jumlah: number }[], monthsAgo: number) {
-  const now = new Date()
-  const bucket = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
-  const nextBucket = new Date(now.getFullYear(), now.getMonth() - monthsAgo + 1, 1)
-  return items.reduce((sum, item) => {
-    const d = new Date(item.tanggal)
-    return d >= bucket && d < nextBucket ? sum + Number(item.jumlah) : sum
-  }, 0)
-}
+const longDate = (d: Date) => new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
+const monthName = (d: string) => new Intl.DateTimeFormat('id-ID', { month: 'long' }).format(new Date(d))
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ buku?: string }> }) {
   const { buku: bukuParam } = await searchParams
@@ -31,10 +21,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const { current: currentBuku } = await resolveBuku(supabase, bukuParam)
   const bukuId = currentBuku?.id ?? -1
 
-  const [{ data: danaList }, { data: pengeluaranList }, { data: pemasukanList }] = await Promise.all([
+  const [{ data: danaList }, { data: pengeluaranList }, { data: pemasukanList }, { data: namaSetting }] = await Promise.all([
     supabase.from('dana_masuk').select('*').eq('buku_id', bukuId).order('created_at', { ascending: false }),
     fetchAll((from, to) => supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }).order('id').range(from, to)),
     fetchAll((from, to) => supabase.from('pemasukan').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }).order('id').range(from, to)),
+    supabase.from('settings').select('value').eq('key', 'nama_direktorat').maybeSingle(),
   ])
 
   const pemasukans = (pemasukanList || []) as Pemasukan[]
@@ -50,13 +41,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const totalDana = danas.reduce((s, d) => s + Number(d.jumlah), 0)
   const totalKeluar = approved.reduce((s, p) => s + Number(p.jumlah), 0)
   const totalPending = pending.reduce((s, p) => s + Number(p.jumlah), 0)
-  const sisaSaldo = totalDana - totalKeluar
-  const pctRealisasi = totalDana > 0 ? (totalKeluar / totalDana) * 100 : 0
-  const pctSisa = totalDana > 0 ? (sisaSaldo / totalDana) * 100 : 0
-
-  const danaThisMonth = monthlyTotal(pemasukans, 0)
-  const danaLastMonth = monthlyTotal(pemasukans, 1)
-  const danaDeltaPct = danaLastMonth > 0 ? ((danaThisMonth - danaLastMonth) / danaLastMonth) * 100 : danaThisMonth > 0 ? 100 : 0
 
   const danaRows: DanaRow[] = danas.map(d => ({
     id: d.id,
@@ -77,29 +61,48 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   for (const p of approved) kategoriTotals.set(p.kategori, (kategoriTotals.get(p.kategori) || 0) + Number(p.jumlah))
   const kategoriRows: KategoriRow[] = Array.from(kategoriTotals, ([nama, total]) => ({ nama, total }))
     .sort((a, b) => b.total - a.total)
+  // approved is newest-first, so the last entry is the oldest.
+  const periode = approved.length
+    ? `${monthName(approved[approved.length - 1].tanggal)} – ${monthName(approved[0].tanggal)}`
+    : undefined
+
+  const recentRows: RecentRow[] = [
+    ...pemasukans.map(p => ({ key: `in-${p.id}`, tanggal: p.tanggal, uraian: p.uraian, jumlah: Number(p.jumlah), masuk: true, meta: `${shortDate(p.tanggal)} · ${p.nama_dana}` })),
+    ...pengeluarans.filter(p => p.status !== 'rejected').map(p => ({ key: `out-${p.id}`, tanggal: p.tanggal, uraian: p.uraian, jumlah: Number(p.jumlah), masuk: false, meta: `${shortDate(p.tanggal)} · ${p.kategori}${p.status === 'pending' ? ' · menunggu' : ''}` })),
+  ]
+    .sort((a, b) => b.tanggal.localeCompare(a.tanggal))
+    .slice(0, 6)
+
+  const namaDirektorat = (namaSetting?.value as string | undefined) || 'Keuangan Direktorat'
+  const twoCol = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 24, alignItems: 'start' } as const
 
   return (
     <div className="animate-fade-in">
       <Topbar
-        title="Dashboard"
-        subtitle={`Keuangan Direktorat · Buku ${currentBuku?.nama ?? '—'}`}
-        bookSwitcher={<BukuSwitcher />}
+        crumb={`${currentBuku?.nama ?? '—'} / Ringkasan`}
+        title="Ringkasan"
+        subtitle={`${namaDirektorat} · per ${longDate(new Date())}`}
       />
 
       <div className="cu-page">
-        <div style={autoGrid(220)}>
-          <StatCard label="Total Dana Masuk" amount={totalDana} bg={palette.blue} delta={`${danaDeltaPct >= 0 ? '↑' : '↓'} ${Math.abs(danaDeltaPct).toFixed(1)}% vs bulan lalu`} icon={<Landmark size={17} />} />
-          <StatCard label="Realisasi" amount={totalKeluar} bg={palette.red} delta={`${pctRealisasi.toFixed(1)}% dari alokasi`} icon={<Receipt size={17} />} />
-          <StatCard label="Sisa Saldo" amount={sisaSaldo} bg={palette.green} delta={`${pctSisa.toFixed(1)}% tersedia`} icon={<Wallet size={17} />} />
-          <StatCard label="Menunggu Approval" amount={totalPending} bg={palette.ink} fg="#f3f2f2" delta={`${pending.length} transaksi perlu ditinjau`} icon={<Clock size={17} />} />
+        <SaldoHero
+          totalMasuk={totalDana}
+          totalKeluar={totalKeluar}
+          totalPending={totalPending}
+          pemasukanCount={pemasukans.length}
+          danaCount={danas.length}
+          approvedCount={approved.length}
+          pendingCount={pending.length}
+        />
+
+        <div style={twoCol}>
+          <ApprovalQueueClient items={pendingItems} totalPending={totalPending} />
+          <AlokasiList rows={danaRows} hrefAll={`/dana?buku=${bukuId}`} />
         </div>
 
-        <div style={{ ...autoGrid(300), alignItems: 'start' }}>
-          <AlokasiList rows={danaRows} hrefAll={`/dana?buku=${bukuId}`} />
-          <div className="flex flex-col gap-4">
-            <ApprovalQueueClient items={pendingItems} />
-            <KategoriBars rows={kategoriRows} />
-          </div>
+        <div style={twoCol}>
+          <KategoriBars rows={kategoriRows} periode={periode} />
+          <RecentList rows={recentRows} />
         </div>
       </div>
     </div>

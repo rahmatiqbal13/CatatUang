@@ -30,7 +30,7 @@ async function fetchUserProfile(): Promise<UserProfile | null> {
   return { nama: formattedName, role: 'admin' }
 }
 
-// Sidebar and MobileMoreMenu mount together (and twice under StrictMode); concurrent
+// Sidebar, MobileHeader and MobileTabBar mount together (and twice under StrictMode); concurrent
 // auth.getUser() calls fight over the auth-token lock, so share one in-flight request.
 let inflight: Promise<UserProfile | null> | null = null
 

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatRupiah, formatTanggal } from '@/lib/formatters'
+import { formatRupiah } from '@/lib/formatters'
 import { handleSupabaseError } from '@/lib/error-handler'
 import { validateForm, pengeluaranSchema } from '@/lib/validation'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -14,9 +14,8 @@ import { setPengeluaranStatus } from '@/lib/pengeluaran'
 import { ExcelExportButton } from '@/components/excel-export-button'
 import type { Pengeluaran, DanaMasuk, Kategori } from '@/lib/types'
 import { Topbar } from '@/components/layout/Topbar'
-import { TableWrap, Th, Td } from '@/components/ui/TableWrap'
-import { StatusBadge, SolidBadge } from '@/components/ui/StatusBadge'
-import { categoryColor, palette } from '@/lib/tokens'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { categoryColor } from '@/lib/tokens'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -143,186 +142,148 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
   return (
     <div className="animate-fade-in">
       <Topbar
+        crumb={`${bukuNama} / Pengeluaran`}
         title="Pengeluaran"
         subtitle={`${pengeluaranList.length} transaksi · Buku ${bukuNama}`}
         action={<ExcelExportButton type="pengeluaran" pengeluaranList={pengeluaranList} filename="pengeluaran" />}
       />
 
       <div className="cu-page">
-        {/* Filter card */}
-        <div className="card-shell" style={{ padding: '16px 18px' }}>
-          <div className="label-caps" style={{ color: 'var(--text-muted)', marginBottom: 10 }}>Filter</div>
-          <div className="flex flex-wrap items-center gap-2">
-            {tabs.map(t => {
-              const active = activeTab === t.id
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id)}
-                  className="inline-flex items-center gap-1.5 whitespace-nowrap"
-                  style={{
-                    padding: '7px 12px',
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    background: active ? '#201e1d' : '#fff',
-                    color: active ? '#f3f2f2' : 'var(--text)',
-                    border: active ? '1px solid #201e1d' : '1px solid var(--divider)',
-                  }}
-                >
-                  {t.label}
-                  <span
-                    className="text-[10.5px] px-1.5"
-                    style={{
-                      background: active ? 'rgba(255,255,255,0.18)' : 'var(--surface-2)',
-                      color: active ? '#f3f2f2' : 'var(--text-muted)',
-                    }}
-                  >
-                    {counts[t.id as keyof typeof counts]}
-                  </span>
-                </button>
-              )
-            })}
-
-            <div
-              className="flex items-center gap-2 px-2.5 h-[32px]"
-              style={{ border: '1px solid var(--divider)', background: 'var(--surface)' }}
-            >
-              <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
-              <input
-                className="flex-1 bg-transparent text-[12.5px] outline-none"
-                style={{ color: 'var(--text)' }}
-                placeholder="Cari uraian, dana, pemohon…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-            <Select
-              value={filterDana}
-              onValueChange={v => setFilterDana(v ?? 'all')}
-              items={{ all: 'Semua Dana', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
-            >
-              <SelectTrigger
-                className="h-[32px] text-[12px] px-2.5"
-                style={{ border: '1px solid var(--divider)', background: 'var(--surface)', width: 200 }}
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-[10px]">
+          {tabs.map(t => {
+            const active = activeTab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className="inline-flex min-h-[38px] items-center gap-[7px] rounded-full px-[14px] py-2 text-[13px] font-semibold whitespace-nowrap"
+                style={{
+                  background: active ? 'var(--accent-100)' : 'transparent',
+                  color: active ? 'var(--brand)' : 'var(--text)',
+                  border: active ? '1px solid #9DBBA8' : '1px solid var(--border-dashed)',
+                }}
               >
-                <SelectValue placeholder="Semua Dana" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Dana</SelectItem>
-                {danaList.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.nama_dana}</SelectItem>)}
-              </SelectContent>
-            </Select>
+                {t.label}
+                <span className="cu-mono text-[11.5px] opacity-70">{counts[t.id as keyof typeof counts]}</span>
+              </button>
+            )
+          })}
+          <span className="flex-[1_1_0]" />
+          <Select
+            value={filterDana}
+            onValueChange={v => setFilterDana(v ?? 'all')}
+            items={{ all: 'Semua dompet', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
+          >
+            <SelectTrigger className="h-[42px] w-[200px] rounded-full text-[13.5px]" style={{ background: 'var(--surface)' }}>
+              <SelectValue placeholder="Semua dompet" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua dompet</SelectItem>
+              {danaList.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.nama_dana}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <div
+            className="flex h-[42px] max-w-[320px] flex-[1_1_220px] items-center gap-2 rounded-full px-[14px] focus-within:border-[var(--brand)]"
+            style={{ border: '1px solid var(--divider)', background: 'var(--surface)' }}
+          >
+            <Search className="h-4 w-4 shrink-0" style={{ color: 'var(--text-muted)' }} />
+            <input
+              className="flex-1 bg-transparent text-[14px] outline-none"
+              style={{ color: 'var(--text)' }}
+              placeholder="Cari uraian atau dompet"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
-          <div className="flex justify-end mt-2.5">
-            <span className="text-[12.5px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-              {totalItems} transaksi · Rp {fmtCompact(totalApproved)}
-            </span>
-          </div>
+        </div>
+        <div className="label-caps -mt-2 text-[11.5px] tracking-[.12em]" style={{ color: 'var(--text-muted)' }}>
+          {totalItems} transaksi · Rp {fmtCompact(totalApproved)} disetujui
         </div>
 
         {/* Table */}
         <div className="card-shell overflow-hidden">
           {paginatedData.length === 0 ? (
-            <div className="py-16 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
-              Tidak ada pengeluaran
+            <div className="serif py-10 text-center text-[19px] italic" style={{ color: 'var(--text-2)' }}>
+              Tidak ada transaksi yang cocok.
             </div>
           ) : (
             <>
-              <TableWrap minWidth={620}>
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr>
-                      <Th width={100}>Tanggal</Th>
-                      <Th>Uraian</Th>
-                      <Th width={140}>Kategori</Th>
-                      <Th width={110}>Status</Th>
-                      <Th align="right" width={120}>Jumlah</Th>
-                      <Th align="right" width={110}>Aksi</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedData.map(p => (
-                      <tr key={p.id}>
-                        <Td>
-                          <span className="whitespace-nowrap tabular-nums text-[12px]" style={{ color: 'var(--text-2)' }}>
-                            {formatTanggal(p.tanggal)}
-                          </span>
-                        </Td>
-                        <Td>
-                          <div className="font-semibold text-[12.5px]" style={{ color: 'var(--text)' }}>
-                            {p.uraian}
-                          </div>
-                          <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
-                            {p.nama_dana}
-                          </div>
-                        </Td>
-                        <Td>
-                          <SolidBadge color={categoryColor(p.kategori)}>{p.kategori}</SolidBadge>
-                        </Td>
-                        <Td>
-                          <StatusBadge status={p.status} />
-                        </Td>
-                        <Td align="right">
-                          <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: 'var(--text)' }}>
-                            {fmtCompact(Number(p.jumlah))}
-                          </span>
-                        </Td>
-                        <Td align="right">
-                          <div className="flex items-center justify-end gap-1">
-                            {p.status === 'pending' && isSuperAdmin && (
-                              <>
-                                <button
-                                  onClick={() => handleApprove(p.id)}
-                                  disabled={approving}
-                                  className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
-                                  style={{ background: palette.green, color: '#fff' }}
-                                  title="Setujui"
-                                  aria-label={`Setujui ${p.uraian}`}
-                                >
-                                  <Check className="w-3 h-3" aria-hidden />
-                                </button>
-                                <button
-                                  onClick={() => handleReject(p.id)}
-                                  disabled={rejecting}
-                                  className="h-6 px-2 text-[11px] font-bold flex items-center gap-0.5 whitespace-nowrap"
-                                  style={{ background: '#fff', color: 'var(--accent)', border: '1px solid var(--accent)' }}
-                                  title="Tolak"
-                                  aria-label={`Tolak ${p.uraian}`}
-                                >
-                                  <X className="w-3 h-3" aria-hidden />
-                                </button>
-                              </>
-                            )}
-                            {/* Approved spending is locked; only a super admin may delete it. */}
-                            {p.status !== 'approved' && (
-                              <button
-                                onClick={() => openEdit(p)}
-                                className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
-                                style={{ color: 'var(--text-muted)' }}
-                                title="Edit"
-                                aria-label={`Edit ${p.uraian}`}
-                              >
-                                <Pencil className="w-3 h-3" aria-hidden />
-                              </button>
-                            )}
-                            {(p.status !== 'approved' || isSuperAdmin) && (
-                              <button
-                                onClick={() => { setDelTarget(p); setOpenDel(true) }}
-                                className="w-6 h-6 flex items-center justify-center hover:bg-[var(--surface-hover)]"
-                                style={{ color: 'var(--text-muted)' }}
-                                title="Hapus"
-                                aria-label={`Hapus ${p.uraian}`}
-                              >
-                                <Trash2 className="w-3 h-3" aria-hidden />
-                              </button>
-                            )}
-                          </div>
-                        </Td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </TableWrap>
+              <div className="px-6">
+                {paginatedData.map(p => {
+                  const d = new Date(p.tanggal)
+                  return (
+                    <div key={p.id} className="row-rule flex flex-wrap items-center gap-x-4 gap-y-[10px] py-4">
+                      <div className="w-[42px] shrink-0 text-center">
+                        <div className="serif text-[24px] leading-none">{d.getDate()}</div>
+                        <div className="cu-mono mt-[3px] text-[10px] tracking-[.1em] uppercase" style={{ color: 'var(--text-muted)' }}>
+                          {d.toLocaleDateString('id-ID', { month: 'short' }).replace('.', '')}
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-[1_1_200px]">
+                        <div className="text-[15px] font-semibold" style={{ textWrap: 'pretty' }}>{p.uraian}</div>
+                        <div className="mt-1 flex flex-wrap items-center gap-[6px] text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
+                          <span className="h-2 w-2 rounded-[2px]" style={{ background: categoryColor(p.kategori) }} />
+                          {p.kategori} · {p.nama_dana}
+                        </div>
+                      </div>
+                      <StatusBadge status={p.status} />
+                      <span className="cu-mono ml-auto min-w-[130px] text-right text-[15px] font-semibold whitespace-nowrap">
+                        {formatRupiah(Number(p.jumlah))}
+                      </span>
+                      <div className="flex items-center gap-[6px]">
+                        {p.status === 'pending' && isSuperAdmin && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(p.id)}
+                              disabled={approving}
+                              className="flex h-[34px] w-[34px] items-center justify-center rounded-full"
+                              style={{ background: 'var(--accent-100)', color: 'var(--accent-fg)' }}
+                              title="Setujui"
+                              aria-label={`Setujui ${p.uraian}`}
+                            >
+                              <Check className="h-4 w-4" aria-hidden />
+                            </button>
+                            <button
+                              onClick={() => handleReject(p.id)}
+                              disabled={rejecting}
+                              className="flex h-[34px] w-[34px] items-center justify-center rounded-full"
+                              style={{ color: 'var(--danger)', border: '1px solid var(--divider)' }}
+                              title="Tolak"
+                              aria-label={`Tolak ${p.uraian}`}
+                            >
+                              <X className="h-4 w-4" aria-hidden />
+                            </button>
+                          </>
+                        )}
+                        {/* Approved spending is locked; only a super admin may delete it. */}
+                        {p.status !== 'approved' && (
+                          <button
+                            onClick={() => openEdit(p)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--surface-2)]"
+                            style={{ color: 'var(--text-muted)' }}
+                            title="Edit"
+                            aria-label={`Edit ${p.uraian}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        )}
+                        {(p.status !== 'approved' || isSuperAdmin) && (
+                          <button
+                            onClick={() => { setDelTarget(p); setOpenDel(true) }}
+                            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--danger-soft)]"
+                            style={{ color: 'var(--text-muted)' }}
+                            title="Hapus"
+                            aria-label={`Hapus ${p.uraian}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
               <div
                 className="flex items-center justify-between px-4 py-2.5 flex-wrap gap-2"
                 style={{ borderTop: '1px solid var(--divider)', background: 'var(--surface)' }}
@@ -353,7 +314,7 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">Edit Pengeluaran</DialogTitle>
+            <DialogTitle>Edit Pengeluaran</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             {formErrors.length > 0 && (
@@ -368,13 +329,13 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
                 onValueChange={v => setForm(f => ({ ...f, dana_id: v ?? '' }))}
                 items={Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana]))}
               >
-                <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="Pilih dana" /></SelectTrigger>
+                <SelectTrigger className="text-[14px]"><SelectValue placeholder="Pilih dana" /></SelectTrigger>
                 <SelectContent>{danaList.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.nama_dana}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Uraian</Label>
-              <Input value={form.uraian} onChange={e => setForm(f => ({ ...f, uraian: e.target.value }))} className="h-9 text-[13px]" />
+              <Input value={form.uraian} onChange={e => setForm(f => ({ ...f, uraian: e.target.value }))} className="text-[14px]" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -384,18 +345,18 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
                   onValueChange={v => setForm(f => ({ ...f, kategori: v ?? '' }))}
                   items={Object.fromEntries(kategoriList.map(k => [k.nama, k.nama]))}
                 >
-                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="text-[14px]"><SelectValue /></SelectTrigger>
                   <SelectContent>{kategoriList.map(k => <SelectItem key={k.id} value={k.nama}>{k.nama}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
                 <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Jumlah</Label>
-                <Input type="number" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="h-9 text-[13px]" />
+                <Input type="number" value={form.jumlah} onChange={e => setForm(f => ({ ...f, jumlah: e.target.value }))} className="text-[14px]" />
               </div>
             </div>
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Tanggal</Label>
-              <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="h-9 text-[13px]" />
+              <Input type="date" value={form.tanggal} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} className="text-[14px]" />
             </div>
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--cu-text-2)' }}>Keterangan</Label>
@@ -403,8 +364,8 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenForm(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={validateAndSave} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--cu-primary)', color: '#fff' }}>
+            <Button variant="outline" onClick={() => setOpenForm(false)}>Batal</Button>
+            <Button onClick={validateAndSave} disabled={saving}  style={{ background: 'var(--cu-primary)', color: '#fff' }}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -415,14 +376,14 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--cu-danger)' }}>Hapus Pengeluaran</DialogTitle>
+            <DialogTitle style={{ color: 'var(--danger)' }}>Hapus Pengeluaran</DialogTitle>
           </DialogHeader>
           <div className="py-3 text-[13px]" style={{ color: 'var(--cu-text-2)' }}>
             Yakin ingin menghapus <strong style={{ color: 'var(--cu-text)' }}>{delTarget?.uraian}</strong>?
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenDel(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={deleting} className="h-8 text-[12px]" style={{ background: 'var(--cu-danger)', color: '#fff' }}>
+            <Button variant="outline" onClick={() => setOpenDel(false)}>Batal</Button>
+            <Button onClick={handleDelete} disabled={deleting} style={{ background: 'var(--danger)', color: 'var(--surface-elev)' }}>
               {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

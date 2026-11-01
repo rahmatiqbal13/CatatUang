@@ -3,8 +3,8 @@
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Wallet } from 'lucide-react'
-import { autoGrid } from '@/lib/tokens'
+import { Loader2 } from 'lucide-react'
+import { Logo } from '@/components/layout/Logo'
 
 export default function LoginPage() {
   return (
@@ -21,6 +21,7 @@ function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(searchParams.get('deactivated') ? 'Akun Anda telah dinonaktifkan. Hubungi administrator.' : '')
 
   async function handleLogin(e: React.FormEvent) {
@@ -29,7 +30,7 @@ function LoginForm() {
     setError('')
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError('Email atau password salah. Silakan coba lagi.')
+      setError('Email atau kata sandi salah. Silakan coba lagi.')
       setLoading(false)
       return
     }
@@ -44,125 +45,102 @@ function LoginForm() {
     router.refresh()
   }
 
+  const field = 'h-12 w-full rounded-[10px] border px-[14px] text-[15px] outline-none transition-shadow focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_var(--accent-100)]'
+
   return (
-    <div className="flex min-h-screen items-center justify-center p-6" style={{ background: 'var(--background)' }}>
+    <div className="grid min-h-screen" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', background: 'var(--background)' }}>
+      {/* Left — ruled ledger page */}
       <div
-        className="w-full max-w-[880px]"
-        style={{ ...autoGrid(300), border: '2px solid var(--divider)', minHeight: 460 }}
+        className="flex flex-col justify-between gap-10 p-7 md:p-14"
+        style={{
+          background: 'var(--surface-elev)',
+          backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0 43px, rgba(24,36,30,0.05) 43px 44px)',
+        }}
       >
-        {/* Left — brand panel */}
-        <div
-          className="flex flex-col justify-between p-9"
-          style={{ background: 'var(--accent)', color: '#f3f2f2' }}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center" style={{ background: '#f3f2f2' }}>
-              <Wallet size={18} color="#201e1d" strokeWidth={2} />
-            </div>
-            <span className="text-[19px] font-extrabold tracking-[-0.01em]">CatatUang</span>
-          </div>
-
-          <div>
-            <h1
-              className="text-[38px] font-extrabold leading-[1.05]"
-              style={{ letterSpacing: '-0.035em' }}
-            >
-              Satu buku untuk seluruh keuangan direktorat.
-            </h1>
-            <p className="mt-4 text-[13px]" style={{ color: '#f9e7e2' }}>
-              Semua buku anggaran, pengajuan, persetujuan, dan laporan berada dalam satu tempat — sehingga setiap unit kerja selalu melihat angka yang sama.
-            </p>
-          </div>
+        <div className="flex items-center gap-[11px]">
+          <Logo />
         </div>
+        <div>
+          <div className="serif text-[48px] leading-[1.02] tracking-[-0.03em] md:text-[72px]">
+            Setiap rupiah,<br /><i>tercatat rapi.</i>
+          </div>
+          <p className="mt-[18px] max-w-[420px] text-[15px] leading-[1.55]" style={{ color: 'var(--text-2)' }}>
+            Buku kas digital direktorat — dana masuk, pengeluaran, peminjaman, dan bukti uang di satu tempat.
+          </p>
+        </div>
+        <div className="label-caps text-[11px]" style={{ color: 'var(--text-dim)' }}>CatatUang · Buku kas</div>
+      </div>
 
-        {/* Right — login form */}
-        <div className="flex flex-col justify-center p-9" style={{ background: '#ffffff' }}>
-          <div className="mb-7">
-            <h2 className="text-[24px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
-              Masuk
-            </h2>
-            <p className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-              Masuk dengan akun yang telah didaftarkan administrator.
-            </p>
+      {/* Right — login form */}
+      <div className="flex items-center justify-center p-7 md:p-14">
+        <form onSubmit={handleLogin} className="flex w-full max-w-[380px] flex-col gap-[18px]">
+          <div>
+            <h1 className="m-0 text-[42px] tracking-[-0.02em]">Masuk</h1>
+            <p className="mt-[6px] text-[14px]" style={{ color: 'var(--text-2)' }}>Gunakan akun yang dibuat oleh super admin.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="max-w-[340px] space-y-4">
-            <div>
-              <label htmlFor="login-email" className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
-                Email
-              </label>
-              <input
-                id="login-email"
-                name="email"
-                type="email"
-                spellCheck={false}
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                placeholder="admin@direktorat.ac.id"
-                className="h-[34px] w-full px-3 text-[13px] outline-none"
-                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
-              />
-            </div>
+          <label htmlFor="login-email" className="flex flex-col gap-[7px] text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
+            Email
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              spellCheck={false}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              placeholder="admin@direktorat.ac.id"
+              className={field}
+              style={{ background: 'var(--surface-elev)', borderColor: 'var(--divider)', color: 'var(--text)', fontWeight: 400 }}
+            />
+          </label>
 
-            <div>
-              <label htmlFor="login-password" className="label-caps mb-1.5 block" style={{ color: 'var(--text-2)' }}>
-                Password
-              </label>
+          <label htmlFor="login-password" className="flex flex-col gap-[7px] text-[12.5px] font-semibold" style={{ color: 'var(--text-2)' }}>
+            Kata sandi
+            <span className="relative">
               <input
                 id="login-password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                placeholder="••••••••"
-                className="h-[34px] w-full px-3 text-[13px] outline-none"
-                style={{ background: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text)' }}
+                placeholder="Minimal 8 karakter"
+                className={`${field} pr-[70px]`}
+                style={{ background: 'var(--surface-elev)', borderColor: error ? 'var(--danger)' : 'var(--divider)', color: 'var(--text)', fontWeight: 400 }}
               />
-            </div>
-
-            {error && (
-              <div
-                role="alert"
-                className="flex items-center gap-2 px-3 py-2 text-[12px]"
-                style={{
-                  background: 'var(--accent-100)',
-                  border: '1px solid var(--accent-press)',
-                  color: 'var(--accent-press)',
-                }}
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                className="absolute top-[6px] right-[6px] h-9 px-[10px] text-[12.5px] font-semibold"
+                style={{ color: 'var(--brand)' }}
               >
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-                  <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2.5a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5A.75.75 0 008 5.5zm0 5.5a.75.75 0 100 1.5.75.75 0 000-1.5z" />
-                </svg>
-                {error}
-              </div>
-            )}
+                {showPassword ? 'Sembunyikan' : 'Lihat'}
+              </button>
+            </span>
+          </label>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex h-[38px] w-full items-center justify-start gap-2 px-3 text-left text-[14px] font-extrabold transition-opacity"
-              style={{
-                background: 'var(--accent)',
-                color: '#ffffff',
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memproses…</>
-              ) : (
-                'Masuk ke Dashboard'
-              )}
-            </button>
+          {error && (
+            <div role="alert" className="text-[13px]" style={{ color: 'var(--danger)' }}>
+              {error}
+            </div>
+          )}
 
-            <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
-              Lupa kata sandi? Hubungi super admin.
-            </p>
-          </form>
-        </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex h-[50px] w-full items-center justify-center gap-2 rounded-full text-[15px] font-semibold transition-colors hover:bg-[var(--accent-hover)]"
+            style={{ background: 'var(--accent)', color: 'var(--surface-elev)', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses…</> : 'Masuk ke buku kas'}
+          </button>
+
+          <p className="m-0 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            Lupa kata sandi? Hubungi super admin direktorat.
+          </p>
+        </form>
       </div>
     </div>
   )

@@ -216,20 +216,20 @@ export function PenggunaClient({ profiles, currentUserId }: Props) {
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">Tambah Pengguna</DialogTitle>
+            <DialogTitle>Tambah Pengguna</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Nama *</Label>
-              <Input value={form.nama} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} className="h-9 text-[13px]" />
+              <Input value={form.nama} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} className="text-[14px]" />
             </div>
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Email *</Label>
-              <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="h-9 text-[13px]" />
+              <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="text-[14px]" />
             </div>
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Password Awal *</Label>
-              <Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className="h-9 text-[13px]" />
+              <Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className="text-[14px]" />
               <p className="text-[11px] mt-1.5" style={{ color: 'var(--text-muted)' }}>
                 Minimal 6 karakter. Pengguna bisa menggantinya sendiri lewat Pengaturan.
               </p>
@@ -237,7 +237,7 @@ export function PenggunaClient({ profiles, currentUserId }: Props) {
             <div>
               <Label className="text-[12px] font-medium mb-1 block" style={{ color: 'var(--text-2)' }}>Role *</Label>
               <Select value={form.role} onValueChange={v => v && setForm(f => ({ ...f, role: v as UserRole }))} items={roleLabels}>
-                <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-[14px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="super_admin">Super Admin</SelectItem>
@@ -246,8 +246,8 @@ export function PenggunaClient({ profiles, currentUserId }: Props) {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenAdd(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleAdd} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
+            <Button variant="outline" onClick={() => setOpenAdd(false)}>Batal</Button>
+            <Button onClick={handleAdd} disabled={saving}>
               {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Menyimpan…</> : 'Simpan'}
             </Button>
           </DialogFooter>
@@ -258,7 +258,7 @@ export function PenggunaClient({ profiles, currentUserId }: Props) {
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold" style={{ color: 'var(--accent)' }}>
+            <DialogTitle style={{ color: 'var(--danger)' }}>
               Hapus Pengguna
             </DialogTitle>
           </DialogHeader>
@@ -266,8 +266,8 @@ export function PenggunaClient({ profiles, currentUserId }: Props) {
             Yakin ingin menghapus <strong style={{ color: 'var(--text)' }}>{delTarget?.nama}</strong>? Akun login orang ini akan ikut dihapus. Tindakan ini tidak dapat dibatalkan.
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenDel(false)} className="h-8 text-[12px]">Batal</Button>
-            <Button onClick={handleDelete} disabled={saving} className="h-8 text-[12px]" style={{ background: 'var(--accent)', color: '#fff' }}>
+            <Button variant="outline" onClick={() => setOpenDel(false)}>Batal</Button>
+            <Button onClick={handleDelete} disabled={saving} style={{ background: 'var(--danger)', color: 'var(--surface-elev)' }}>
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </Button>
           </DialogFooter>

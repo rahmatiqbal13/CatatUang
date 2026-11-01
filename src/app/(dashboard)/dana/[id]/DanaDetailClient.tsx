@@ -237,67 +237,54 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
   return (
     <div className="animate-fade-in">
       <Topbar
+        back={
+          <Link href={`/dana?buku=${dana.buku_id}`} className="text-[13px] font-semibold" style={{ color: 'var(--brand)' }}>
+            ← Semua dompet
+          </Link>
+        }
+        crumb="Dana Masuk / Detail"
         title={dana.nama_dana}
         subtitle={`${dana.sumber} · masuk ${formatTanggal(dana.tanggal)}`}
         action={
           <div className="flex gap-2">
             <Link
               href={`/laporan?dana=${dana.id}`}
-              className="px-3 py-2 text-[13px] font-bold whitespace-nowrap text-left transition-colors inline-flex items-center"
-              style={{ background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--divider)' }}
+              className="inline-flex items-center rounded-full border px-[18px] py-[10px] text-[14px] font-semibold whitespace-nowrap transition-colors hover:bg-[var(--surface-2)]"
+              style={{ borderColor: 'var(--text)', color: 'var(--text)' }}
             >
               Laporan
             </Link>
-            <BarButton variant="primary" onClick={openAddPemasukan}>+ Pemasukan</BarButton>
+            <BarButton variant="outline" onClick={openAddPemasukan}>+ Pemasukan</BarButton>
             <BarButton variant="primary" onClick={openAdd}>+ Pengeluaran</BarButton>
           </div>
         }
       />
 
       <div className="cu-page">
-        {/* KPI strip */}
-        <div style={autoGrid(200)}>
-          {[
-            { label: 'Alokasi', value: fmtCompact(totalMasuk), full: formatRupiah(totalMasuk), color: danaColor },
-            { label: 'Terpakai', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), color: 'var(--accent)' },
-            { label: 'Sisa', value: fmtCompact(sisa), full: formatRupiah(sisa), color: '#0e8a5f' },
-            { label: 'Realisasi %', value: `${persen.toFixed(1)}%`, full: '', color: 'var(--text)' },
-          ].map(kpi => (
-            <div key={kpi.label} className="card-shell" style={{ padding: 16 }}>
-              <div className="label-caps" style={{ color: 'var(--text-muted)' }}>{kpi.label}</div>
-              <div className="text-[26px] font-extrabold tracking-[-0.02em] mt-1 whitespace-nowrap tabular-nums" style={{ color: kpi.color }}>
-                {kpi.value}
-              </div>
-              {kpi.full && (
-                <div className="text-[11px] mt-0.5 tabular-nums" style={{ color: 'var(--text-dim)' }}>
-                  {kpi.full}
+        {/* Stats + usage bar */}
+        <section className="card-shell flex flex-col gap-5 px-6 py-[22px]">
+          <div style={autoGrid(170, 20)}>
+            {[
+              { label: 'Total masuk', value: fmtCompact(totalMasuk), color: danaColor },
+              { label: 'Terpakai', value: fmtCompact(totalKeluar), color: 'var(--keluar)' },
+              { label: 'Realisasi', value: `${persen.toFixed(1).replace('.', ',')}%`, color: 'var(--text)' },
+              { label: 'Sisa saldo', value: fmtCompact(sisa), color: sisa < 0 ? 'var(--danger)' : 'var(--accent)' },
+            ].map(kpi => (
+              <div key={kpi.label}>
+                <div className="label-caps" style={{ color: 'var(--text-muted)' }}>{kpi.label}</div>
+                <div className="serif mt-[6px] text-[30px] tracking-[-0.02em] whitespace-nowrap" style={{ color: kpi.color }}>
+                  {kpi.value}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Progress bar */}
-        <div className="card-shell" style={{ padding: 16 }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[12.5px] font-bold" style={{ color: 'var(--text)' }}>
-              Penggunaan Dana
-            </span>
-            <span className="text-[12.5px] font-bold tabular-nums" style={{ color: 'var(--text)' }}>
-              {persen.toFixed(1)}%
-            </span>
+              </div>
+            ))}
           </div>
-          <ProgressBar used={totalKeluar} total={totalMasuk} color="var(--accent)" />
-          <div className="flex justify-between mt-1.5 text-[11px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
-            <span>{fmtCompact(totalKeluar)} terpakai</span>
-            <span>{fmtCompact(sisa)} tersisa</span>
-          </div>
-        </div>
+          <ProgressBar used={totalKeluar} total={totalMasuk} color="var(--keluar)" height={10} />
+        </section>
 
         {/* Transaksi Dana Ini */}
         <div className="card-shell overflow-hidden">
-          <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
-            <div className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
+          <div className="px-6 pt-[22px] pb-3">
+            <div className="serif text-[24px] tracking-[-0.01em]" style={{ color: 'var(--text)' }}>
               Transaksi Dana Ini
             </div>
           </div>
@@ -315,9 +302,9 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                     padding: '7px 12px',
                     fontSize: 12.5,
                     fontWeight: 700,
-                    background: active ? '#201e1d' : '#fff',
-                    color: active ? '#f3f2f2' : 'var(--text)',
-                    border: active ? '1px solid #201e1d' : '1px solid var(--divider)',
+                    background: active ? 'var(--accent-100)' : 'transparent',
+                    color: active ? 'var(--brand)' : 'var(--text)',
+                    border: active ? '1px solid #9DBBA8' : '1px solid var(--border-dashed)',
                   }}
                 >
                   {tab.label}
@@ -326,7 +313,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                       className="text-[10.5px] px-1.5"
                       style={{
                         background: active ? 'rgba(255,255,255,0.18)' : 'var(--surface-2)',
-                        color: active ? '#f3f2f2' : 'var(--text-muted)',
+                        color: active ? 'var(--brand)' : 'var(--text-muted)',
                       }}
                     >
                       {counts[tab.key]}
@@ -376,7 +363,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                         <SolidBadge color={categoryColor(p.kategori)}>{p.kategori}</SolidBadge>
                       </Td>
                       <Td align="right">
-                        <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: 'var(--text)' }}>
+                        <span className="cu-mono font-semibold whitespace-nowrap text-[13.5px]" style={{ color: 'var(--text)' }}>
                           {formatRupiah(Number(p.jumlah))}
                         </span>
                       </Td>
@@ -384,15 +371,15 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                         <StatusBadge status={p.status} />
                       </Td>
                       <Td align="right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-[6px]">
                           {p.status === 'pending' && isSuperAdmin && (
                             <>
                               <button
                                 onClick={() => handleStatus(p.id, 'approved')}
                                 title="Setujui"
                                 aria-label={`Setujui ${p.uraian}`}
-                                className="w-6 h-6 flex items-center justify-center text-[11px] font-bold"
-                                style={{ background: palette.green, color: '#fff' }}
+                                className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-[14px]"
+                                style={{ background: 'var(--accent-100)', color: 'var(--accent-fg)' }}
                               >
                                 ✓
                               </button>
@@ -400,11 +387,10 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                                 onClick={() => handleStatus(p.id, 'rejected')}
                                 title="Tolak"
                                 aria-label={`Tolak ${p.uraian}`}
-                                className="w-6 h-6 flex items-center justify-center text-[11px] font-bold"
+                                className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-[14px]"
                                 style={{
-                                  border: '1px solid var(--accent)',
-                                  color: 'var(--accent)',
-                                  background: '#fff',
+                                  border: '1px solid var(--divider)',
+                                  color: 'var(--danger)',
                                 }}
                               >
                                 ✕
@@ -446,8 +432,8 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
 
         {/* Riwayat Pemasukan */}
         <div className="card-shell overflow-hidden">
-          <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
-            <div className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
+          <div className="px-6 pt-[22px] pb-3">
+            <div className="serif text-[24px] tracking-[-0.01em]" style={{ color: 'var(--text)' }}>
               Riwayat Pemasukan
             </div>
           </div>
@@ -489,12 +475,12 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
                         <SolidBadge color={palette.green}>Masuk</SolidBadge>
                       </Td>
                       <Td align="right">
-                        <span className="font-extrabold whitespace-nowrap tabular-nums text-[12.5px]" style={{ color: palette.green }}>
+                        <span className="cu-mono font-semibold whitespace-nowrap text-[13.5px]" style={{ color: palette.green }}>
                           {formatRupiah(Number(p.jumlah))}
                         </span>
                       </Td>
                       <Td align="right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-[6px]">
                           <button
                             onClick={() => openEditPemasukan(p)}
                             title="Edit"
@@ -530,8 +516,8 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
         {/* Per Kategori */}
         {perKategori.length > 0 && (
           <div className="card-shell overflow-hidden">
-            <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
-              <div className="text-[16px] font-extrabold tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
+            <div className="px-6 pt-[22px] pb-3">
+              <div className="serif text-[24px] tracking-[-0.01em]" style={{ color: 'var(--text)' }}>
                 Breakdown per Kategori
               </div>
             </div>
@@ -564,14 +550,14 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[14px]">
+            <DialogTitle>
               {editTarget ? 'Edit Pengeluaran' : 'Tambah Pengeluaran'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
               <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                Uraian <span style={{ color: 'var(--accent)' }}>*</span>
+                Uraian <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <input
                 type="text"
@@ -585,7 +571,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                  Kategori <span style={{ color: 'var(--accent)' }}>*</span>
+                  Kategori <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <Select
                   value={form.kategori}
@@ -607,7 +593,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               </div>
               <div>
                 <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                  Jumlah <span style={{ color: 'var(--accent)' }}>*</span>
+                  Jumlah <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
                   type="number"
@@ -621,7 +607,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
             </div>
             <div>
               <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                Tanggal <span style={{ color: 'var(--accent)' }}>*</span>
+                Tanggal <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <input
                 type="date"
@@ -657,7 +643,6 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleSave}
               disabled={saving}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Simpan'}
             </button>
@@ -669,7 +654,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[14px]">Hapus Pengeluaran</DialogTitle>
+            <DialogTitle>Hapus Pengeluaran</DialogTitle>
           </DialogHeader>
           <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
             Hapus <strong style={{ color: 'var(--text)' }}>{delTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
@@ -686,7 +671,6 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleDelete}
               disabled={saving}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </button>
@@ -698,14 +682,14 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
       <Dialog open={openTambahDana} onOpenChange={setOpenTambahDana}>
         <DialogContent className="sm:max-w-md" style={{ background: 'var(--surface)' }}>
           <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold">
+            <DialogTitle>
               {editPemasukanTarget ? 'Edit Pemasukan' : 'Tambah Pemasukan'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div>
               <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                Uraian <span style={{ color: 'var(--accent)' }}>*</span>
+                Uraian <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <input
                 type="text"
@@ -719,7 +703,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                  Jumlah <span style={{ color: 'var(--accent)' }}>*</span>
+                  Jumlah <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
                   type="number"
@@ -732,7 +716,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               </div>
               <div>
                 <label className="block text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-2)' }}>
-                  Tanggal <span style={{ color: 'var(--accent)' }}>*</span>
+                  Tanggal <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
                   type="date"
@@ -772,7 +756,6 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleTambahDana}
               disabled={savingDana}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {savingDana ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : 'Simpan'}
             </button>
@@ -784,7 +767,7 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
       <Dialog open={openDelPemasukan} onOpenChange={setOpenDelPemasukan}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-[14px]">Hapus Pemasukan</DialogTitle>
+            <DialogTitle>Hapus Pemasukan</DialogTitle>
           </DialogHeader>
           <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
             Hapus <strong style={{ color: 'var(--text)' }}>{delPemasukanTarget?.uraian}</strong>? Tindakan ini tidak dapat dibatalkan.
@@ -801,7 +784,6 @@ export function DanaDetailClient({ dana, pengeluaranList, pemasukanList, kategor
               onClick={handleDeletePemasukan}
               disabled={savingDana}
               className="h-8 px-4 rounded-[5px] text-[12.5px] font-medium flex items-center gap-1.5"
-              style={{ background: 'var(--accent)', color: '#fff' }}
             >
               {savingDana ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus'}
             </button>

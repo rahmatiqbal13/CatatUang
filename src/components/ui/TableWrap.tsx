@@ -16,8 +16,8 @@ export function TableWrap({ minWidth, children }: { minWidth: number; children: 
 export function Th({ align = 'left', width, children }: { align?: 'left' | 'right'; width?: number | string; children?: ReactNode }) {
   return (
     <th
-      className="px-2 py-[9px] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] whitespace-nowrap first:pl-4 last:pr-4"
-      style={{ textAlign: align, borderBottom: '2px solid var(--divider)', width }}
+      className="cu-mono px-2 py-[10px] text-[10.5px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)] whitespace-nowrap first:pl-6 last:pr-6"
+      style={{ textAlign: align, borderBottom: '1px solid var(--divider)', width }}
     >
       {children}
     </th>
@@ -27,7 +27,7 @@ export function Th({ align = 'left', width, children }: { align?: 'left' | 'righ
 export function Td({ align = 'left', children }: { align?: 'left' | 'right'; children?: ReactNode }) {
   return (
     <td
-      className="px-2 py-[11px] align-middle text-[13px] first:pl-4 last:pr-4"
+      className="px-2 py-[13px] align-middle text-[13.5px] first:pl-6 last:pr-6"
       style={{ textAlign: align, borderBottom: '1px solid var(--border-hairline)' }}
     >
       {children}

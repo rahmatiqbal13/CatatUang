@@ -120,6 +120,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
   return (
     <div className="animate-fade-in">
       <Topbar
+        crumb={`${bukuNama} / Laporan`}
         title="Laporan"
         subtitle={`Periode ${periodeLabel}`}
         action={
@@ -147,16 +148,15 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
 
       <div className="cu-page">
         {/* Filter bar */}
-        <div className="card-shell p-[16px]">
+        <div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="label-caps" style={{ color: 'var(--text-muted)' }}>{bukuNama}</span>
 
             <Select
               value={filterDana}
               onValueChange={v => setFilterDana(v ?? 'all')}
               items={{ all: 'Semua Dana', ...Object.fromEntries(danaList.map(d => [String(d.id), d.nama_dana])) }}
             >
-              <SelectTrigger className="h-[34px] w-52 text-[12.5px]" style={fieldStyle}>
+              <SelectTrigger className="h-11 w-52 text-[14px]" style={fieldStyle}>
                 <SelectValue placeholder="Semua Dana" />
               </SelectTrigger>
               <SelectContent>
@@ -172,7 +172,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
               onValueChange={v => setFilterStatus(v ?? 'approved')}
               items={{ all: 'Semua Status', approved: 'Disetujui', pending: 'Menunggu', rejected: 'Ditolak' }}
             >
-              <SelectTrigger className="h-[34px] w-40 text-[12.5px]" style={fieldStyle}>
+              <SelectTrigger className="h-11 w-40 text-[14px]" style={fieldStyle}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -188,7 +188,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                 type="date"
                 value={filterDari}
                 onChange={e => setFilterDari(e.target.value)}
-                className="h-[34px] px-[10px] text-[12.5px] outline-none"
+                className="h-11 rounded-[10px] px-3 text-[14px] outline-none"
                 style={fieldStyle}
               />
               <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>—</span>
@@ -196,7 +196,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                 type="date"
                 value={filterSampai}
                 onChange={e => setFilterSampai(e.target.value)}
-                className="h-[34px] px-[10px] text-[12.5px] outline-none"
+                className="h-11 rounded-[10px] px-3 text-[14px] outline-none"
                 style={fieldStyle}
               />
             </div>
@@ -215,14 +215,14 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
         {/* KPI strip */}
         <div style={autoGrid(220)}>
           {[
-            { label: 'Total Dana', value: fmtCompact(totalDana), full: formatRupiah(totalDana), color: palette.blue },
+            { label: 'Total Dana', value: fmtCompact(totalDana), full: formatRupiah(totalDana), color: palette.ink },
             { label: 'Realisasi', value: fmtCompact(totalKeluar), full: formatRupiah(totalKeluar), color: palette.red },
             { label: 'Sisa Saldo', value: fmtCompact(sisaSaldo), full: formatRupiah(sisaSaldo), color: palette.green },
             { label: 'Pending', value: fmtCompact(totalPending), full: formatRupiah(totalPending), color: palette.amber },
           ].map(kpi => (
-            <div key={kpi.label} className="card-shell p-[16px]">
+            <div key={kpi.label} className="rounded-[16px] border px-5 py-[18px]" style={{ background: 'var(--surface)', borderColor: 'var(--divider)' }}>
               <div className="label-caps" style={{ color: 'var(--text-muted)' }}>{kpi.label}</div>
-              <div className="mt-1 whitespace-nowrap text-[26px] font-extrabold tracking-[-0.02em]" style={{ color: kpi.color }}>
+              <div className="mt-[6px] whitespace-nowrap serif text-[30px] tracking-[-0.02em]" style={{ color: kpi.color }}>
                 {kpi.value}
               </div>
               <div className="mt-[2px] whitespace-nowrap text-[11px]" style={{ color: 'var(--text-dim)' }}>
@@ -233,46 +233,42 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
         </div>
 
         {/* Dana Masuk vs Pengeluaran */}
-        <div className="card-shell p-[18px]">
-          <h2 className="text-[16px] font-extrabold tracking-[-0.02em]">Dana Masuk vs Pengeluaran</h2>
+        <div className="card-shell px-6 py-[22px]">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-[26px]">Arus kas bulanan</h2>
+            <div className="flex gap-4 text-[12.5px]" style={{ color: 'var(--text-2)' }}>
+              <span className="flex items-center gap-[6px]"><span aria-hidden className="h-[10px] w-[10px] rounded-[3px]" style={{ background: 'var(--accent)' }} />Masuk</span>
+              <span className="flex items-center gap-[6px]"><span aria-hidden className="h-[10px] w-[10px] rounded-[3px]" style={{ background: 'var(--keluar)' }} />Keluar</span>
+            </div>
+          </div>
           {months.length === 0 ? (
             <p className="py-[26px] text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
               Tidak ada data untuk periode ini
             </p>
           ) : (
             <>
-              <div className="mt-[14px] flex items-end" style={{ height: 180, gap: 10 }}>
+              <div className="mt-[22px] flex items-end" style={{ height: 262 }}>
                 {months.map(m => {
                   const masuk = monthlyMasuk.get(m) || 0
                   const keluar = monthlyKeluar.get(m) || 0
                   return (
                     <div key={m} className="flex flex-1 flex-col items-center justify-end" style={{ height: '100%' }}>
-                      <div className="flex w-full items-end justify-center" style={{ height: 140, gap: 4, maxWidth: 56 }}>
+                      <div className="flex min-h-0 w-full flex-1 items-end justify-center border-b px-[5px]" style={{ gap: 3, borderColor: 'var(--text)' }}>
                         <div
-                          className="flex-1"
-                          style={{ height: `${(masuk / maxMonthly) * 100}%`, background: 'var(--data-blue)', minHeight: masuk > 0 ? 2 : 0 }}
+                          className="w-[42%] max-w-[22px] rounded-t-[3px]"
+                          style={{ height: `${(masuk / maxMonthly) * 100}%`, background: 'var(--accent)', minHeight: masuk > 0 ? 2 : 0, transition: 'height .6s cubic-bezier(.2,.8,.2,1)' }}
                           title={`Masuk: ${formatRupiah(masuk)}`}
                         />
                         <div
-                          className="flex-1"
-                          style={{ height: `${(keluar / maxMonthly) * 100}%`, background: 'var(--data-red)', minHeight: keluar > 0 ? 2 : 0 }}
+                          className="w-[42%] max-w-[22px] rounded-t-[3px]"
+                          style={{ height: `${(keluar / maxMonthly) * 100}%`, background: 'var(--keluar)', minHeight: keluar > 0 ? 2 : 0, transition: 'height .6s cubic-bezier(.2,.8,.2,1)' }}
                           title={`Keluar: ${formatRupiah(keluar)}`}
                         />
                       </div>
-                      <div className="mt-2 whitespace-nowrap text-[11.5px] font-bold">{monthLabel(m)}</div>
+                      <div className="cu-mono mt-2 whitespace-nowrap text-[11px]" style={{ color: 'var(--text-muted)' }}>{monthLabel(m)}</div>
                     </div>
                   )
                 })}
-              </div>
-              <div className="mt-[14px] flex items-center gap-5">
-                <span className="flex items-center gap-[6px] text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
-                  <span aria-hidden className="h-[10px] w-[10px] shrink-0" style={{ background: 'var(--data-blue)' }} />
-                  Dana Masuk
-                </span>
-                <span className="flex items-center gap-[6px] text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
-                  <span aria-hidden className="h-[10px] w-[10px] shrink-0" style={{ background: 'var(--data-red)' }} />
-                  Pengeluaran
-                </span>
               </div>
             </>
           )}
@@ -281,8 +277,8 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
         {/* Ringkasan per Dana (shown when all dana) */}
         {filterDana === 'all' && (
           <div className="card-shell">
-            <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
-              <div className="text-[16px] font-extrabold tracking-[-0.02em]">Ringkasan Per Dana</div>
+            <div className="px-6 pt-[22px] pb-3">
+              <div className="serif text-[24px] tracking-[-0.01em]">Ringkasan Per Dana</div>
               <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>Penggunaan dana per sumber</div>
             </div>
             <TableWrap minWidth={620}>
@@ -305,7 +301,7 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                       <Td align="right"><span className="whitespace-nowrap">{fmtCompact(Number(d.jumlah))}</span></Td>
                       <Td align="right"><span className="whitespace-nowrap" style={{ color: 'var(--text-2)' }}>{fmtCompact(d.keluar)}</span></Td>
                       <Td align="right">
-                        <span className="whitespace-nowrap font-bold" style={{ color: d.sisa < 0 ? 'var(--accent)' : 'var(--data-green)' }}>
+                        <span className="whitespace-nowrap font-bold" style={{ color: d.sisa < 0 ? 'var(--danger)' : 'var(--data-green)' }}>
                           {fmtCompact(d.sisa)}
                         </span>
                       </Td>
@@ -320,10 +316,10 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                     </tr>
                   ))}
                   <tr style={{ background: 'var(--surface-2)' }}>
-                    <td className="px-2 py-[11px] text-[13px] font-extrabold first:pl-4" colSpan={2}>TOTAL</td>
-                    <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] font-extrabold">{fmtCompact(totalDana)}</td>
-                    <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] font-extrabold">{fmtCompact(totalKeluar)}</td>
-                    <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] font-extrabold" style={{ color: sisaSaldo < 0 ? 'var(--accent)' : 'var(--data-green)' }}>
+                    <td className="px-2 py-[11px] text-[13px] cu-mono font-semibold first:pl-4" colSpan={2}>TOTAL</td>
+                    <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] cu-mono font-semibold">{fmtCompact(totalDana)}</td>
+                    <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] cu-mono font-semibold">{fmtCompact(totalKeluar)}</td>
+                    <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] cu-mono font-semibold" style={{ color: sisaSaldo < 0 ? 'var(--danger)' : 'var(--data-green)' }}>
                       {fmtCompact(sisaSaldo)}
                     </td>
                     <td className="px-2 py-[11px] last:pr-4" />
@@ -336,8 +332,8 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
 
         {/* Detail Pengeluaran table */}
         <div className="card-shell">
-          <div className="px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
-            <div className="text-[16px] font-extrabold tracking-[-0.02em]">Detail Pengeluaran</div>
+          <div className="px-6 pt-[22px] pb-3">
+            <div className="serif text-[24px] tracking-[-0.01em]">Detail Pengeluaran</div>
             <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>{totalItems} transaksi ditemukan</div>
           </div>
 
@@ -378,10 +374,10 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
                       </tr>
                     ))}
                     <tr style={{ background: 'var(--surface-2)' }}>
-                      <td className="px-2 py-[11px] text-[13px] font-extrabold first:pl-4" colSpan={filterDana === 'all' ? 4 : 3}>
+                      <td className="px-2 py-[11px] text-[13px] cu-mono font-semibold first:pl-4" colSpan={filterDana === 'all' ? 4 : 3}>
                         TOTAL
                       </td>
-                      <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] font-extrabold">{formatRupiah(totalKeluar)}</td>
+                      <td className="whitespace-nowrap px-2 py-[11px] text-right text-[13px] cu-mono font-semibold">{formatRupiah(totalKeluar)}</td>
                       <td className="px-2 py-[11px] last:pr-4" />
                     </tr>
                   </tbody>
@@ -406,13 +402,13 @@ export function LaporanClient({ danaList, pengeluaranList, settingsMap, initialD
         {/* Breakdown per Kategori */}
         {perKategori.length > 0 && (
           <div className="card-shell p-[18px]">
-            <h2 className="text-[16px] font-extrabold tracking-[-0.02em]">Pengeluaran per Kategori</h2>
+            <h2 className="text-[24px] tracking-[-0.01em]">Pengeluaran per Kategori</h2>
             <p className="mb-[14px] text-[11.5px]" style={{ color: 'var(--text-muted)' }}>Distribusi pengeluaran yang disetujui</p>
             <div style={autoGrid(230)}>
               {perKategori.map(k => (
                 <div key={k.kategori} className="card-shell p-[14px]" style={{ borderLeft: `6px solid ${categoryColor(k.kategori)}` }}>
                   <div className="text-[12.5px] font-bold">{k.kategori}</div>
-                  <div className="mt-1 whitespace-nowrap text-[22px] font-extrabold tracking-[-0.02em]">{fmtCompact(k.total)}</div>
+                  <div className="mt-1 whitespace-nowrap serif text-[22px] tracking-[-0.02em]">{fmtCompact(k.total)}</div>
                   <div className="mt-[2px] text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
                     {k.persen.toFixed(1)}% dari total pengeluaran
                   </div>

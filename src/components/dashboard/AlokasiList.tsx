@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { formatRp, pct, sumberColor } from '@/lib/tokens'
-import { ProgressBar } from '@/components/ui/ProgressBar'
+import { formatRpCompact, pct, sumberColor } from '@/lib/tokens'
 
 export type DanaRow = {
   id: number
@@ -11,54 +10,52 @@ export type DanaRow = {
 }
 
 /**
- * Deliberately a LIST, not a table: fund names are long and a table clipped them.
- * Rows are rules on white, so a short list never leaves an empty grey block.
+ * "Dompet dana" — one row per fund: colour chip, name, remaining balance, a
+ * thin usage bar and the source · usage line. A list, not a table, so long
+ * fund names wrap instead of clipping.
  */
 export function AlokasiList({ rows, hrefAll }: { rows: DanaRow[]; hrefAll: string }) {
   return (
-    <section className="card-shell">
-      <header className="flex items-center justify-between gap-3 px-[18px] py-[14px]" style={{ borderBottom: '2px solid var(--divider)' }}>
-        <h2 className="text-[16px] font-extrabold tracking-[-0.02em]">Alokasi per Dana</h2>
-        <Link href={hrefAll} className="text-[12.5px] font-bold whitespace-nowrap" style={{ color: 'var(--accent-press)' }}>
+    <section className="card-shell px-6 pt-[22px] pb-3">
+      <div className="flex items-baseline justify-between gap-[10px]">
+        <h2 className="m-0 text-[26px]">Dompet dana</h2>
+        <Link href={hrefAll} className="py-[6px] text-[13px] font-semibold whitespace-nowrap" style={{ color: 'var(--brand)' }}>
           Lihat semua →
         </Link>
-      </header>
+      </div>
 
       {rows.length === 0 ? (
-        <p className="px-[18px] py-[26px] text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
-          Belum ada dana masuk.
+        <p className="serif mt-3 border-t pt-6 pb-4 text-[18px] italic" style={{ borderColor: 'var(--border-hairline)', color: 'var(--text-2)' }}>
+          Belum ada dompet di buku ini.
         </p>
       ) : (
-        <ul>
+        <div className="mt-3">
           {rows.map(d => {
             const color = sumberColor(d.sumber)
-            const sisa = d.alokasi - d.terpakai
+            const p = pct(d.terpakai, d.alokasi)
             return (
-              <li key={d.id} className="row-rule last:border-b-0">
-                <Link href={`/dana/${d.id}`} className="block px-[18px] py-[13px] transition-colors hover:bg-[var(--surface-hover)]">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span aria-hidden className="h-[10px] w-[10px] shrink-0" style={{ background: color }} />
-                      <span className="truncate text-[13.5px] font-bold">{d.nama}</span>
-                      <span className="shrink-0 px-[6px] py-[2px] text-[10px] font-bold uppercase tracking-[0.1em] whitespace-nowrap" style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
-                        {d.sumber}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-[13px] font-extrabold whitespace-nowrap">Rp {formatRp(sisa)} sisa</span>
-                  </div>
-
-                  <div className="mt-[9px] flex items-center gap-[10px]">
-                    <span className="flex-1"><ProgressBar used={d.terpakai} total={d.alokasi} color={color} /></span>
-                    <span className="text-[11.5px] font-bold whitespace-nowrap">{pct(d.terpakai, d.alokasi)}%</span>
-                    <span className="text-[11.5px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-                      {formatRp(d.terpakai)} / {formatRp(d.alokasi)}
-                    </span>
-                  </div>
-                </Link>
-              </li>
+              <Link
+                key={d.id}
+                href={`/dana/${d.id}`}
+                className="flex w-full flex-col gap-2 border-t py-[14px] transition-colors hover:bg-[var(--surface-hover)]"
+                style={{ borderColor: 'var(--border-hairline)' }}
+              >
+                <div className="flex w-full items-center gap-[10px]">
+                  <span aria-hidden className="h-[10px] w-[10px] shrink-0 rounded-[3px]" style={{ background: color }} />
+                  <span className="min-w-0 flex-1 text-[14.5px] font-semibold">{d.nama}</span>
+                  <span className="cu-mono text-[13.5px] font-semibold whitespace-nowrap">{formatRpCompact(d.alokasi - d.terpakai)}</span>
+                </div>
+                <div className="h-[6px] w-full overflow-hidden rounded-full" style={{ background: 'var(--surface-2)' }}>
+                  <div className="h-full rounded-full" style={{ width: `${p}%`, background: color }} />
+                </div>
+                <div className="flex w-full justify-between gap-[10px] text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                  <span>{d.sumber} · terpakai {String(p).replace('.', ',')}%</span>
+                  <span className="whitespace-nowrap">sisa dari {formatRpCompact(d.alokasi)}</span>
+                </div>
+              </Link>
             )
           })}
-        </ul>
+        </div>
       )}
     </section>
   )

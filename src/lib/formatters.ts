@@ -106,3 +106,10 @@ export function terbilang(value: number): string {
 
   return parts.join(' ').trim()
 }
+
+/** Sentence-case terbilang for display, e.g. 250000 -> "Dua ratus lima puluh ribu rupiah". */
+export function terbilangRupiah(value: number): string {
+  const words = terbilang(value).toLowerCase()
+  const text = `${value < 0 ? 'minus ' : ''}${words} rupiah`
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}

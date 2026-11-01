@@ -1,24 +1,24 @@
-import { statusKind, statusLabel, statusStyle } from '@/lib/tokens'
+import { stampColor, statusKind, statusLabel } from '@/lib/tokens'
 
-/** Tinted status pill (square corners). Pass the repo's raw status string. */
+/** Rubber-stamp status label: outlined mono caps, slightly rotated. Pass the repo's raw status string. */
 export function StatusBadge({ status }: { status: string }) {
-  const { bg, fg } = statusStyle[statusKind(status)]
+  const color = stampColor[statusKind(status)]
   return (
     <span
-      className="inline-block px-2 py-[3px] text-[10px] font-bold uppercase tracking-[0.1em] whitespace-nowrap"
-      style={{ background: bg, color: fg }}
+      className="cu-mono inline-block rounded-[4px] px-2 py-[3px] text-[10.5px] font-bold uppercase tracking-[0.12em] whitespace-nowrap"
+      style={{ border: `1.5px solid ${color}`, color, transform: 'rotate(-2deg)' }}
     >
       {statusLabel(status)}
     </span>
   )
 }
 
-/** Solid badge for categories / fund sources / roles — white label on the data colour. */
+/** Outlined pill for categories / fund sources / roles, in the data colour. */
 export function SolidBadge({ color, children }: { color: string; children: React.ReactNode }) {
   return (
     <span
-      className="inline-block px-2 py-[3px] text-[10px] font-bold uppercase tracking-[0.1em] whitespace-nowrap"
-      style={{ background: color, color: '#ffffff' }}
+      className="cu-mono inline-block rounded-full px-[9px] py-[2px] text-[11px] font-semibold whitespace-nowrap"
+      style={{ border: `1.5px solid ${color}`, color }}
     >
       {children}
     </span>

@@ -61,7 +61,7 @@ export function SkeletonTable({ rows = 5, columns = 6 }: { rows?: number; column
 export function SkeletonDanaCard() {
   return (
     <div className="card-shell">
-      <div className="p-4 pb-2" style={{ borderBottom: '2px solid var(--divider)' }}>
+      <div className="p-4 pb-2" style={{ borderBottom: '1px solid var(--border-hairline)' }}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 space-y-2">
             <Bar className="h-5 w-full max-w-[200px]" />
@@ -119,7 +119,7 @@ export function SkeletonDashboard() {
 
       {/* Ringkasan Card */}
       <div className="card-shell">
-        <div className="p-4 pb-3" style={{ borderBottom: '2px solid var(--divider)' }}>
+        <div className="p-4 pb-3" style={{ borderBottom: '1px solid var(--border-hairline)' }}>
           <Bar className="h-5 w-32" />
         </div>
         <div className="p-0">
@@ -173,7 +173,7 @@ export function SkeletonPengeluaran() {
 
       {/* Table */}
       <div className="card-shell">
-        <div className="p-4 pb-3" style={{ borderBottom: '2px solid var(--divider)' }}>
+        <div className="p-4 pb-3" style={{ borderBottom: '1px solid var(--border-hairline)' }}>
           <Bar className="h-5 w-24" />
         </div>
         <div className="px-6 py-4">
@@ -215,7 +215,7 @@ export function SkeletonLaporan() {
 
       {/* Tables */}
       <div className="card-shell">
-        <div className="p-4 pb-3" style={{ borderBottom: '2px solid var(--divider)' }}>
+        <div className="p-4 pb-3" style={{ borderBottom: '1px solid var(--border-hairline)' }}>
           <Bar className="h-5 w-32" />
         </div>
         <div className="px-6 py-4">
