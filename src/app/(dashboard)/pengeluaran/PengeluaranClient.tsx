@@ -24,13 +24,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Search, Check, X, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Search, Check, X, Pencil, Trash2, Loader2, Printer } from 'lucide-react'
+import { CetakBuktiPengeluaran } from '@/components/CetakBuktiPengeluaran'
 
 type Props = {
   pengeluaranList: Pengeluaran[]
   danaList: Pick<DanaMasuk, 'id' | 'nama_dana'>[]
   kategoriList: Kategori[]
   bukuNama: string
+  /** Default jabatan for the giver on printed slips (settings → pihak_pertama_jabatan). */
+  pemberiJabatan?: string
 }
 
 type FormData = {
@@ -45,7 +48,7 @@ function fmtCompact(n: number) {
   return formatRupiah(n)
 }
 
-export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, bukuNama }: Props) {
+export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, bukuNama, pemberiJabatan }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -61,6 +64,7 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
   const [openDel, setOpenDel] = useState(false)
   const [editTarget, setEditTarget] = useState<Pengeluaran | null>(null)
   const [delTarget, setDelTarget] = useState<Pengeluaran | null>(null)
+  const [printTarget, setPrintTarget] = useState<Pengeluaran | null>(null)
   const [form, setForm] = useState<FormData>(emptyForm)
   const [formErrors, setFormErrors] = useState<string[]>([])
 
@@ -256,6 +260,17 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
                             </button>
                           </>
                         )}
+                        {p.status !== 'rejected' && (
+                          <button
+                            onClick={() => setPrintTarget(p)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[var(--surface-2)]"
+                            style={{ color: 'var(--text-muted)' }}
+                            title="Cetak bukti serah terima"
+                            aria-label={`Cetak bukti ${p.uraian}`}
+                          >
+                            <Printer className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        )}
                         {/* Approved spending is locked; only a super admin may delete it. */}
                         {p.status !== 'approved' && (
                           <button
@@ -373,6 +388,13 @@ export function PengeluaranClient({ pengeluaranList, danaList, kategoriList, buk
       </Dialog>
 
       {/* Delete Dialog */}
+      <CetakBuktiPengeluaran
+        pengeluaran={printTarget}
+        open={printTarget !== null}
+        onOpenChange={o => { if (!o) setPrintTarget(null) }}
+        defaultJabatan={pemberiJabatan}
+      />
+
       <Dialog open={openDel} onOpenChange={setOpenDel}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>

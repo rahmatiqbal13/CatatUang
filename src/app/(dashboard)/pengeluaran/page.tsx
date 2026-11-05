@@ -12,10 +12,11 @@ export default async function PengeluaranPage({ searchParams }: { searchParams: 
   const { current: currentBuku } = await resolveBuku(supabase, bukuParam)
   const bukuId = currentBuku?.id ?? -1
 
-  const [{ data: pengeluaranList }, { data: danaList }, { data: kategoriList }] = await Promise.all([
+  const [{ data: pengeluaranList }, { data: danaList }, { data: kategoriList }, { data: jabatanSetting }] = await Promise.all([
     fetchAll((from, to) => supabase.from('pengeluaran').select('*, dana_masuk!inner(buku_id)').eq('dana_masuk.buku_id', bukuId).order('tanggal', { ascending: false }).order('id').range(from, to)),
     supabase.from('dana_masuk').select('id, nama_dana').eq('buku_id', bukuId).order('nama_dana'),
     supabase.from('kategori').select('*').order('nama'),
+    supabase.from('settings').select('value').eq('key', 'pihak_pertama_jabatan').maybeSingle(),
   ])
 
   return (
@@ -24,6 +25,7 @@ export default async function PengeluaranPage({ searchParams }: { searchParams: 
       danaList={(danaList || []) as Pick<DanaMasuk, 'id' | 'nama_dana'>[]}
       kategoriList={(kategoriList || []) as Kategori[]}
       bukuNama={currentBuku?.nama ?? ''}
+      pemberiJabatan={(jabatanSetting?.value as string | undefined) || undefined}
     />
   )
 }

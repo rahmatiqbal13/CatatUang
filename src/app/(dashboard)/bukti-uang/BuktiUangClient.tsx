@@ -17,16 +17,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, Loader2, Printer } from 'lucide-react'
-import { pdf } from '@react-pdf/renderer'
-import { BuktiUangPDF, JUDUL_BUKTI } from '@/components/pdf/BuktiUangPDF'
+import { JUDUL_BUKTI } from '@/components/pdf/BuktiUangPDF'
+import { JENIS_PREFIX, downloadBuktiPdf } from '@/lib/bukti-pdf'
 
 const JENIS_LABEL: Record<JenisBuktiUang, string> = {
   penerimaan: 'Bukti Penerimaan Uang',
   serah_terima: 'Bukti Serah Terima Uang',
-}
-const JENIS_PREFIX: Record<JenisBuktiUang, string> = {
-  penerimaan: 'BPU',
-  serah_terima: 'BSTU',
 }
 
 type Props = { buktiList: BuktiUang[] }
@@ -65,13 +61,7 @@ export function BuktiUangClient({ buktiList }: Props) {
   async function handlePrint(b: BuktiUang) {
     setPrintingId(b.id)
     try {
-      const blob = await pdf(<BuktiUangPDF bukti={b} />).toBlob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${JENIS_PREFIX[b.jenis]}_${b.nomor.replace(/\//g, '-')}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
+      await downloadBuktiPdf(b)
       toast.success('Bukti berhasil diunduh')
     } catch (err) {
       console.error(err)
