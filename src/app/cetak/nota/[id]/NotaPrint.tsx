@@ -23,23 +23,27 @@ const PAGE_CSS: Record<Template, string> = {
   thermal80: '@page { margin: 0; }',
 }
 
-// Last-used template, remembered per browser.
-const KEY = 'catatuang.nota.template'
+// Print preferences (template, show number), remembered per browser.
+const TEMPLATE_KEY = 'catatuang.nota.template'
+const NOMOR_KEY = 'catatuang.nota.showNomor'
 const listeners = new Set<() => void>()
-const readTemplate = (): Template => {
-  try {
-    const v = localStorage.getItem(KEY)
-    return v === 'a5' || v === 'thermal80' ? v : 'a4'
-  } catch { return 'a4' }
+const readPref = (key: string) => {
+  try { return localStorage.getItem(key) } catch { return null }
 }
-const writeTemplate = (t: Template) => {
-  try { localStorage.setItem(KEY, t) } catch { /* private mode: just don't remember */ }
+const writePref = (key: string, value: string) => {
+  try { localStorage.setItem(key, value) } catch { /* private mode: just don't remember */ }
   listeners.forEach(l => l())
 }
 const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } }
+const readTemplate = (): Template => {
+  const v = readPref(TEMPLATE_KEY)
+  return v === 'a5' || v === 'thermal80' ? v : 'a4'
+}
+const readShowNomor = () => readPref(NOMOR_KEY) !== '0'
 
 export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
   const template = useSyncExternalStore(subscribe, readTemplate, () => 'a4' as Template)
+  const showNomor = useSyncExternalStore(subscribe, readShowNomor, () => true)
   const thermal = template === 'thermal80'
 
   return (
@@ -68,7 +72,7 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
                 key={t.id}
                 role="radio"
                 aria-checked={on}
-                onClick={() => writeTemplate(t.id)}
+                onClick={() => writePref(TEMPLATE_KEY, t.id)}
                 className="flex flex-col items-start rounded-[12px] border px-3 py-[6px] text-left"
                 style={{ borderColor: on ? '#9DBBA8' : 'var(--divider)', background: on ? 'var(--accent-100)' : 'transparent', color: on ? 'var(--brand)' : 'var(--text)' }}
               >
@@ -78,6 +82,21 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
             )
           })}
         </div>
+        <label className="flex min-h-11 cursor-pointer items-center gap-[10px] text-[13px] font-semibold">
+          <button
+            role="switch"
+            aria-checked={showNomor}
+            onClick={() => writePref(NOMOR_KEY, showNomor ? '0' : '1')}
+            className="relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors"
+            style={{ background: showNomor ? 'var(--accent)' : 'var(--border-dashed)' }}
+          >
+            <span
+              className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full shadow-[0_1px_3px_rgba(0,0,0,.25)] transition-transform"
+              style={{ background: 'var(--surface-elev)', transform: showNomor ? 'translateX(18px)' : 'none' }}
+            />
+          </button>
+          Tampilkan nomor
+        </label>
         <button
           onClick={() => window.print()}
           className="inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold"
@@ -101,7 +120,9 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
       </div>
 
       <div className="nota-stage flex justify-center px-4 py-8">
-        {thermal ? <ThermalSlip nota={nota} toko={toko} /> : <PaperSlip nota={nota} toko={toko} size={template} />}
+        {thermal
+          ? <ThermalSlip nota={nota} toko={toko} showNomor={showNomor} />
+          : <PaperSlip nota={nota} toko={toko} size={template} showNomor={showNomor} />}
       </div>
     </div>
   )
@@ -109,7 +130,7 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
 
 /* ── A4 / A5 ─────────────────────────────────────────────────────────── */
 
-function PaperSlip({ nota, toko, size }: { nota: Nota; toko: Toko; size: 'a4' | 'a5' }) {
+function PaperSlip({ nota, toko, size, showNomor }: { nota: Nota; toko: Toko; size: 'a4' | 'a5'; showNomor: boolean }) {
   const a5 = size === 'a5'
   const subtotal = subtotalItems(nota.items)
   const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
@@ -140,7 +161,7 @@ function PaperSlip({ nota, toko, size }: { nota: Nota; toko: Toko; size: 'a4' | 
         </div>
         <div className="shrink-0 text-right">
           <div className="label-caps" style={{ color: '#646B64', fontSize: fs(11) }}>Nota</div>
-          <div className="cu-mono font-semibold" style={{ fontSize: fs(14) }}>{nota.nomor}</div>
+          {showNomor && <div className="cu-mono font-semibold" style={{ fontSize: fs(14) }}>{nota.nomor}</div>}
           <div className="mt-1" style={{ color: '#45514A' }}>{formatTanggal(nota.tanggal)}</div>
         </div>
       </header>
@@ -222,7 +243,7 @@ function Line({ label, value }: { label: string; value: string }) {
 /* ── Thermal 80 mm ───────────────────────────────────────────────────── */
 
 // 80 mm roll ≈ 72 mm printable; pure black, mono, no greys (thermal heads dither them badly).
-function ThermalSlip({ nota, toko }: { nota: Nota; toko: Toko }) {
+function ThermalSlip({ nota, toko, showNomor }: { nota: Nota; toko: Toko; showNomor: boolean }) {
   const subtotal = subtotalItems(nota.items)
   const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
   const rule = <div style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
@@ -252,7 +273,7 @@ function ThermalSlip({ nota, toko }: { nota: Nota; toko: Toko }) {
         {toko.telepon && <div>Telp. {toko.telepon}</div>}
       </div>
       {rule}
-      {row('No', nota.nomor)}
+      {showNomor && row('No', nota.nomor)}
       {row('Tgl', formatTanggal(nota.tanggal))}
       {nota.pelanggan && row('Plg', nota.pelanggan)}
       {rule}
