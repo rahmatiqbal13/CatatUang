@@ -3,6 +3,9 @@ import type { NotaItem } from './types'
 
 export const METODE_BAYAR = ['Tunai', 'Transfer', 'QRIS', 'Debit'] as const
 
+/** Suggestions for the per-item unit field; any free text is accepted. */
+export const SATUAN = ['PCS', 'BOT', 'DOS', 'BKS', 'PAK', 'BOX', 'LBR', 'KG', 'LTR', 'SET', 'PORSI'] as const
+
 export const subtotalItems = (items: NotaItem[]) =>
   items.reduce((s, it) => s + Number(it.qty) * Number(it.harga), 0)
 

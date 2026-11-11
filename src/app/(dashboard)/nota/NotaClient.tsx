@@ -7,7 +7,8 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { handleSupabaseError } from '@/lib/error-handler'
 import { formatRupiah } from '@/lib/formatters'
-import { METODE_BAYAR, generateNomorNota, subtotalItems } from '@/lib/nota'
+import { METODE_BAYAR, SATUAN, generateNomorNota, subtotalItems } from '@/lib/nota'
+import { useUserProfile } from '@/hooks/use-user-profile'
 import type { Nota, NotaItem, Toko } from '@/lib/types'
 import { Topbar, BarButton } from '@/components/layout/Topbar'
 import { Button } from '@/components/ui/button'
@@ -22,21 +23,27 @@ type Props = { notaList: Nota[]; tokoList: Toko[] }
 const todayIso = () => new Date().toISOString().split('T')[0]
 const labelCls = 'mb-[7px] block text-[12.5px] font-semibold'
 
-type ItemDraft = { nama: string; qty: string; harga: string }
+type ItemDraft = { nama: string; satuan: string; qty: string; harga: string }
 type NotaForm = {
-  nomor: string; toko_id: string; tanggal: string; pelanggan: string
+  nomor: string; toko_id: string; tanggal: string; kasir: string
   items: ItemDraft[]; diskon: string; metode: string; bayar: string; catatan: string
 }
-const emptyItem: ItemDraft = { nama: '', qty: '1', harga: '' }
+const emptyItem: ItemDraft = { nama: '', satuan: 'PCS', qty: '1', harga: '' }
 
 const toItems = (drafts: ItemDraft[]): NotaItem[] =>
   drafts
     .filter(d => d.nama.trim())
-    .map(d => ({ nama: d.nama.trim(), qty: Number(d.qty) || 0, harga: Math.round(Number(d.harga) || 0) }))
+    .map(d => ({
+      nama: d.nama.trim(),
+      ...(d.satuan.trim() ? { satuan: d.satuan.trim().toUpperCase() } : {}),
+      qty: Number(d.qty) || 0,
+      harga: Math.round(Number(d.harga) || 0),
+    }))
 
 export function NotaClient({ notaList, tokoList }: Props) {
   const router = useRouter()
   const supabase = createClient()
+  const { profile } = useUserProfile()
   const tokoById = useMemo(() => new Map(tokoList.map(t => [t.id, t])), [tokoList])
 
   const [filterToko, setFilterToko] = useState<number | 'all'>('all')
@@ -52,7 +59,7 @@ export function NotaClient({ notaList, tokoList }: Props) {
     if (filterToko !== 'all' && n.toko_id !== filterToko) return false
     const q = search.trim().toLowerCase()
     if (!q) return true
-    return [n.nomor, n.pelanggan ?? '', tokoById.get(n.toko_id)?.nama ?? '', ...n.items.map(i => i.nama)]
+    return [n.nomor, n.kasir ?? '', n.pelanggan ?? '', tokoById.get(n.toko_id)?.nama ?? '', ...n.items.map(i => i.nama)]
       .some(v => v.toLowerCase().includes(q))
   })
   const totalFiltered = filtered.reduce((s, n) => s + Number(n.total), 0)
@@ -62,7 +69,7 @@ export function NotaClient({ notaList, tokoList }: Props) {
     const nomor = await generateNomorNota(supabase)
     const lastToko = filterToko !== 'all' ? filterToko : (notaList[0]?.toko_id ?? tokoList[0]?.id)
     setForm({
-      nomor, toko_id: lastToko ? String(lastToko) : '', tanggal: todayIso(), pelanggan: '',
+      nomor, toko_id: lastToko ? String(lastToko) : '', tanggal: todayIso(), kasir: profile?.nama ?? '',
       items: [{ ...emptyItem }], diskon: '', metode: 'Tunai', bayar: '', catatan: '',
     })
   }
@@ -70,8 +77,8 @@ export function NotaClient({ notaList, tokoList }: Props) {
   function openEdit(n: Nota) {
     setEditTarget(n)
     setForm({
-      nomor: n.nomor, toko_id: String(n.toko_id), tanggal: n.tanggal, pelanggan: n.pelanggan ?? '',
-      items: n.items.length ? n.items.map(i => ({ nama: i.nama, qty: String(i.qty), harga: String(i.harga) })) : [{ ...emptyItem }],
+      nomor: n.nomor, toko_id: String(n.toko_id), tanggal: n.tanggal, kasir: n.kasir ?? '',
+      items: n.items.length ? n.items.map(i => ({ nama: i.nama, satuan: i.satuan ?? '', qty: String(i.qty), harga: String(i.harga) })) : [{ ...emptyItem }],
       diskon: n.diskon ? String(n.diskon) : '', metode: n.metode, bayar: n.bayar != null ? String(n.bayar) : '', catatan: n.catatan ?? '',
     })
   }
@@ -97,7 +104,7 @@ export function NotaClient({ notaList, tokoList }: Props) {
     const payload = {
       toko_id: Number(form.toko_id),
       tanggal: form.tanggal,
-      pelanggan: form.pelanggan.trim() || null,
+      kasir: form.kasir.trim() || null,
       items,
       diskon,
       total,
@@ -200,7 +207,7 @@ export function NotaClient({ notaList, tokoList }: Props) {
                 <Search className="h-4 w-4 shrink-0" style={{ color: 'var(--text-muted)' }} />
                 <input
                   className="flex-1 bg-transparent text-[14px] outline-none"
-                  placeholder="Cari nomor, pelanggan, item"
+                  placeholder="Cari nomor, kasir, item"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -230,10 +237,9 @@ export function NotaClient({ notaList, tokoList }: Props) {
                       <div className="min-w-0 flex-[1_1_200px]">
                         <div className="flex flex-wrap items-baseline gap-2">
                           <span className="cu-mono text-[13px] font-semibold">{n.nomor}</span>
-                          {n.pelanggan && <span className="text-[15px] font-semibold">{n.pelanggan}</span>}
                         </div>
                         <div className="mt-1 text-[12.5px]" style={{ color: 'var(--text-muted)' }}>
-                          {toko?.nama ?? '—'} · {n.items.length} item · {n.metode}
+                          {toko?.nama ?? '—'} · {n.items.length} item · {n.metode}{n.kasir ? ` · Kasir ${n.kasir}` : ''}
                         </div>
                       </div>
                       <span className="cu-mono ml-auto min-w-[130px] text-right text-[15px] font-semibold whitespace-nowrap">
@@ -308,8 +314,8 @@ export function NotaClient({ notaList, tokoList }: Props) {
               </div>
 
               <div>
-                <Label className={labelCls} style={{ color: 'var(--text-2)' }}>Pelanggan</Label>
-                <Input value={form.pelanggan} onChange={e => setForm(f => f && { ...f, pelanggan: e.target.value })} placeholder="Opsional" className="text-[14px]" />
+                <Label className={labelCls} style={{ color: 'var(--text-2)' }}>Kasir</Label>
+                <Input value={form.kasir} onChange={e => setForm(f => f && { ...f, kasir: e.target.value })} placeholder="Nama yang melayani — opsional" className="text-[14px]" />
               </div>
 
               {/* Items */}
@@ -318,14 +324,14 @@ export function NotaClient({ notaList, tokoList }: Props) {
                   <span className="label-caps whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>Item</span>
                   <span className="h-px flex-1" style={{ background: 'var(--divider)' }} />
                 </div>
-                <div className="hidden grid-cols-[1fr_70px_130px_120px_32px] gap-2 px-1 pb-1 text-[11.5px] sm:grid" style={{ color: 'var(--text-muted)' }}>
-                  <span>Nama item</span><span>Qty</span><span>Harga</span><span className="text-right">Subtotal</span><span />
+                <div className="hidden grid-cols-[1fr_64px_80px_120px_110px_32px] gap-2 px-1 pb-1 text-[11.5px] sm:grid" style={{ color: 'var(--text-muted)' }}>
+                  <span>Nama item</span><span>Qty</span><span>Satuan</span><span>Harga</span><span className="text-right">Subtotal</span><span />
                 </div>
-                <div className="flex flex-col gap-2">
+                <datalist id="nota-satuan">{SATUAN.map(u => <option key={u} value={u} />)}</datalist>
+                <div className="flex flex-col gap-3 sm:gap-2">
                   {form.items.map((it, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_70px_32px] gap-2 sm:grid-cols-[1fr_70px_130px_120px_32px] sm:items-center">
-                      <Input value={it.nama} onChange={e => setItem(i, { nama: e.target.value })} placeholder="Nama item" className="text-[14px]" />
-                      <Input type="number" inputMode="decimal" min={0} value={it.qty} onChange={e => setItem(i, { qty: e.target.value })} className="text-[14px]" aria-label="Qty" />
+                    <div key={i} className="grid grid-cols-[64px_80px_1fr_32px] gap-2 sm:grid-cols-[1fr_64px_80px_120px_110px_32px] sm:items-center">
+                      <Input value={it.nama} onChange={e => setItem(i, { nama: e.target.value })} placeholder="Nama item" className="col-span-3 text-[14px] sm:col-span-1" />
                       <button
                         onClick={() => setForm(f => f && { ...f, items: f.items.length > 1 ? f.items.filter((_, j) => j !== i) : [{ ...emptyItem }] })}
                         className="flex h-11 w-8 items-center justify-center rounded-full hover:bg-[var(--danger-soft)] sm:order-last"
@@ -334,6 +340,8 @@ export function NotaClient({ notaList, tokoList }: Props) {
                       >
                         <X className="h-4 w-4" />
                       </button>
+                      <Input type="number" inputMode="decimal" min={0} value={it.qty} onChange={e => setItem(i, { qty: e.target.value })} className="text-[14px]" aria-label="Qty" />
+                      <Input list="nota-satuan" value={it.satuan} onChange={e => setItem(i, { satuan: e.target.value })} placeholder="PCS" className="text-[14px] uppercase" aria-label="Satuan" />
                       <Input type="number" inputMode="numeric" min={0} value={it.harga} onChange={e => setItem(i, { harga: e.target.value })} placeholder="Harga" className="col-span-2 text-[14px] sm:col-span-1" aria-label="Harga" />
                       <span className="cu-mono hidden text-right text-[13.5px] font-semibold sm:block">
                         {formatRupiah((Number(it.qty) || 0) * (Number(it.harga) || 0))}

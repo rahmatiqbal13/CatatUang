@@ -163,17 +163,11 @@ function PaperSlip({ nota, toko, size, showNomor }: { nota: Nota; toko: Toko; si
           <div className="label-caps" style={{ color: '#646B64', fontSize: fs(11) }}>Nota</div>
           {showNomor && <div className="cu-mono font-semibold" style={{ fontSize: fs(14) }}>{nota.nomor}</div>}
           <div className="mt-1" style={{ color: '#45514A' }}>{formatTanggal(nota.tanggal)}</div>
+          {nota.kasir && <div style={{ color: '#646B64' }}>Kasir: {nota.kasir}</div>}
         </div>
       </header>
 
       <div style={{ borderTop: '3px double #18241E' }} />
-
-      {nota.pelanggan && (
-        <div className="flex gap-3">
-          <span style={{ color: '#646B64', width: 110 }}>Kepada</span>
-          <span className="font-semibold">{nota.pelanggan}</span>
-        </div>
-      )}
 
       <table className="w-full border-collapse">
         <thead>
@@ -182,7 +176,7 @@ function PaperSlip({ nota, toko, size, showNomor }: { nota: Nota; toko: Toko; si
               <th
                 key={h}
                 className="label-caps py-2 font-medium"
-                style={{ color: '#646B64', fontSize: fs(10.5), textAlign: i >= 2 ? 'right' : 'left', width: i === 0 ? 32 : i === 2 ? 50 : i >= 3 ? 110 : undefined }}
+                style={{ color: '#646B64', fontSize: fs(10.5), textAlign: i >= 2 ? 'right' : 'left', width: i === 0 ? 32 : i === 2 ? 80 : i >= 3 ? 110 : undefined }}
               >
                 {h}
               </th>
@@ -194,7 +188,7 @@ function PaperSlip({ nota, toko, size, showNomor }: { nota: Nota; toko: Toko; si
             <tr key={i} style={{ borderBottom: '1px solid #E3DDD0' }}>
               <td className="cu-mono py-2" style={{ color: '#646B64' }}>{i + 1}</td>
               <td className="py-2">{it.nama}</td>
-              <td className="cu-mono py-2 text-right">{it.qty}</td>
+              <td className="cu-mono py-2 text-right whitespace-nowrap">{it.qty}{it.satuan ? ` ${it.satuan}` : ''}</td>
               <td className="cu-mono py-2 text-right">{formatRp(it.harga)}</td>
               <td className="cu-mono py-2 text-right font-semibold">{formatRp(it.qty * it.harga)}</td>
             </tr>
@@ -242,16 +236,33 @@ function Line({ label, value }: { label: string; value: string }) {
 
 /* ── Thermal 80 mm ───────────────────────────────────────────────────── */
 
-// 80 mm roll ≈ 72 mm printable; pure black, mono, no greys (thermal heads dither them badly).
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** "16/10/2026 19:06" — time only when the nota was created on its own date (not backdated). */
+function stamp(nota: Nota) {
+  const [y, m, d] = nota.tanggal.split('-')
+  const date = `${d}/${m}/${y}`
+  const created = new Date(nota.created_at)
+  if (Number.isNaN(created.getTime())) return date
+  const sameDay = created.getFullYear() === +y && created.getMonth() + 1 === +m && created.getDate() === +d
+  return sameDay ? `${date} ${pad2(created.getHours())}:${pad2(created.getMinutes())}` : date
+}
+
+// 80 mm roll ≈ 72 mm printable; pure black, mono, all caps, no greys (thermal heads dither them badly).
 function ThermalSlip({ nota, toko, showNomor }: { nota: Nota; toko: Toko; showNomor: boolean }) {
   const subtotal = subtotalItems(nota.items)
   const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
-  const rule = <div style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
-  const row = (l: string, r: string, bold = false) => (
-    <div className="flex justify-between gap-2" style={{ fontWeight: bold ? 700 : 400 }}>
-      <span>{l}</span><span className="whitespace-nowrap">{r}</span>
+  const dash = '1px dashed #000'
+  const rule = <div style={{ borderTop: dash, margin: '5px 0' }} />
+  // "Sub Total     :      549.631"
+  const sum = (l: string, r: string, bold = false) => (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2ch 13ch', fontWeight: bold ? 700 : 400 }}>
+      <span>{l}</span><span>:</span><span className="text-right whitespace-nowrap">{r}</span>
     </div>
   )
+  const ref = [showNomor ? nota.nomor : null, nota.metode, 'Umum'].filter(Boolean).join('/')
+  // Only reserve the unit column when some item actually has a unit.
+  const hasSatuan = nota.items.some(it => it.satuan)
 
   return (
     <article
@@ -265,33 +276,45 @@ function ThermalSlip({ nota, toko, showNomor }: { nota: Nota; toko: Toko; showNo
         boxShadow: '0 22px 44px -30px rgba(24,36,30,.45)',
         fontSize: 11.5,
         lineHeight: 1.35,
+        textTransform: 'uppercase',
       }}
     >
       <div className="text-center">
-        <div style={{ fontSize: 15, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.02em' }}>{toko.nama}</div>
+        <div style={{ fontSize: 13.5, fontWeight: 700 }}>{toko.nama}</div>
         {toko.alamat && <div className="whitespace-pre-line">{toko.alamat}</div>}
-        {toko.telepon && <div>Telp. {toko.telepon}</div>}
+        {toko.telepon && <div>Telp : {toko.telepon}</div>}
+        <div>{ref}</div>
+        {nota.kasir && <div>{nota.kasir} Kasir</div>}
+      </div>
+
+      {/* ------16/10/2026 19:06------ */}
+      <div className="flex items-center gap-[1ch]" style={{ marginTop: 3 }}>
+        <span className="flex-1" style={{ borderTop: dash }} />
+        <span className="whitespace-nowrap">{stamp(nota)}</span>
+        <span className="flex-1" style={{ borderTop: dash }} />
       </div>
       {rule}
-      {showNomor && row('No', nota.nomor)}
-      {row('Tgl', formatTanggal(nota.tanggal))}
-      {nota.pelanggan && row('Plg', nota.pelanggan)}
-      {rule}
+
       {nota.items.map((it, i) => (
-        <div key={i} style={{ marginBottom: 3 }}>
-          <div>{it.nama}</div>
-          {row(`  ${it.qty} x ${formatRp(it.harga)}`, formatRp(it.qty * it.harga))}
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: hasSatuan ? '3ch 4ch 1fr auto' : '3ch 1fr auto', columnGap: '1ch', marginBottom: 4 }}>
+          <span className="text-right">{it.qty}</span>
+          {hasSatuan && <span>{it.satuan ?? ''}</span>}
+          <span style={{ overflowWrap: 'anywhere' }}>
+            {it.nama}
+            {it.qty !== 1 && <span style={{ display: 'block' }}>@{formatRp(it.harga)}</span>}
+          </span>
+          <span className="text-right whitespace-nowrap">{formatRp(it.qty * it.harga)}</span>
         </div>
       ))}
+
       {rule}
-      {row('Subtotal', formatRp(subtotal))}
-      {Number(nota.diskon) > 0 && row('Diskon', `-${formatRp(nota.diskon)}`)}
-      <div style={{ fontSize: 14 }}>{row('TOTAL', `Rp ${formatRp(nota.total)}`, true)}</div>
-      {row(nota.metode, nota.bayar != null ? formatRp(nota.bayar) : '-')}
-      {kembali != null && kembali > 0 && row('Kembali', formatRp(kembali))}
+      {sum('Sub Total', formatRp(subtotal))}
+      {Number(nota.diskon) > 0 && sum('Diskon', `-${formatRp(nota.diskon)}`)}
+      {sum('Total', formatRp(nota.total), true)}
+      {nota.bayar != null && sum(nota.metode, formatRp(nota.bayar))}
+      {kembali != null && kembali > 0 && sum('Kembali', formatRp(kembali))}
       {nota.catatan && (<>{rule}<div>{nota.catatan}</div></>)}
-      {rule}
-      {toko.catatan_kaki && <div className="text-center">{toko.catatan_kaki}</div>}
+      {toko.catatan_kaki && (<>{rule}<div className="text-center">{toko.catatan_kaki}</div></>)}
     </article>
   )
 }

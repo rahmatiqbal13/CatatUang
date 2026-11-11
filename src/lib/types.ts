@@ -159,7 +159,7 @@ export type Toko = {
   updated_at: string
 }
 
-export type NotaItem = { nama: string; qty: number; harga: number }
+export type NotaItem = { nama: string; satuan?: string; qty: number; harga: number }
 
 export type Nota = {
   id: number
@@ -173,6 +173,7 @@ export type Nota = {
   metode: string
   bayar: number | null
   catatan: string | null
+  kasir: string | null
   created_at: string
   updated_at: string
 }

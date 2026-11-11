@@ -22,13 +22,14 @@ CREATE TABLE IF NOT EXISTS public.nota (
   toko_id     BIGINT NOT NULL REFERENCES public.toko(id) ON DELETE RESTRICT,
   tanggal     DATE NOT NULL,
   pelanggan   TEXT,
-  -- [{ "nama": "Kopi susu", "qty": 2, "harga": 15000 }, ...]
+  -- [{ "nama": "Kopi susu", "satuan": "PCS", "qty": 2, "harga": 15000 }, ...]
   items       JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(items) = 'array'),
   diskon      NUMERIC(18,2) NOT NULL DEFAULT 0 CHECK (diskon >= 0),
   total       NUMERIC(18,2) NOT NULL CHECK (total >= 0),  -- subtotal item − diskon
   metode      TEXT NOT NULL DEFAULT 'Tunai',
   bayar       NUMERIC(18,2),                               -- uang diterima (untuk kembalian)
   catatan     TEXT,
+  kasir       TEXT,                                        -- nama akun yang membuat nota
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
