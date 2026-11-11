@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Landmark, Receipt, ArrowLeftRight,
-  FileText, ChartColumn, Database, Users, SlidersVertical,
+  FileText, ChartColumn, Database, Users, SlidersVertical, ScrollText,
 } from 'lucide-react'
 
 export type NavItem = { href: string; label: string; Icon: typeof Landmark; superAdminOnly?: boolean }
@@ -16,6 +16,10 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { href: '/peminjaman', label: 'Peminjaman', Icon: ArrowLeftRight },
       { href: '/bukti-uang', label: 'Bukti Uang', Icon: FileText },
     ],
+  },
+  {
+    label: 'Toko',
+    items: [{ href: '/nota', label: 'Nota', Icon: ScrollText }],
   },
   {
     label: 'Analisa',
@@ -34,7 +38,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
 export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap(g => g.items)
 
 /** Routes behind the mobile "Lainnya" tab (the rest have their own tab). */
-export const MORE_PATHS = ['/peminjaman', '/bukti-uang', '/laporan', '/master-data', '/pengguna', '/pengaturan']
+export const MORE_PATHS = ['/peminjaman', '/bukti-uang', '/nota', '/laporan', '/master-data', '/pengguna', '/pengaturan']
 
 /** Paths that carry the active book in ?buku= — must match the existing repo constant. */
 export const BOOK_SCOPED_PATHS = ['/dashboard', '/dana', '/pengeluaran', '/peminjaman', '/laporan']

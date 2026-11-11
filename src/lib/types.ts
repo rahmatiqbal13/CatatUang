@@ -148,3 +148,31 @@ export type BuktiUang = {
   created_at: string
   updated_at: string
 }
+
+export type Toko = {
+  id: number
+  nama: string
+  alamat: string | null
+  telepon: string | null
+  catatan_kaki: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type NotaItem = { nama: string; qty: number; harga: number }
+
+export type Nota = {
+  id: number
+  nomor: string
+  toko_id: number
+  tanggal: string
+  pelanggan: string | null
+  items: NotaItem[]
+  diskon: number
+  total: number
+  metode: string
+  bayar: number | null
+  catatan: string | null
+  created_at: string
+  updated_at: string
+}

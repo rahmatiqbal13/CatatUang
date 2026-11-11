@@ -1,0 +1,276 @@
+'use client'
+
+import { useSyncExternalStore } from 'react'
+import { Printer, X } from 'lucide-react'
+import { formatRp } from '@/lib/tokens'
+import { formatTanggal, terbilangRupiah } from '@/lib/formatters'
+import { subtotalItems } from '@/lib/nota'
+import type { Nota, Toko } from '@/lib/types'
+
+type Template = 'a4' | 'a5' | 'thermal80'
+
+const TEMPLATES: { id: Template; label: string; hint: string }[] = [
+  { id: 'a4', label: 'A4', hint: 'Kertas biasa' },
+  { id: 'a5', label: 'A5', hint: 'Setengah A4' },
+  { id: 'thermal80', label: 'Thermal 80 mm', hint: 'Printer kasir' },
+]
+
+/* @page rules per template. Thermal leaves the page length to the printer driver
+   (continuous roll) — pick the 80 mm paper size in the print dialog. */
+const PAGE_CSS: Record<Template, string> = {
+  a4: '@page { size: A4; margin: 14mm; }',
+  a5: '@page { size: A5; margin: 9mm; }',
+  thermal80: '@page { margin: 0; }',
+}
+
+// Last-used template, remembered per browser.
+const KEY = 'catatuang.nota.template'
+const listeners = new Set<() => void>()
+const readTemplate = (): Template => {
+  try {
+    const v = localStorage.getItem(KEY)
+    return v === 'a5' || v === 'thermal80' ? v : 'a4'
+  } catch { return 'a4' }
+}
+const writeTemplate = (t: Template) => {
+  try { localStorage.setItem(KEY, t) } catch { /* private mode: just don't remember */ }
+  listeners.forEach(l => l())
+}
+const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } }
+
+export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
+  const template = useSyncExternalStore(subscribe, readTemplate, () => 'a4' as Template)
+  const thermal = template === 'thermal80'
+
+  return (
+    <div className="nota-print-root min-h-screen" style={{ background: 'var(--surface-2)' }}>
+      <style>{`
+        ${PAGE_CSS[template]}
+        @media print {
+          html, body, .nota-print-root { background: #fff !important; }
+          .nota-toolbar { display: none !important; }
+          .nota-stage { padding: 0 !important; }
+          .nota-sheet { box-shadow: none !important; border: 0 !important; margin: 0 !important; padding: ${thermal ? '3mm 4mm' : '0'} !important; }
+        }
+      `}</style>
+
+      {/* Toolbar — never printed */}
+      <div className="nota-toolbar sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b px-5 py-3" style={{ background: 'var(--surface-elev)', borderColor: 'var(--divider)' }}>
+        <div className="min-w-0 flex-1">
+          <div className="label-caps text-[10.5px]" style={{ color: 'var(--text-muted)' }}>Cetak nota</div>
+          <div className="cu-mono text-[14px] font-semibold">{nota.nomor}</div>
+        </div>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Template">
+          {TEMPLATES.map(t => {
+            const on = template === t.id
+            return (
+              <button
+                key={t.id}
+                role="radio"
+                aria-checked={on}
+                onClick={() => writeTemplate(t.id)}
+                className="flex flex-col items-start rounded-[12px] border px-3 py-[6px] text-left"
+                style={{ borderColor: on ? '#9DBBA8' : 'var(--divider)', background: on ? 'var(--accent-100)' : 'transparent', color: on ? 'var(--brand)' : 'var(--text)' }}
+              >
+                <span className="text-[13px] font-semibold">{t.label}</span>
+                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{t.hint}</span>
+              </button>
+            )
+          })}
+        </div>
+        <button
+          onClick={() => window.print()}
+          className="inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold"
+          style={{ background: 'var(--accent)', color: 'var(--surface-elev)' }}
+        >
+          <Printer className="h-4 w-4" /> Cetak
+        </button>
+        <button
+          onClick={() => window.close()}
+          className="flex h-11 w-11 items-center justify-center rounded-full border"
+          style={{ borderColor: 'var(--divider)' }}
+          aria-label="Tutup"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        {thermal && (
+          <p className="w-full text-[12px]" style={{ color: 'var(--text-muted)' }}>
+            Di dialog cetak, pilih printer thermal, ukuran kertas 80 mm, margin “Tidak ada”, dan matikan “Header dan footer”.
+          </p>
+        )}
+      </div>
+
+      <div className="nota-stage flex justify-center px-4 py-8">
+        {thermal ? <ThermalSlip nota={nota} toko={toko} /> : <PaperSlip nota={nota} toko={toko} size={template} />}
+      </div>
+    </div>
+  )
+}
+
+/* ── A4 / A5 ─────────────────────────────────────────────────────────── */
+
+function PaperSlip({ nota, toko, size }: { nota: Nota; toko: Toko; size: 'a4' | 'a5' }) {
+  const a5 = size === 'a5'
+  const subtotal = subtotalItems(nota.items)
+  const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
+  const fs = (a4: number) => (a5 ? Math.round(a4 * 0.85 * 10) / 10 : a4)
+
+  return (
+    <article
+      className="nota-sheet flex flex-col"
+      style={{
+        // Sheet = paper minus @page margins, so the preview matches the print.
+        width: a5 ? '130mm' : '182mm',
+        minHeight: a5 ? '192mm' : '269mm',
+        background: '#fff',
+        color: '#18241E',
+        padding: a5 ? '9mm' : '14mm',
+        boxSizing: 'content-box',
+        boxShadow: '0 22px 44px -30px rgba(24,36,30,.45)',
+        border: '1px solid var(--divider)',
+        gap: a5 ? 14 : 20,
+        fontSize: fs(13),
+      }}
+    >
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="serif leading-[1.05] tracking-[-0.02em]" style={{ fontSize: fs(30) }}>{toko.nama}</div>
+          {toko.alamat && <div className="mt-[6px] whitespace-pre-line" style={{ color: '#45514A' }}>{toko.alamat}</div>}
+          {toko.telepon && <div style={{ color: '#45514A' }}>Telp. {toko.telepon}</div>}
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="label-caps" style={{ color: '#646B64', fontSize: fs(11) }}>Nota</div>
+          <div className="cu-mono font-semibold" style={{ fontSize: fs(14) }}>{nota.nomor}</div>
+          <div className="mt-1" style={{ color: '#45514A' }}>{formatTanggal(nota.tanggal)}</div>
+        </div>
+      </header>
+
+      <div style={{ borderTop: '3px double #18241E' }} />
+
+      {nota.pelanggan && (
+        <div className="flex gap-3">
+          <span style={{ color: '#646B64', width: 110 }}>Kepada</span>
+          <span className="font-semibold">{nota.pelanggan}</span>
+        </div>
+      )}
+
+      <table className="w-full border-collapse">
+        <thead>
+          <tr style={{ borderBottom: '1px solid #18241E' }}>
+            {['No', 'Item', 'Qty', 'Harga', 'Jumlah'].map((h, i) => (
+              <th
+                key={h}
+                className="label-caps py-2 font-medium"
+                style={{ color: '#646B64', fontSize: fs(10.5), textAlign: i >= 2 ? 'right' : 'left', width: i === 0 ? 32 : i === 2 ? 50 : i >= 3 ? 110 : undefined }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {nota.items.map((it, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #E3DDD0' }}>
+              <td className="cu-mono py-2" style={{ color: '#646B64' }}>{i + 1}</td>
+              <td className="py-2">{it.nama}</td>
+              <td className="cu-mono py-2 text-right">{it.qty}</td>
+              <td className="cu-mono py-2 text-right">{formatRp(it.harga)}</td>
+              <td className="cu-mono py-2 text-right font-semibold">{formatRp(it.qty * it.harga)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="ml-auto flex w-full max-w-[300px] flex-col gap-1">
+        <Line label="Subtotal" value={formatRp(subtotal)} />
+        {Number(nota.diskon) > 0 && <Line label="Diskon" value={`−${formatRp(nota.diskon)}`} />}
+        <div className="mt-1 flex items-baseline justify-between border-t pt-2" style={{ borderColor: '#18241E' }}>
+          <span className="font-semibold">Total</span>
+          <span className="serif tracking-[-0.02em]" style={{ fontSize: fs(26) }}>Rp {formatRp(nota.total)}</span>
+        </div>
+        <Line label={`Bayar · ${nota.metode}`} value={nota.bayar != null ? formatRp(nota.bayar) : '—'} />
+        {kembali != null && kembali > 0 && <Line label="Kembali" value={formatRp(kembali)} />}
+      </div>
+
+      <div className="serif italic" style={{ color: '#45514A', fontSize: fs(15) }}>
+        Terbilang: {terbilangRupiah(Number(nota.total))}
+      </div>
+
+      {nota.catatan && <div style={{ color: '#45514A' }}>Catatan: {nota.catatan}</div>}
+
+      <div className="mt-auto flex items-end justify-between gap-6 pt-6">
+        <div className="serif italic" style={{ color: '#45514A', fontSize: fs(14) }}>{toko.catatan_kaki}</div>
+        <div className="w-[180px] shrink-0 text-center">
+          <div style={{ color: '#646B64' }}>Hormat kami,</div>
+          <div style={{ height: a5 ? 44 : 60 }} />
+          <div className="border-t pt-1 font-semibold" style={{ borderColor: '#18241E' }}>{toko.nama}</div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function Line({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <span style={{ color: '#646B64' }}>{label}</span>
+      <span className="cu-mono">{value}</span>
+    </div>
+  )
+}
+
+/* ── Thermal 80 mm ───────────────────────────────────────────────────── */
+
+// 80 mm roll ≈ 72 mm printable; pure black, mono, no greys (thermal heads dither them badly).
+function ThermalSlip({ nota, toko }: { nota: Nota; toko: Toko }) {
+  const subtotal = subtotalItems(nota.items)
+  const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
+  const rule = <div style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
+  const row = (l: string, r: string, bold = false) => (
+    <div className="flex justify-between gap-2" style={{ fontWeight: bold ? 700 : 400 }}>
+      <span>{l}</span><span className="whitespace-nowrap">{r}</span>
+    </div>
+  )
+
+  return (
+    <article
+      className="nota-sheet cu-mono"
+      style={{
+        width: '72mm',
+        background: '#fff',
+        color: '#000',
+        padding: '4mm',
+        boxSizing: 'content-box',
+        boxShadow: '0 22px 44px -30px rgba(24,36,30,.45)',
+        fontSize: 11.5,
+        lineHeight: 1.35,
+      }}
+    >
+      <div className="text-center">
+        <div style={{ fontSize: 15, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.02em' }}>{toko.nama}</div>
+        {toko.alamat && <div className="whitespace-pre-line">{toko.alamat}</div>}
+        {toko.telepon && <div>Telp. {toko.telepon}</div>}
+      </div>
+      {rule}
+      {row('No', nota.nomor)}
+      {row('Tgl', formatTanggal(nota.tanggal))}
+      {nota.pelanggan && row('Plg', nota.pelanggan)}
+      {rule}
+      {nota.items.map((it, i) => (
+        <div key={i} style={{ marginBottom: 3 }}>
+          <div>{it.nama}</div>
+          {row(`  ${it.qty} x ${formatRp(it.harga)}`, formatRp(it.qty * it.harga))}
+        </div>
+      ))}
+      {rule}
+      {row('Subtotal', formatRp(subtotal))}
+      {Number(nota.diskon) > 0 && row('Diskon', `-${formatRp(nota.diskon)}`)}
+      <div style={{ fontSize: 14 }}>{row('TOTAL', `Rp ${formatRp(nota.total)}`, true)}</div>
+      {row(nota.metode, nota.bayar != null ? formatRp(nota.bayar) : '-')}
+      {kembali != null && kembali > 0 && row('Kembali', formatRp(kembali))}
+      {nota.catatan && (<>{rule}<div>{nota.catatan}</div></>)}
+      {rule}
+      {toko.catatan_kaki && <div className="text-center">{toko.catatan_kaki}</div>}
+    </article>
+  )
+}
