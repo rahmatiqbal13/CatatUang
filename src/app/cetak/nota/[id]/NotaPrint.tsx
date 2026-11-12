@@ -128,6 +128,9 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
   )
 }
 
+/** Signature lines at the foot of every template: the recipient signs "Tanda terima"; "Hormat kami" is the store's, line only. */
+const SIGNATURES = ['Tanda terima', 'Hormat kami'] as const
+
 /* ── A4 / A5 ─────────────────────────────────────────────────────────── */
 
 function PaperSlip({ nota, toko, size, showNomor }: { nota: Nota; toko: Toko; size: 'a4' | 'a5'; showNomor: boolean }) {
@@ -213,12 +216,16 @@ function PaperSlip({ nota, toko, size, showNomor }: { nota: Nota; toko: Toko; si
 
       {nota.catatan && <div style={{ color: '#45514A' }}>Catatan: {nota.catatan}</div>}
 
-      <div className="mt-auto flex items-end justify-between gap-6 pt-6">
-        <div className="serif italic" style={{ color: '#45514A', fontSize: fs(14) }}>{toko.catatan_kaki}</div>
-        <div className="w-[180px] shrink-0 text-center">
-          <div style={{ color: '#646B64' }}>Hormat kami,</div>
-          <div style={{ height: a5 ? 44 : 60 }} />
-          <div className="border-t pt-1 font-semibold" style={{ borderColor: '#18241E' }}>{toko.nama}</div>
+      <div className="mt-auto flex flex-col gap-5 pt-6">
+        {toko.catatan_kaki && <div className="serif text-center italic" style={{ color: '#45514A', fontSize: fs(14) }}>{toko.catatan_kaki}</div>}
+        <div className="grid grid-cols-2" style={{ gap: a5 ? 32 : 64 }}>
+          {SIGNATURES.map(sig => (
+            <div key={sig} className="text-center">
+              <div style={{ color: '#646B64' }}>{sig},</div>
+              <div style={{ height: a5 ? 52 : 68 }} />
+              <div className="border-t" style={{ borderColor: '#18241E' }} />
+            </div>
+          ))}
         </div>
       </div>
     </article>
@@ -314,6 +321,17 @@ function ThermalSlip({ nota, toko, showNomor }: { nota: Nota; toko: Toko; showNo
       {nota.bayar != null && sum(nota.metode, formatRp(nota.bayar))}
       {kembali != null && kembali > 0 && sum('Kembali', formatRp(kembali))}
       {nota.catatan && (<>{rule}<div>{nota.catatan}</div></>)}
+      {rule}
+      {/* Signature lines: recipient left, store right */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '4ch', marginTop: 4 }}>
+        {SIGNATURES.map(sig => (
+          <div key={sig} className="text-center">
+            <div>{sig}</div>
+            <div style={{ height: 44 }} />
+            <div style={{ borderTop: '1px solid #000' }} />
+          </div>
+        ))}
+      </div>
       {toko.catatan_kaki && (<>{rule}<div className="text-center">{toko.catatan_kaki}</div></>)}
     </article>
   )
