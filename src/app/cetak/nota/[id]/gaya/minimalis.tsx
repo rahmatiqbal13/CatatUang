@@ -1,6 +1,6 @@
 import { formatRp } from '@/lib/tokens'
 import { formatTanggal } from '@/lib/formatters'
-import { SIGNATURES, stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
 
 /*
  * Gaya "Minimalis": whitespace does the work. Sans throughout, one hairline,
@@ -11,7 +11,7 @@ const INK = '#1A1A1A'
 const SOFT = '#7A7A7A'
 const HAIR = '#D9D9D9'
 
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   const k = a5 ? 0.8 : 1
   const px = (n: number) => Math.round(n * k * 10) / 10
@@ -62,7 +62,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
       {nota.catatan && <div style={{ ...label, marginTop: px(28), color: INK }}>{nota.catatan}</div>}
 
       <div className="mt-auto grid grid-cols-2" style={{ gap: px(64), paddingTop: px(48) }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig}>
             <div style={{ height: px(56) }} />
             <div style={{ borderTop: `1px solid ${INK}`, paddingTop: px(6), ...label }}>{sig.toLowerCase()}</div>
@@ -83,7 +83,7 @@ function Row({ label, value, px, strong }: { label: string; value: string; px: (
   )
 }
 
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   const { subtotal, kembali } = totals(nota)
   const row = (l: string, r: string, bold = false) => (
     <div className="flex justify-between" style={{ fontWeight: bold ? 700 : 400 }}><span>{l}</span><span>{r}</span></div>
@@ -115,7 +115,7 @@ function Thermal({ nota, toko, showNomor }: ThermalProps) {
       {nota.catatan && <div style={{ marginTop: 10 }}>{nota.catatan}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '4ch', marginTop: 16 }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig}>
             <div style={{ height: 40 }} />
             <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>{sig.toLowerCase()}</div>

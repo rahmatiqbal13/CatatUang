@@ -1,13 +1,13 @@
 import { formatRp } from '@/lib/tokens'
 import { formatTanggal, terbilangRupiah } from '@/lib/formatters'
 import { subtotalItems } from '@/lib/nota'
-import { SIGNATURES, stamp, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { stamp, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
 
 /* Gaya "Sederhana": the first, plain layout. */
 
 /* ── A4 / A5 ─────────────────────────────────────────────────────────── */
 
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   const subtotal = subtotalItems(nota.items)
   const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
@@ -93,7 +93,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
       <div className="mt-auto flex flex-col gap-5 pt-6">
         {toko.catatan_kaki && <div className="serif text-center italic" style={{ color: '#45514A', fontSize: fs(14) }}>{toko.catatan_kaki}</div>}
         <div className="grid grid-cols-2" style={{ gap: a5 ? 32 : 64 }}>
-          {SIGNATURES.map(sig => (
+          {signatures.map((sig, i) => !sig ? <div key={i} /> : (
             <div key={sig} className="text-center">
               <div style={{ color: '#646B64' }}>{sig},</div>
               <div style={{ height: a5 ? 52 : 68 }} />
@@ -118,7 +118,7 @@ function Line({ label, value }: { label: string; value: string }) {
 /* ── Thermal 80 mm ───────────────────────────────────────────────────── */
 
 // 80 mm roll ≈ 72 mm printable; pure black, mono, all caps, no greys (thermal heads dither them badly).
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   const subtotal = subtotalItems(nota.items)
   const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
   const dash = '1px dashed #000'
@@ -186,7 +186,7 @@ function Thermal({ nota, toko, showNomor }: ThermalProps) {
       {rule}
       {/* Signature lines: recipient left, store right */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '4ch', marginTop: 4 }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig} className="text-center">
             <div>{sig}</div>
             <div style={{ height: 44 }} />

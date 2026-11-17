@@ -1,7 +1,7 @@
 import { formatRp } from '@/lib/tokens'
 import { formatTanggal, terbilangRupiah } from '@/lib/formatters'
 import { subtotalItems } from '@/lib/nota'
-import { SIGNATURES, monogram, stamp, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { monogram, stamp, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
 
 /* Gaya "Cetak klasik": letterpress slip (paper) and inverse-masthead receipt (thermal). */
 
@@ -13,7 +13,7 @@ const HAIR = '#C9C2B2'
  * Letterpress-style slip: double-ruled frame, monogram + serif masthead, a
  * ticket perforation, a ledger table and a solid ink total bar. Greyscale-safe.
  */
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   const k = a5 ? 0.8 : 1
   const px = (n: number) => Math.round(n * k * 10) / 10
@@ -182,7 +182,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
               </div>
             )}
             <div className="grid grid-cols-2" style={{ gap: px(56) }}>
-              {SIGNATURES.map(sig => (
+              {signatures.map((sig, i) => !sig ? <div key={i} /> : (
                 <div key={sig} className="text-center">
                   <div className="cu-mono uppercase" style={{ fontSize: px(9.5), letterSpacing: '.2em', color: MUTED }}>{sig}</div>
                   <div style={{ height: px(64) }} />
@@ -207,7 +207,7 @@ function SumLine({ label, value }: { label: string; value: string }) {
 }
 
 // 80 mm roll ≈ 72 mm printable; pure black, mono, all caps, no greys (thermal heads dither them badly).
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   const subtotal = subtotalItems(nota.items)
   const kembali = nota.bayar != null ? Number(nota.bayar) - Number(nota.total) : null
   const dash = '1px dashed #000'
@@ -278,7 +278,7 @@ function Thermal({ nota, toko, showNomor }: ThermalProps) {
       {rule}
       {/* Signature lines: recipient left, store right */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '4ch', marginTop: 4 }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig} className="text-center">
             <div>{sig}</div>
             <div style={{ height: 44 }} />

@@ -3,8 +3,13 @@ import { subtotalItems } from '@/lib/nota'
 import type { Nota, Toko } from '@/lib/types'
 
 /** Props every nota style receives. `size` only applies to the paper (A4/A5) variant. */
-export type PaperProps = { nota: Nota; toko: Toko; size: 'a4' | 'a5'; showNomor: boolean }
-export type ThermalProps = { nota: Nota; toko: Toko; showNomor: boolean }
+/**
+ * `signatures` is always two slots — [Tanda terima, Hormat kami] — with `null` for a
+ * slot that's switched off, so the remaining line keeps its side of the page.
+ */
+export type Signatures = readonly (string | null)[]
+export type PaperProps = { nota: Nota; toko: Toko; size: 'a4' | 'a5'; showNomor: boolean; signatures: Signatures }
+export type ThermalProps = { nota: Nota; toko: Toko; showNomor: boolean; signatures: Signatures }
 
 export type NotaStyle = {
   id: string
@@ -15,7 +20,7 @@ export type NotaStyle = {
   Thermal: (p: ThermalProps) => React.ReactNode
 }
 
-/** Signature lines at the foot of every template: the recipient signs "Tanda terima"; "Hormat kami" is the store's, line only. */
+/** Signature slot labels: the recipient signs "Tanda terima"; "Hormat kami" is the store's. Line only, no names. */
 export const SIGNATURES = ['Tanda terima', 'Hormat kami'] as const
 
 // Generic shop-type words don't make a good monogram ("Toko Jaya Abadi" → "JA").

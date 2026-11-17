@@ -1,6 +1,6 @@
 import { formatRp } from '@/lib/tokens'
 import { formatTanggal } from '@/lib/formatters'
-import { SIGNATURES, stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
 
 /*
  * Gaya "Tegas": poster-loud. Heavy uppercase sans, thick black rules, the
@@ -9,7 +9,7 @@ import { SIGNATURES, stamp, totals, paperSheet, thermalSheet, type NotaStyle, ty
 
 const INK = '#000'
 
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   const k = a5 ? 0.78 : 1
   const px = (n: number) => Math.round(n * k * 10) / 10
@@ -75,7 +75,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
 
       <div className="mt-auto" style={{ paddingTop: px(24) }}>
         <div className="grid grid-cols-2" style={{ gap: px(40) }}>
-          {SIGNATURES.map(sig => (
+          {signatures.map((sig, i) => !sig ? <div key={i} /> : (
             <div key={sig}>
               <div style={{ ...caps, fontSize: px(11) }}>{sig}</div>
               <div style={{ height: px(60) }} />
@@ -100,7 +100,7 @@ function Row({ l, r }: { l: string; r: string }) {
   )
 }
 
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   const { subtotal, kembali } = totals(nota)
   const row = (l: string, r: string) => (
     <div className="flex justify-between"><span>{l}</span><span className="whitespace-nowrap">{r}</span></div>
@@ -135,7 +135,7 @@ function Thermal({ nota, toko, showNomor }: ThermalProps) {
       {kembali != null && kembali > 0 && row('Kembali', formatRp(kembali))}
       {nota.catatan && <div style={{ marginTop: 6, fontWeight: 600 }}>{nota.catatan}</div>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '4ch', marginTop: 12 }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig}>
             <div>{sig}</div>
             <div style={{ height: 40 }} />

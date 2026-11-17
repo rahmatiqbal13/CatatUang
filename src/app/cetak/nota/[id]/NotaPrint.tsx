@@ -5,6 +5,7 @@ import { Printer, X } from 'lucide-react'
 import type { Nota, Toko } from '@/lib/types'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NOTA_STYLES, styleById } from './gaya'
+import { SIGNATURES } from './gaya/shared'
 
 type Template = 'a4' | 'a5' | 'thermal80'
 
@@ -26,6 +27,8 @@ const PAGE_CSS: Record<Template, string> = {
 const TEMPLATE_KEY = 'catatuang.nota.template'
 const NOMOR_KEY = 'catatuang.nota.showNomor'
 const STYLE_KEY = 'catatuang.nota.style'
+const TTD_PENERIMA_KEY = 'catatuang.nota.ttdPenerima'
+const TTD_TOKO_KEY = 'catatuang.nota.ttdToko'
 const listeners = new Set<() => void>()
 const readPref = (key: string) => {
   try { return localStorage.getItem(key) } catch { return null }
@@ -40,12 +43,18 @@ const readTemplate = (): Template => {
   return v === 'a5' || v === 'thermal80' ? v : 'a4'
 }
 const readShowNomor = () => readPref(NOMOR_KEY) !== '0'
+// Recipient's line is on by default; the store's "Hormat kami" is opt-in.
+const readTtdPenerima = () => readPref(TTD_PENERIMA_KEY) !== '0'
+const readTtdToko = () => readPref(TTD_TOKO_KEY) === '1'
 
 const readGaya = () => styleById(readPref(STYLE_KEY)).id
 
 export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
   const template = useSyncExternalStore(subscribe, readTemplate, () => 'a4' as Template)
   const showNomor = useSyncExternalStore(subscribe, readShowNomor, () => true)
+  const ttdPenerima = useSyncExternalStore(subscribe, readTtdPenerima, () => true)
+  const ttdToko = useSyncExternalStore(subscribe, readTtdToko, () => false)
+  const signatures = [ttdPenerima ? SIGNATURES[0] : null, ttdToko ? SIGNATURES[1] : null]
   const gaya = styleById(useSyncExternalStore(subscribe, readGaya, () => NOTA_STYLES[0].id))
   const thermal = template === 'thermal80'
 
@@ -64,7 +73,8 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
 
       {/* Toolbar — never printed */}
       <div className="nota-toolbar sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b px-5 py-3" style={{ background: 'var(--surface-elev)', borderColor: 'var(--divider)' }}>
-        <div className="min-w-0 flex-1">
+        {/* min width so the toolbar wraps instead of squeezing the number under the buttons */}
+        <div className="min-w-[150px] flex-1">
           <div className="label-caps text-[10.5px]" style={{ color: 'var(--text-muted)' }}>Cetak nota</div>
           <div className="cu-mono text-[14px] font-semibold">{nota.nomor}</div>
         </div>
@@ -106,21 +116,9 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
             ))}
           </SelectContent>
         </Select>
-        <label className="flex min-h-11 cursor-pointer items-center gap-[10px] text-[13px] font-semibold">
-          <button
-            role="switch"
-            aria-checked={showNomor}
-            onClick={() => writePref(NOMOR_KEY, showNomor ? '0' : '1')}
-            className="relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors"
-            style={{ background: showNomor ? 'var(--accent)' : 'var(--border-dashed)' }}
-          >
-            <span
-              className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full shadow-[0_1px_3px_rgba(0,0,0,.25)] transition-transform"
-              style={{ background: 'var(--surface-elev)', transform: showNomor ? 'translateX(18px)' : 'none' }}
-            />
-          </button>
-          Tampilkan nomor
-        </label>
+        <Toggle on={showNomor} onToggle={() => writePref(NOMOR_KEY, showNomor ? '0' : '1')}>Nomor</Toggle>
+        <Toggle on={ttdPenerima} onToggle={() => writePref(TTD_PENERIMA_KEY, ttdPenerima ? '0' : '1')}>TTD penerima</Toggle>
+        <Toggle on={ttdToko} onToggle={() => writePref(TTD_TOKO_KEY, ttdToko ? '0' : '1')}>TTD toko</Toggle>
         <button
           onClick={() => window.print()}
           className="inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold"
@@ -145,9 +143,30 @@ export function NotaPrint({ nota, toko }: { nota: Nota; toko: Toko }) {
 
       <div className="nota-stage flex justify-center px-4 py-8">
         {thermal
-          ? <gaya.Thermal nota={nota} toko={toko} showNomor={showNomor} />
-          : <gaya.Paper nota={nota} toko={toko} size={template} showNomor={showNomor} />}
+          ? <gaya.Thermal nota={nota} toko={toko} showNomor={showNomor} signatures={signatures} />
+          : <gaya.Paper nota={nota} toko={toko} size={template} showNomor={showNomor} signatures={signatures} />}
       </div>
     </div>
+  )
+}
+
+/** Small labelled on/off switch for the print toolbar. */
+function Toggle({ on, onToggle, children }: { on: boolean; onToggle: () => void; children: React.ReactNode }) {
+  return (
+    <label className="flex min-h-11 cursor-pointer items-center gap-[8px] text-[13px] font-semibold whitespace-nowrap">
+      <button
+        role="switch"
+        aria-checked={on}
+        onClick={onToggle}
+        className="relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors"
+        style={{ background: on ? 'var(--accent)' : 'var(--border-dashed)' }}
+      >
+        <span
+          className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full shadow-[0_1px_3px_rgba(0,0,0,.25)] transition-transform"
+          style={{ background: 'var(--surface-elev)', transform: on ? 'translateX(18px)' : 'none' }}
+        />
+      </button>
+      {children}
+    </label>
   )
 }

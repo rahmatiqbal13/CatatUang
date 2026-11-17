@@ -1,7 +1,7 @@
 import { formatRp } from '@/lib/tokens'
 import { terbilangRupiah } from '@/lib/formatters'
 import type { Nota, Toko } from '@/lib/types'
-import { SIGNATURES, stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type Signatures, type ThermalProps } from './shared'
 
 /*
  * Gaya "Mesin ketik": the whole slip is composed as fixed-width text, like a
@@ -37,7 +37,7 @@ function wrap(text: string, w: number): string[] {
 }
 
 /** Compose the slip as lines of exactly `W` characters; `signAt` is where the signature block starts. */
-function compose(nota: Nota, toko: Toko, showNomor: boolean, W: number, wide: boolean): { lines: string[]; signAt: number } {
+function compose(nota: Nota, toko: Toko, showNomor: boolean, signatures: Signatures, W: number, wide: boolean): { lines: string[]; signAt: number } {
   const { subtotal, kembali } = totals(nota)
   const L: string[] = []
   const frame = '+' + '-'.repeat(W - 2) + '+'
@@ -106,10 +106,13 @@ function compose(nota: Nota, toko: Toko, showNomor: boolean, W: number, wide: bo
 
   const signAt = L.length
   const half = Math.floor(W / 2)
-  L.push(center(SIGNATURES[0] + ',', half) + center(SIGNATURES[1] + ',', W - half))
-  L.push('', '', '')
-  const blank = '(' + '_'.repeat(Math.min(18, half - 4)) + ')'
-  L.push(center(blank, half) + center(blank, W - half))
+  const [kiri, kanan] = signatures
+  if (kiri || kanan) {
+    L.push(center(kiri ? kiri + ',' : '', half) + center(kanan ? kanan + ',' : '', W - half))
+    L.push('', '', '')
+    const blank = '(' + '_'.repeat(Math.min(18, half - 4)) + ')'
+    L.push(center(kiri ? blank : '', half) + center(kanan ? blank : '', W - half))
+  }
   if (toko.catatan_kaki) {
     L.push('')
     for (const w of wrap(`*** ${toko.catatan_kaki} ***`, W)) L.push(center(w, W))
@@ -136,10 +139,10 @@ function Lunas({ size }: { size: number }) {
 const isLunas = (nota: Nota) => nota.bayar != null && Number(nota.bayar) >= Number(nota.total)
 
 /** Slip text with the LUNAS stamp pinned over the "Hormat kami" signature. */
-function Typed({ nota, toko, showNomor, W, wide, fontSize, lineHeight, stampSize }: {
-  nota: Nota; toko: Toko; showNomor: boolean; W: number; wide: boolean; fontSize: number; lineHeight: number; stampSize: number
+function Typed({ nota, toko, showNomor, signatures, W, wide, fontSize, lineHeight, stampSize }: {
+  nota: Nota; toko: Toko; showNomor: boolean; signatures: Signatures; W: number; wide: boolean; fontSize: number; lineHeight: number; stampSize: number
 }) {
-  const { lines, signAt } = compose(nota, toko, showNomor, W, wide)
+  const { lines, signAt } = compose(nota, toko, showNomor, signatures, W, wide)
   const pre = (ls: string[]) => (
     <pre className="cu-mono m-0" style={{ fontSize, lineHeight, whiteSpace: 'pre' }}>{ls.join('\n')}</pre>
   )
@@ -155,22 +158,22 @@ function Typed({ nota, toko, showNomor, W, wide, fontSize, lineHeight, stampSize
   )
 }
 
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   // Columns × char width (0.6em) must fit the sheet: A4 ≈ 688px, A5 ≈ 491px.
   const W = a5 ? 58 : 76
   const fontSize = a5 ? 13.6 : 15
   return (
     <article className="nota-sheet" style={{ ...paperSheet(size), color: '#111' }}>
-      <Typed nota={nota} toko={toko} showNomor={showNomor} W={W} wide fontSize={fontSize} lineHeight={1.45} stampSize={a5 ? 22 : 28} />
+      <Typed nota={nota} toko={toko} showNomor={showNomor} signatures={signatures} W={W} wide fontSize={fontSize} lineHeight={1.45} stampSize={a5 ? 22 : 28} />
     </article>
   )
 }
 
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   return (
     <article className="nota-sheet" style={thermalSheet}>
-      <Typed nota={nota} toko={toko} showNomor={showNomor} W={40} wide={false} fontSize={10.8} lineHeight={1.35} stampSize={16} />
+      <Typed nota={nota} toko={toko} showNomor={showNomor} signatures={signatures} W={40} wide={false} fontSize={10.8} lineHeight={1.35} stampSize={16} />
     </article>
   )
 }

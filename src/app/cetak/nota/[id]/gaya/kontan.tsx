@@ -1,6 +1,6 @@
 import { formatRp } from '@/lib/tokens'
 import { formatTanggal, terbilangRupiah } from '@/lib/formatters'
-import { SIGNATURES, stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
 
 /*
  * Gaya "Nota kontan": the carbon-copy receipt book every Indonesian shop keeps —
@@ -19,7 +19,7 @@ function Dotted({ children, minWidth }: { children?: React.ReactNode; minWidth?:
   )
 }
 
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   const k = a5 ? 0.82 : 1
   const px = (n: number) => Math.round(n * k * 10) / 10
@@ -93,7 +93,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
 
       <div className="mt-auto flex flex-col" style={{ gap: px(14) }}>
         <div className="grid grid-cols-2" style={{ gap: px(80) }}>
-          {SIGNATURES.map(sig => (
+          {signatures.map((sig, i) => !sig ? <div key={i} /> : (
             <div key={sig} className="text-center">
               <div>{sig},</div>
               <div style={{ height: px(60) }} />
@@ -111,7 +111,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
   )
 }
 
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   const { kembali } = totals(nota)
   const cell = { border: '1px solid #000', padding: '2px 3px' }
   return (
@@ -156,7 +156,7 @@ function Thermal({ nota, toko, showNomor }: ThermalProps) {
       )}
       {nota.catatan && <div style={{ marginTop: 4 }}>{nota.catatan}</div>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '3ch', marginTop: 10 }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig} className="text-center">
             <div>{sig}</div>
             <div style={{ height: 40 }} />

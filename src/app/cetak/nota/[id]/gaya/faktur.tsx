@@ -1,6 +1,6 @@
 import { formatRp } from '@/lib/tokens'
 import { formatTanggal, terbilangRupiah } from '@/lib/formatters'
-import { SIGNATURES, stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
+import { stamp, totals, paperSheet, thermalSheet, type NotaStyle, type PaperProps, type ThermalProps } from './shared'
 
 /*
  * Gaya "Faktur": office invoice. A black spine down the left edge carries the
@@ -11,7 +11,7 @@ const INK = '#111'
 const GREY = '#E6E6E6'
 const LINE = `1px solid ${INK}`
 
-function Paper({ nota, toko, size, showNomor }: PaperProps) {
+function Paper({ nota, toko, size, showNomor, signatures }: PaperProps) {
   const a5 = size === 'a5'
   const k = a5 ? 0.8 : 1
   const px = (n: number) => Math.round(n * k * 10) / 10
@@ -103,7 +103,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
         )}
 
         <div className="mt-auto grid grid-cols-2" style={{ gap: px(28) }}>
-          {SIGNATURES.map(sig => (
+          {signatures.map((sig, i) => !sig ? <div key={i} /> : (
             <div key={sig} style={{ border: LINE }}>
               <div className="text-center" style={{ ...caps, background: GREY, padding: `${px(4)}px`, borderBottom: LINE }}>{sig}</div>
               <div style={{ height: px(76) }} />
@@ -116,7 +116,7 @@ function Paper({ nota, toko, size, showNomor }: PaperProps) {
   )
 }
 
-function Thermal({ nota, toko, showNomor }: ThermalProps) {
+function Thermal({ nota, toko, showNomor, signatures }: ThermalProps) {
   const { subtotal, kembali } = totals(nota)
   const label = (t: string) => (
     <div style={{ background: '#000', color: '#fff', fontWeight: 700, letterSpacing: '.18em', padding: '1px 4px', margin: '8px 0 4px' }}>{t}</div>
@@ -150,7 +150,7 @@ function Thermal({ nota, toko, showNomor }: ThermalProps) {
       {kembali != null && kembali > 0 && row('Kembali', formatRp(kembali))}
       {nota.catatan && (<>{label('Catatan')}<div>{nota.catatan}</div></>)}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 6, marginTop: 10 }}>
-        {SIGNATURES.map(sig => (
+        {signatures.map((sig, i) => !sig ? <div key={i} /> : (
           <div key={sig} style={{ border: '1px solid #000' }}>
             <div className="text-center" style={{ borderBottom: '1px solid #000' }}>{sig}</div>
             <div style={{ height: 44 }} />
